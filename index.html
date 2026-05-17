@@ -1514,6 +1514,7 @@ async function carregarAgroindustrias() {
 
 // ===FILTRO POR PERFIL E PRODUTOR===
 function aplicarFiltroProdutor() {
+  if (!usr || !usr.p) { setTimeout(aplicarFiltroProdutor, 200); return; }
   var perfil = usr.p;
   var produtor = usr.proprietario;
 
@@ -2099,7 +2100,7 @@ function carregarApp() {
   buildCal();
   renderDocsTbl();
   renderAIUsers();
-  aplicarFiltroProdutor();
+  setTimeout(function(){ aplicarFiltroProdutor(); }, 100);
   ['dashboard','municipios','produtores','agroindustrias','legalizacoes'].forEach(function(pid){
     aplicarFiltroPagina(pid);
   });
