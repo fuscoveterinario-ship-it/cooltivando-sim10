@@ -812,12 +812,17 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       <!-- CONFIG DOCS -->
       <div class="pg" id="pg-selo-arte">
   <div class="pt">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:16px">
         <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:22px">&#11088;</div>
         <div>
           <h2 style="font-family:Nunito,sans-serif;font-size:20px;font-weight:900">Modulo Selo Arte</h2>
           <p style="font-size:12px;color:var(--k5)">Gestao de produtores com Selo Arte — Lei Federal 13.680/2018</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-left:12px;padding-left:12px;border-left:1px solid var(--k3)">
+          <img src="https://agrifamiliar.com.br/wp-content/uploads/2023/12/logo-3.svg" alt="Biotec" style="height:28px;object-fit:contain" onerror="this.style.display='none'">
+          <span style="font-size:10px;color:var(--k5)">+</span>
+          <span style="font-size:11px;font-weight:800;color:#2d7a50;letter-spacing:.5px">COOLTIVANDO</span>
         </div>
       </div>
       <button id="btn-novo-selo-arte" class="btn bsm" style="background:#f59e0b;color:#fff;font-weight:700" onclick="sm('m-novo-selo-arte')">+ Novo produtor Selo Arte</button>
@@ -829,7 +834,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
     <!-- Banner municipio -->
     <div id="selo-mun-banner" style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:8px">
       <span style="font-size:18px">&#11088;</span>
-      <span>Produtores Selo Arte do municipio: <b id="selo-mun-nome">Pien</b> &nbsp;|&nbsp; Acesso exclusivo — dados separados do SIM</span>
+      <span>Processo exclusivo <b>Cooltivando / Biotec</b> &nbsp;|&nbsp; Municipio: <b id="selo-mun-nome">-</b> &nbsp;|&nbsp; Dados separados do SIM</span>
     </div>
 
     <!-- Stats -->
@@ -1478,7 +1483,8 @@ var TIPOS_USUARIO = [
    campos:[{id:'crmv', label:'CRMV / Num. Conselho', placeholder:'Ex: CRMV-PR 9876'}]},
   {id:'prefeito', nome:'Prefeito', desc:'Visualiza relatorios e estatisticas', icon:'🏛️', cor:'#374151', campos:[]},
   {id:'secretario', nome:'Secretario', desc:'Visualiza relatorios do municipio', icon:'📋', cor:'#374151', campos:[]},
-  {id:'admin', nome:'Admin Sistema', desc:'Acesso total ao sistema', icon:'⚙️', cor:'#2b6cb0', campos:[]}
+  {id:'admin', nome:'Admin Sistema', desc:'Acesso total ao sistema', icon:'⚙️', cor:'#2b6cb0', campos:[]},
+  {id:'gerente_selo', nome:'Gerente Selo Arte', desc:'Gerencia documentacao Selo Arte (Cooltivando/Biotec)', icon:'⭐', cor:'#f59e0b', campos:[{id:'empresa', label:'Empresa (Cooltivando/Biotec)', placeholder:'Ex: Cooltivando'}]}
 ];
 
 function renderTiposUsuario() {
@@ -1544,6 +1550,267 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 </div>
 <script>
+// ===JORNADA SELO ARTE===
+var produtorSeloArteAtual = null;
+
+// Documentos obrigatorios conforme Lei 13.680/2018
+var DOCS_SELO_ARTE = [
+  {id:'rg_cpf', nome:'RG e CPF do Produtor', desc:'Documento de identificacao', obrig:true, val:false},
+  {id:'cad_produtor', nome:'Declaracao de Agricultor Familiar (DAP/CAF)', desc:'Comprovante de agricultura familiar', obrig:true, val:true, prazo:'1 ano'},
+  {id:'licenca_sanitaria', nome:'Licenca Sanitaria', desc:'Emitida pela vigilancia sanitaria municipal', obrig:true, val:true, prazo:'1 ano'},
+  {id:'laudo_agua', nome:'Laudo de Potabilidade da Agua', desc:'Analise laboratorial da agua utilizada', obrig:true, val:true, prazo:'6 meses'},
+  {id:'rt', nome:'Responsavel Tecnico (ART/RRT)', desc:'Contrato com medico veterinario ou engenheiro de alimentos', obrig:true, val:true, prazo:'1 ano'},
+  {id:'rotulo', nome:'Rotulo aprovado pelo MAPA', desc:'Arte do rotulo com informacoes obrigatorias', obrig:true, val:false},
+  {id:'laudo_produto', nome:'Laudo de Analise do Produto', desc:'Analise fisico-quimica e microbiologica', obrig:true, val:true, prazo:'1 ano'},
+  {id:'memoria_calculo', nome:'Memoria de Calculo do produto', desc:'Ficha tecnica e processo de fabricacao', obrig:false, val:false},
+  {id:'boas_praticas', nome:'Manual de Boas Praticas', desc:'Procedimentos de higiene e manipulacao', obrig:true, val:false},
+  {id:'inspecao_final', nome:'Laudo de Inspecao Final', desc:'Vistoria do fiscal antes da concessao do Selo', obrig:true, val:false}
+];
+
+function abrirJornadaSeloArte(nomeProdutor) {
+  produtorSeloArteAtual = nomeProdutor;
+  // Mudar para aba da jornada
+  setTab(document.querySelector('[onclick*="sa-tab-docs"]'), 'sa-tab-docs');
+  renderizarJornadaSeloArte(nomeProdutor);
+}
+
+function renderizarJornadaSeloArte(nomeProdutor) {
+  var lista = document.getElementById('sa-jornada-lista');
+  if (!lista) return;
+
+  lista.innerHTML = '';
+
+  // Header do produtor
+  var header = document.createElement('div');
+  header.style.cssText = 'background:linear-gradient(135deg,#fff8e1,#fff);border:1.5px solid #f59e0b;border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px';
+  header.innerHTML = '<span style="font-size:22px">\u2B50</span>' +
+    '<div><div style="font-family:Nunito,sans-serif;font-size:14px;font-weight:800">' + nomeProdutor + '</div>' +
+    '<div style="font-size:11px;color:#92400e">Jornada de documentos para obtencao do Selo Arte</div></div>';
+  lista.appendChild(header);
+
+  // Lista de documentos
+  var aptos = 0;
+  DOCS_SELO_ARTE.forEach(function(doc, idx) {
+    var div = document.createElement('div');
+    div.style.cssText = 'background:#fff;border:1.5px solid var(--k3);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px';
+
+    // Status aleatorio para demo - em producao viria do banco
+    var statuses = ['pendente','enviado','aprovado','pendente','pendente','pendente','pendente','pendente','pendente','pendente'];
+    var st = statuses[idx] || 'pendente';
+    if (st === 'aprovado') aptos++;
+
+    var cor = st === 'aprovado' ? '#16a34a' : st === 'enviado' ? '#d97706' : '#6b7280';
+    var icone = st === 'aprovado' ? '\u2705' : st === 'enviado' ? '\u23F3' : '\u25CB';
+    var badge = st === 'aprovado' ? 'Aprovado' : st === 'enviado' ? 'Em analise' : 'Pendente';
+    var badgeCor = st === 'aprovado' ? 'bgr' : st === 'enviado' ? 'bgy' : '';
+
+    div.innerHTML =
+      '<div style="font-size:20px">' + icone + '</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:700;color:#374151">' + (idx+1) + '. ' + doc.nome + (doc.obrig ? ' <span style="color:#ef4444;font-size:10px">*</span>' : '') + '</div>' +
+        '<div style="font-size:11px;color:#6b7280;margin-top:2px">' + doc.desc + (doc.val ? ' — Validade: ' + (doc.prazo||'') : '') + '</div>' +
+      '</div>' +
+      '<span class="bdg ' + badgeCor + '" style="font-size:10px">' + badge + '</span>' +
+      (usr.p === 'Admin Sistema' || usr.p === 'Fiscal' || usr.p === 'Gerente Selo Arte' ?
+        '<button class="btn bo bsm" onclick="gerenciarDocSeloArte(\'' + doc.id + '\',\'' + nomeProdutor + '\')">Gerenciar</button>' : '');
+    lista.appendChild(div);
+  });
+
+  // Progresso
+  var prog = document.createElement('div');
+  prog.style.cssText = 'background:#f0fdf4;border:1.5px solid #16a34a;border-radius:10px;padding:12px 16px;margin-top:4px;display:flex;align-items:center;justify-content:space-between';
+  var pct = Math.round((aptos/DOCS_SELO_ARTE.length)*100);
+  prog.innerHTML =
+    '<div style="font-size:13px;font-weight:700;color:#15803d">Progresso: ' + aptos + '/' + DOCS_SELO_ARTE.length + ' documentos aprovados</div>' +
+    '<div style="font-size:12px;color:#16a34a;font-weight:800">' + pct + '%</div>';
+  lista.appendChild(prog);
+}
+
+function gerenciarDocSeloArte(docId, produtor) {
+  alert('Gerenciar documento Selo Arte: ' + docId + '\nProdutor: ' + produtor + '\n(Upload integrado em desenvolvimento)');
+}
+
+// ===UPLOAD DE PDF — VALIDACAO E ENVIO===
+var UPLOAD_MAX_MB = 5;
+var UPLOAD_MAX_BYTES = UPLOAD_MAX_MB * 1024 * 1024;
+
+function validarArquivo(input, docKey) {
+  var erroEl = document.getElementById('upld-erro-' + docKey);
+  var nomeEl = document.getElementById('upld-nome-' + docKey);
+  var btnEl  = document.getElementById('upld-btn-' + docKey);
+
+  erroEl.style.display = 'none';
+  erroEl.textContent = '';
+  nomeEl.textContent = 'Nenhum arquivo escolhido';
+  if (btnEl) btnEl.style.display = 'none';
+
+  if (!input.files || input.files.length === 0) return;
+  var file = input.files[0];
+
+  // Validar tipo
+  if (file.type !== 'application/pdf') {
+    erroEl.textContent = '\u274C Tipo invalido: apenas PDF e aceito.';
+    erroEl.style.display = 'block';
+    input.value = '';
+    return;
+  }
+
+  // Validar tamanho (5 MB)
+  if (file.size > UPLOAD_MAX_BYTES) {
+    var tamanhoMB = (file.size / 1024 / 1024).toFixed(2);
+    erroEl.textContent = '\u274C Arquivo muito grande: ' + tamanhoMB + ' MB. O limite e ' + UPLOAD_MAX_MB + ' MB.';
+    erroEl.style.display = 'block';
+    input.value = '';
+    return;
+  }
+
+  // Arquivo OK
+  var tamanhoKB = file.size < 1024 * 1024
+    ? (file.size / 1024).toFixed(0) + ' KB'
+    : (file.size / 1024 / 1024).toFixed(2) + ' MB';
+  nomeEl.textContent = '\u2705 ' + file.name + ' (' + tamanhoKB + ')';
+  if (btnEl) btnEl.style.display = 'inline-flex';
+}
+
+async function enviarPDF(docKey) {
+  var inputEl = document.getElementById('upld-input-' + docKey);
+  var erroEl  = document.getElementById('upld-erro-' + docKey);
+  var progEl  = document.getElementById('upld-prog-' + docKey);
+  var barEl   = document.getElementById('upld-bar-' + docKey);
+  var pctEl   = document.getElementById('upld-pct-' + docKey);
+  var btnEl   = document.getElementById('upld-btn-' + docKey);
+  var nomeEl  = document.getElementById('upld-nome-' + docKey);
+
+  erroEl.style.display = 'none';
+  if (!inputEl || !inputEl.files || inputEl.files.length === 0) return;
+  var file = inputEl.files[0];
+
+  // Mostrar barra de progresso
+  progEl.style.display = 'block';
+  if (btnEl) btnEl.disabled = true;
+  barEl.style.width = '0%';
+  pctEl.textContent = 'Preparando...';
+
+  try {
+    var munSlug = (usr.municipio_nome || 'geral').replace(/\s+/g, '_').toLowerCase();
+    var ts = Date.now();
+    var nomeArquivo = docKey.replace(/\s+/g, '_') + '_' + ts + '.pdf';
+    var caminho = 'documentos/' + munSlug + '/' + nomeArquivo;
+
+    barEl.style.width = '30%';
+    pctEl.textContent = 'Enviando para o servidor...';
+
+    // Upload para Supabase Storage
+    var uploadRes = await fetch(
+      SUPA_URL + '/storage/v1/object/sim-docs/' + caminho,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': SUPA_KEY,
+          'Authorization': 'Bearer ' + SUPA_KEY,
+          'Content-Type': 'application/pdf',
+          'x-upsert': 'true'
+        },
+        body: file
+      }
+    );
+
+    barEl.style.width = '70%';
+    pctEl.textContent = 'Registrando no banco...';
+
+    if (!uploadRes.ok) {
+      var errTxt = await uploadRes.text();
+      throw new Error('Storage: ' + errTxt);
+    }
+
+    var urlArquivo = SUPA_URL + '/storage/v1/object/public/sim-docs/' + caminho;
+
+    var now = new Date();
+    var dtStr = now.toLocaleDateString('pt-BR') + ' - ' + now.toTimeString().slice(0,8);
+    var registro = {
+      doc_key: docKey,
+      municipio_nome: usr.municipio_nome || '',
+      nome_arquivo: file.name,
+      caminho_storage: caminho,
+      url_publica: urlArquivo,
+      tamanho_bytes: file.size,
+      enviado_por: usr.n,
+      perfil_envio: usr.p,
+      data_envio: now.toISOString()
+    };
+
+    await supaInsert('documentos_enviados', registro);
+
+    barEl.style.width = '100%';
+    pctEl.textContent = 'Concluido!';
+
+    var doc = procDocs[docKey];
+    if (doc) {
+      doc.arq = file.name;
+      doc.url = urlArquivo;
+      doc.rastro = 'Enviado por: ' + usr.n + ' (' + usr.p + ') - ' + dtStr;
+      if (doc.st === 'pen') doc.st = 'env';
+    }
+
+    nomeEl.innerHTML = '\u2705 <b>' + file.name + '</b> enviado com sucesso!';
+    nomeEl.style.color = 'var(--g7)';
+    if (btnEl) { btnEl.style.display = 'none'; }
+    inputEl.value = '';
+
+    setTimeout(function() {
+      progEl.style.display = 'none';
+      renderProcCards();
+      renderProcDetalhe();
+      document.getElementById('mrt').textContent = 'Documento enviado';
+      document.getElementById('mrf').textContent = file.name + ' — ' + (file.size/1024).toFixed(0) + ' KB';
+      document.getElementById('mrd').textContent = usr.n + ' (' + usr.p + ') — ' + dtStr;
+      sm('m-rastro');
+    }, 800);
+
+  } catch(e) {
+    console.error('Erro upload:', e);
+    barEl.style.width = '0%';
+    progEl.style.display = 'none';
+    erroEl.textContent = '\u274C Erro ao enviar: ' + (e.message || 'tente novamente.');
+    erroEl.style.display = 'block';
+    if (btnEl) btnEl.disabled = false;
+  }
+}
+
+// ===CARREGAR USUARIOS DO BANCO===
+async function carregarUsuarios() {
+  try {
+    var users = await supaGet('usuarios', 'select=*&order=nome');
+    if (!users) return;
+
+    var tbody = document.querySelector('#pg-usuarios .tbl tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    users.forEach(function(u) {
+      if (!u.nome || !u.email) return; // pular vazios
+      var cor = {
+        'Admin Sistema':'bbl','Fiscal':'byw','Produtor':'bgr',
+        'Resp. Tecnico':'bgr','Prefeito':'bbl','Secretario':'bbl'
+      }[u.perfil] || 'bgr';
+
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><b>' + u.nome + '</b></td>' +
+        '<td>' + u.email + '</td>' +
+        '<td><span class="bdg ' + cor + '">' + u.perfil + '</span></td>' +
+        '<td>' + (u.municipio_nome || '-') + '</td>' +
+        '<td><span class="bdg ' + (u.ativo ? 'bgr' : 'bgy') + '">' + (u.ativo ? 'Ativo' : 'Inativo') + '</span></td>' +
+        '<td><button class="btn bo bsm" onclick="editarUsuario(\'' + u.id + '\')">Editar</button></td>';
+      tbody.appendChild(tr);
+    });
+  } catch(e) { console.log('Erro carregar usuarios:', e); }
+}
+
+function editarUsuario(id) {
+  alert('Editar usuario: ' + id + ' (em desenvolvimento)');
+}
+
 // ===CARREGAR STATS SELO ARTE===
 async function carregarStatsSeloArte() {
   try {
@@ -1606,12 +1873,13 @@ async function carregarMunicipioUsuario() {
 
 // ===TIPOS DE USUARIO===
 var TIPOS_USUARIO = [
-  {id:'fiscal', nome:'Fiscal', desc:'Realiza visitas e aprova documentos', icon:'🕵️', cor:'#f4a261', campos:[{id:'matricula', label:'Matricula funcional', placeholder:'Ex: 12345'}]},
-  {id:'produtor', nome:'Produtor', desc:'Acessa seus processos e documentos', icon:'🌾', cor:'#3a9463', campos:[{id:'cadpro', label:'CADPRO', placeholder:'Numero do cadastro rural'}]},
-  {id:'rt', nome:'Resp. Tecnico', desc:'Acompanha empresas sob sua responsabilidade', icon:'🎓', cor:'#2d7a50', campos:[{id:'crmv', label:'CRMV / Num. Conselho', placeholder:'Ex: CRMV-PR 9876'}]},
-  {id:'prefeito', nome:'Prefeito', desc:'Visualiza relatorios e estatisticas', icon:'🏛️', cor:'#374151', campos:[]},
-  {id:'secretario', nome:'Secretario', desc:'Visualiza relatorios do municipio', icon:'📋', cor:'#374151', campos:[]},
-  {id:'admin', nome:'Admin Sistema', desc:'Acesso total ao sistema', icon:'⚙️', cor:'#2b6cb0', campos:[]}
+  {id:'fiscal', nome:'Fiscal', desc:'Realiza visitas e aprova documentos', icon:'\uD83D\uDD75\uFE0F', cor:'#f4a261', campos:[{id:'matricula', label:'Matricula funcional', placeholder:'Ex: 12345'}]},
+  {id:'produtor', nome:'Produtor', desc:'Acessa seus processos e documentos', icon:'\uD83C\uDF3E', cor:'#3a9463', campos:[{id:'cadpro', label:'CADPRO', placeholder:'Numero do cadastro rural'}]},
+  {id:'rt', nome:'Resp. Tecnico', desc:'Acompanha empresas sob sua responsabilidade', icon:'\uD83C\uDF93', cor:'#2d7a50', campos:[{id:'crmv', label:'CRMV / Num. Conselho', placeholder:'Ex: CRMV-PR 9876'}]},
+  {id:'prefeito', nome:'Prefeito', desc:'Visualiza relatorios e estatisticas', icon:'\uD83C\uDFDB\uFE0F', cor:'#374151', campos:[]},
+  {id:'secretario', nome:'Secretario', desc:'Visualiza relatorios do municipio', icon:'\uD83D\uDCCB', cor:'#374151', campos:[]},
+  {id:'admin', nome:'Admin Sistema', desc:'Acesso total ao sistema', icon:'\u2699\uFE0F', cor:'#2b6cb0', campos:[]},
+  {id:'gerente_selo', nome:'Gerente Selo Arte', desc:'Gerencia documentacao Selo Arte (Cooltivando/Biotec)', icon:'\u2B50', cor:'#f59e0b', campos:[{id:'empresa', label:'Empresa (Cooltivando/Biotec)', placeholder:'Ex: Cooltivando'}]}
 ];
 
 function renderTiposUsuario() {
@@ -2142,7 +2410,7 @@ async function enviarRecuperacao() {
     });
 
     msgEl.style.cssText = 'display:block;background:var(--g0);color:var(--g7);padding:10px;border-radius:8px;font-size:12px;text-align:center;border:1px solid var(--g2)';
-    msgEl.textContent = '✅ E-mail enviado! Verifique sua caixa de entrada.';
+    msgEl.textContent = '\u2705 E-mail enviado! Verifique sua caixa de entrada.';
     if (btn) { btn.textContent = 'Enviar link'; btn.disabled = false; }
 
   } catch(e) {
@@ -2370,6 +2638,7 @@ function carregarApp() {
   carregarAgroindustrias();
   carregarMunicipioUsuario();
   carregarStatsSeloArte();
+  carregarUsuarios();
 }
 
 async function carregarDadosBanco() {
@@ -2537,6 +2806,8 @@ async function salvarUsuario() {
       num_conselho: numConselho
     });
     alert('Usuario criado! Senha temporaria: ' + senhaTemp + '\nAnote e envie para o usuario.');
+    hm('m-usr');
+    carregarUsuarios();
 
     hm('m-usr');
     document.getElementById('mrt').textContent = 'Usuario cadastrado!';
@@ -2736,20 +3007,47 @@ function renderProcDetalhe() {
   }
 
   // Upload
-  var upld=document.createElement('div');upld.className='upld';
-  upld.innerHTML='<button class="ub">Escolher Arquivo</button><span style="font-size:12px;color:var(--k5)">Nenhum arquivo escolhido - PDF, max. 1 arquivo</span><button class="btn bg bsm" style="margin-left:auto">Enviar</button>';
+  var upldId = 'upld-input-' + procSel;
+  var upld = document.createElement('div');
+  upld.className = 'upld';
+  upld.style.flexDirection = 'column';
+  upld.style.alignItems = 'stretch';
+  upld.style.gap = '10px';
+  upld.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px">' +
+      '<label for="' + upldId + '" class="ub" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">' +
+        '&#128194; Escolher PDF' +
+      '</label>' +
+      '<span id="upld-nome-' + procSel + '" style="font-size:12px;color:var(--k5);flex:1">Nenhum arquivo escolhido</span>' +
+      '<button class="btn bg bsm" id="upld-btn-' + procSel + '" onclick="enviarPDF(\'' + procSel + '\')" style="margin-left:auto;display:none">&#11014; Enviar</button>' +
+    '</div>' +
+    '<input type="file" id="' + upldId + '" accept="application/pdf" style="display:none" onchange="validarArquivo(this,\'' + procSel + '\')">' +
+    '<div id="upld-erro-' + procSel + '" style="display:none;background:var(--rd0);border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:12px;color:var(--rd);font-weight:600"></div>' +
+    '<div id="upld-prog-' + procSel + '" style="display:none">' +
+      '<div style="background:var(--k3);border-radius:4px;height:6px;overflow:hidden">' +
+        '<div id="upld-bar-' + procSel + '" style="height:100%;background:var(--g5);width:0%;transition:width .3s;border-radius:4px"></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--k5);margin-top:4px" id="upld-pct-' + procSel + '">Enviando...</div>' +
+    '</div>';
   box.appendChild(upld);
 
   // PDF
   var pdf=document.createElement('div');pdf.className='pdf-box';
   if (doc.arq) {
     var pb=document.createElement('div');pb.className='pdf-bar';
-    pb.innerHTML='<span>'+doc.arq+' - 1 de 1</span>';pdf.appendChild(pb);
+    var linkArq = doc.url
+      ? '<a href="'+doc.url+'" target="_blank" style="color:rgba(255,255,255,.9);text-decoration:underline;font-size:11px">'+doc.arq+'</a>'
+      : '<span>'+doc.arq+'</span>';
+    pb.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> '+linkArq;
+    pdf.appendChild(pb);
     var pv=document.createElement('div');pv.className='pdf-view';
-    pv.innerHTML='<div><div style="font-size:40px;margin-bottom:10px">&#128196;</div><div style="font-size:13px">'+doc.arq+'</div></div>';pdf.appendChild(pv);
+    var abrirBtn = doc.url ? '<br><a href="'+doc.url+'" target="_blank" class="btn bg bsm" style="margin-top:10px;text-decoration:none">&#128065; Visualizar PDF</a>' : '';
+    pv.innerHTML='<div><div style="font-size:40px;margin-bottom:8px">&#128196;</div><div style="font-size:13px;font-weight:600">'+doc.arq+'</div>'+abrirBtn+'</div>';
+    pdf.appendChild(pv);
   } else {
     var pv2=document.createElement('div');pv2.className='pdf-view';
-    pv2.innerHTML='<div><div style="font-size:36px;margin-bottom:8px">&#128238;</div><div style="font-size:13px">Nenhum arquivo enviado ainda</div></div>';pdf.appendChild(pv2);
+    pv2.innerHTML='<div><div style="font-size:36px;margin-bottom:8px">&#128238;</div><div style="font-size:13px;color:var(--k5)">Nenhum arquivo enviado ainda</div><div style="font-size:11px;color:var(--k5);margin-top:4px">Somente PDF — maximo 5 MB</div></div>';
+    pdf.appendChild(pv2);
   }
   box.appendChild(pdf);
 
@@ -3194,7 +3492,7 @@ function baixarPDF(nomeProcesso) { nomeProcesso = nomeProcesso || processoAtual 
   htmlPDF += '</div>';
   htmlPDF += '<div class="watermark">Documento gerado pelo sistema Cooltivando SIM - ' + codigo + '</div>';
   htmlPDF += '<br><div style="text-align:center"><button onclick="window.print()" style="padding:10px 24px;background:#2d7a50;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Imprimir / Salvar PDF</button></div>';
-  htmlPDF += '';
+  htmlPDF += '</body></html>';
 }
 </script>
 
