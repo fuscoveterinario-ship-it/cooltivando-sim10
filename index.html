@@ -976,7 +976,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
       <!-- USUARIOS -->
       <div class="pg" id="pg-usuarios">
-        <div class="ph2"><h2>Usuarios</h2><div class="act"><button class="btn bg" onclick="sm('m-usr')">+ Novo usuario</button></div></div>
+        <div class="ph2"><h2>Usuarios</h2><div class="act"><button class="btn bg" onclick="sm('m-usr'); renderTiposUsuario();">+ Novo usuario</button></div></div>
         <div class="cd"><table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Municipio</th><th>Status</th><th></th></tr></thead><tbody>
           <tr><td><b>Cooltivando</b></td><td>admin@cooltivando.com.br</td><td><span class="bdg bbl">Admin Sistema</span></td><td>-</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
           <tr><td><b>Joao Silva</b></td><td>joao@pien.pr.gov.br</td><td><span class="bdg byw">Fiscal</span></td><td>Pien</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
@@ -1468,9 +1468,163 @@ async function carregarAgroindustrias() {
 
 
 </div>
+// ===TIPOS DE USUARIO===
+var TIPOS_USUARIO = [
+  {id:'fiscal', nome:'Fiscal', desc:'Realiza visitas e aprova documentos', icon:'🕵️', cor:'#f4a261',
+   campos:[{id:'matricula', label:'Matricula funcional', placeholder:'Ex: 12345'}]},
+  {id:'produtor', nome:'Produtor', desc:'Acessa seus processos e documentos', icon:'🌾', cor:'#3a9463',
+   campos:[{id:'cadpro', label:'CADPRO', placeholder:'Numero do cadastro rural'}]},
+  {id:'rt', nome:'Resp. Tecnico', desc:'Acompanha empresas sob sua responsabilidade', icon:'🎓', cor:'#2d7a50',
+   campos:[{id:'crmv', label:'CRMV / Num. Conselho', placeholder:'Ex: CRMV-PR 9876'}]},
+  {id:'prefeito', nome:'Prefeito', desc:'Visualiza relatorios e estatisticas', icon:'🏛️', cor:'#374151', campos:[]},
+  {id:'secretario', nome:'Secretario', desc:'Visualiza relatorios do municipio', icon:'📋', cor:'#374151', campos:[]},
+  {id:'admin', nome:'Admin Sistema', desc:'Acesso total ao sistema', icon:'⚙️', cor:'#2b6cb0', campos:[]}
+];
+
+function renderTiposUsuario() {
+  var grid = document.getElementById('tipo-usr-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  tipoSelecionado = null;
+
+  TIPOS_USUARIO.forEach(function(tipo) {
+    var div = document.createElement('div');
+    div.style.cssText = 'border:2px solid var(--k3);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center';
+    div.innerHTML = '<div style="font-size:24px;margin-bottom:6px">' + tipo.icon + '</div>' +
+      '<div style="font-size:12px;font-weight:800;color:#374151">' + tipo.nome + '</div>' +
+      '<div style="font-size:10px;color:#6b7280;margin-top:3px">' + tipo.desc + '</div>';
+    div.onclick = function() {
+      grid.querySelectorAll('div').forEach(function(d){
+        d.style.borderColor='var(--k3)';
+        d.style.background='';
+      });
+      div.style.borderColor = tipo.cor;
+      div.style.background = '#f0faf3';
+      tipoSelecionado = tipo;
+      renderCamposExtras(tipo);
+    };
+    grid.appendChild(div);
+  });
+}
+
+function renderCamposExtras(tipo) {
+  var area = document.getElementById('campos-extras');
+  var titulo = document.getElementById('campos-extras-titulo');
+  var conteudo = document.getElementById('campos-extras-conteudo');
+  if (!area) return;
+
+  if (!tipo.campos || tipo.campos.length === 0) {
+    area.style.display = 'none';
+    return;
+  }
+
+  area.style.display = 'block';
+  if (titulo) titulo.textContent = 'Dados de ' + tipo.nome;
+  if (conteudo) {
+    conteudo.innerHTML = '';
+    tipo.campos.forEach(function(campo) {
+      var div = document.createElement('div');
+      div.style.marginBottom = '12px';
+      div.innerHTML = '<label class="fl">' + campo.label + '</label>' +
+        '<input class="fi" id="extra-' + campo.id + '" placeholder="' + campo.placeholder + '">';
+      conteudo.appendChild(div);
+    });
+  }
+}
+
+// Inicializar tipos quando modal abrir
+document.addEventListener('DOMContentLoaded', function() {
+  var btnUsr = document.querySelector('[onclick*="m-usr"]');
+  if (btnUsr) {
+    var orig = btnUsr.getAttribute('onclick');
+    btnUsr.setAttribute('onclick', orig + '; renderTiposUsuario();');
+  }
+});
+
 </div>
 </div>
 <script>
+// ===TIPOS DE USUARIO===
+var TIPOS_USUARIO = [
+  {id:'fiscal', nome:'Fiscal', desc:'Realiza visitas e aprova documentos', icon:'🕵️', cor:'#f4a261', campos:[{id:'matricula', label:'Matricula funcional', placeholder:'Ex: 12345'}]},
+  {id:'produtor', nome:'Produtor', desc:'Acessa seus processos e documentos', icon:'🌾', cor:'#3a9463', campos:[{id:'cadpro', label:'CADPRO', placeholder:'Numero do cadastro rural'}]},
+  {id:'rt', nome:'Resp. Tecnico', desc:'Acompanha empresas sob sua responsabilidade', icon:'🎓', cor:'#2d7a50', campos:[{id:'crmv', label:'CRMV / Num. Conselho', placeholder:'Ex: CRMV-PR 9876'}]},
+  {id:'prefeito', nome:'Prefeito', desc:'Visualiza relatorios e estatisticas', icon:'🏛️', cor:'#374151', campos:[]},
+  {id:'secretario', nome:'Secretario', desc:'Visualiza relatorios do municipio', icon:'📋', cor:'#374151', campos:[]},
+  {id:'admin', nome:'Admin Sistema', desc:'Acesso total ao sistema', icon:'⚙️', cor:'#2b6cb0', campos:[]}
+];
+
+function renderTiposUsuario() {
+  var grid = document.getElementById('tipo-usr-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  tipoSelecionado = null;
+  var extras = document.getElementById('campos-extras');
+  if (extras) extras.style.display = 'none';
+
+  TIPOS_USUARIO.forEach(function(tipo) {
+    var div = document.createElement('div');
+    div.style.cssText = 'border:2px solid var(--k3);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center';
+    div.innerHTML = '<div style="font-size:22px;margin-bottom:4px">' + tipo.icon + '</div>' +
+      '<div style="font-size:12px;font-weight:800;color:#374151">' + tipo.nome + '</div>' +
+      '<div style="font-size:10px;color:#6b7280;margin-top:2px;line-height:1.3">' + tipo.desc + '</div>';
+    div.onclick = (function(t) { return function() {
+      grid.querySelectorAll('div').forEach(function(d){ d.style.borderColor='var(--k3)'; d.style.background=''; });
+      div.style.borderColor = t.cor;
+      div.style.background = '#f0faf3';
+      tipoSelecionado = t;
+      renderCamposExtras(t);
+    }; })(tipo);
+    grid.appendChild(div);
+  });
+}
+
+function renderCamposExtras(tipo) {
+  var area = document.getElementById('campos-extras');
+  var titulo = document.getElementById('campos-extras-titulo');
+  var conteudo = document.getElementById('campos-extras-conteudo');
+  if (!area) return;
+  if (!tipo.campos || tipo.campos.length === 0) { area.style.display = 'none'; return; }
+  area.style.display = 'block';
+  if (titulo) titulo.textContent = 'Dados de ' + tipo.nome;
+  if (conteudo) {
+    conteudo.innerHTML = '';
+    tipo.campos.forEach(function(campo) {
+      var div = document.createElement('div');
+      div.style.marginBottom = '12px';
+      div.innerHTML = '<label class="fl">' + campo.label + '</label><input class="fi" id="extra-' + campo.id + '" placeholder="' + campo.placeholder + '">';
+      conteudo.appendChild(div);
+    });
+  }
+}
+
+// ===VARIAVEIS GLOBAIS===
+var jornadaIco = '&#128203;';
+var processoAtual = null;
+var procSel = 0;
+
+var docsBase = [
+  {id:1, nome:'RG e CPF', desc:'Identificacao ou CNH', obrig:true, val:false, prazo:'--', alerta:'--'},
+  {id:2, nome:'Licenca Sanitaria', desc:'Licenca vigente', obrig:true, val:true, prazo:'1 ano', alerta:'30 dias'},
+  {id:3, nome:'Laudo de Agua', desc:'Potabilidade', obrig:true, val:true, prazo:'6 meses', alerta:'30 dias'},
+  {id:4, nome:'Resp. Tecnico', desc:'ART ou contrato', obrig:true, val:true, prazo:'1 ano', alerta:'30 dias'},
+  {id:5, nome:'Projeto Arquitetonico', desc:'Planta baixa 1:100', obrig:true, val:false, prazo:'--', alerta:'--'}
+];
+
+var procDocs = [
+  {num:'01', nome:'RG e CPF', desc:'Identificacao ou CNH', st:'apr', val:false, arq:'rg_cpf.pdf', rastro:'Aprovado por: Joao Silva (Fiscal) - 18/03/2026'},
+  {num:'02', nome:'Licenca Sanitaria', desc:'Licenca vigente', st:'vnd', val:true, vence:'5 dias', arq:'licenca.pdf', rastro:null},
+  {num:'03', nome:'Laudo de Agua', desc:'Potabilidade', st:'apr', val:true, arq:'laudo_agua.pdf', rastro:'Aprovado por: Joao Silva (Fiscal) - 18/03/2026'},
+  {num:'04', nome:'Resp. Tecnico', desc:'ART ou contrato', st:'pen', val:true, arq:null, rastro:null},
+  {num:'05', nome:'Projeto Arquitetonico', desc:'Planta baixa 1:100', st:'pen', val:false, arq:null, rastro:null}
+];
+
+var aiUsers = [
+  {nome:'Marcus Fusco', perfil:'Admin Sistema', usado:12, limite:20, bloq:false},
+  {nome:'Joao Silva', perfil:'Fiscal', usado:8, limite:20, bloq:false},
+  {nome:'Jorge Buba', perfil:'Produtor', usado:3, limite:10, bloq:false}
+];
+
 // ===CARREGAR AGROINDUSTRIAS DO BANCO===
 async function carregarAgroindustrias() {
   try {
@@ -1518,25 +1672,47 @@ function aplicarFiltroProdutor() {
   var perfil = usr.p;
   var produtor = usr.proprietario;
 
-  // Se for Produtor, filtrar dados para mostrar apenas os dele
-  if (perfil === 'Produtor' && produtor) {
-    // Filtrar tabelas por produtor
-    document.querySelectorAll('[data-produtor]').forEach(function(el) {
-      el.style.display = el.getAttribute('data-produtor') === produtor ? '' : 'none';
-    });
-
-    // Limpar stats do dashboard - produtor nao ve dados gerais
-    var stats = document.querySelectorAll('.sg .sc');
-    stats.forEach(function(sc) { sc.style.display = 'none'; });
-
-    // Atualizar boas vindas
-    var wm = document.getElementById('wm');
-    if (wm) wm.textContent = 'Bem-vindo, ' + usr.n + '!';
-  }
-
-  // Aplicar permissoes de menu
+  // Aplicar filtro de menu por perfil
   aplicarPermissoes();
   aplicarFiltroMunicipio();
+
+  // Produtor - ver apenas seus dados
+  if (perfil === 'Produtor') {
+    // Esconder stats gerais
+    document.querySelectorAll('.sg .sc').forEach(function(sc) { sc.style.display = 'none'; });
+    // Filtrar tabelas por produtor
+    if (produtor) {
+      document.querySelectorAll('[data-produtor]').forEach(function(el) {
+        el.style.display = el.getAttribute('data-produtor') === produtor ? '' : 'none';
+      });
+    }
+    // Esconder botoes de criar/editar
+    document.querySelectorAll('.btn.bg[onclick*="sm("]').forEach(function(btn){
+      btn.style.display = 'none';
+    });
+  }
+
+  // Fiscal - ver dados do seu municipio
+  if (perfil === 'Fiscal') {
+    // Fiscal pode ver stats mas nao pode criar municipios/produtores
+    document.querySelectorAll('.ph2 .btn.bg[onclick*="m-mun"]').forEach(function(btn){
+      btn.style.display = 'none';
+    });
+    document.querySelectorAll('.ph2 .btn.bg[onclick*="m-prod"]').forEach(function(btn){
+      btn.style.display = 'none';
+    });
+  }
+
+  // Prefeito/Secretario - apenas visualizacao
+  if (perfil === 'Prefeito' || perfil === 'Secretario') {
+    document.querySelectorAll('.btn.bg[onclick*="sm("]').forEach(function(btn){
+      btn.style.display = 'none';
+    });
+  }
+
+  // Boas vindas personalizadas
+  var wm = document.getElementById('wm');
+  if (wm) wm.textContent = 'Bem-vindo, ' + usr.n + '!';
 }
 
 // ===EDITAR MUNICIPIO===
@@ -2264,15 +2440,17 @@ async function salvarUsuario() {
       });
     }
 
+    var senhaTemp = 'Coooltivando@' + Math.floor(1000 + Math.random() * 9000);
     await supaInsert('usuarios', {
       nome: nome,
       email: email,
-      senha_hash: Math.random().toString(36).slice(-8) + '@2026',
+      senha_hash: senhaTemp,
       perfil: tipoSelecionado.nome,
       municipio_id: munId,
       crmv: crmv,
       num_conselho: numConselho
     });
+    alert('Usuario criado! Senha temporaria: ' + senhaTemp + '\nAnote e envie para o usuario.');
 
     hm('m-usr');
     document.getElementById('mrt').textContent = 'Usuario cadastrado!';
