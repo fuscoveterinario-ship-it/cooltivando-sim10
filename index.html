@@ -473,7 +473,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
       <!-- MUNICIPIOS -->
       <div class="pg" id="pg-municipios">
-        <div class="ph2"><h2>Municipios</h2><div class="act"><button class="btn bg" onclick="sm('m-mun')">+ Novo municipio</button></div></div>
+        <div class="ph2"><h2>Municipios</h2><div class="act"><button id="btn-novo-mun" class="btn bg" onclick="sm('m-mun')">+ Novo municipio</button></div></div>
         <div class="cd"><table class="tbl"><thead><tr><th>Municipio</th><th>Estado</th><th>Consorcio</th><th>Produtores</th><th>Fiscais</th><th>Status</th><th></th></tr></thead><tbody>
           <tr><td><b>Pien</b></td><td>PR</td><td>-</td><td>12</td><td>2</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
           <tr><td><b>Campo do Tenente</b></td><td>PR</td><td>-</td><td>8</td><td>1</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
@@ -482,7 +482,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
       <!-- PRODUTORES -->
       <div class="pg" id="pg-produtores">
-        <div class="ph2"><h2>Produtores</h2><div class="act"><button class="btn bg" onclick="sm('m-prod')">+ Novo produtor</button></div></div>
+        <div class="ph2"><h2>Produtores</h2><div class="act"><button id="btn-novo-prod" class="btn bg" onclick="sm('m-prod')">+ Novo produtor</button></div></div>
         <div class="cd"><table class="tbl"><thead><tr><th>Nome</th><th>CPF</th><th>Municipio</th><th>Agroindustrias</th><th>Status</th><th></th></tr></thead><tbody>
           <tr><td><b>Jorge Buba</b></td><td>780.486.219-91</td><td>Pien</td><td>2</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm" onclick="navPg('empresa',null)">Ver empresa</button></td></tr>
           <tr><td><b>Maria Santos</b></td><td>123.456.789-00</td><td>Campo do Tenente</td><td>1</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm" onclick="navPg('empresa',null)">Ver empresa</button></td></tr>
@@ -491,7 +491,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
       <!-- AGROINDUSTRIAS -->
       <div class="pg" id="pg-agroindustrias">
-        <div class="ph2"><h2>Agroindustrias</h2><div class="act"><button class="btn bg" onclick="sm('m-agro')">+ Nova agroindustria</button></div></div>
+        <div class="ph2"><h2>Agroindustrias</h2><div class="act"><button id="btn-nova-agro" class="btn bg" onclick="sm('m-agro')">+ Nova agroindustria</button></div></div>
         <div class="cd"><table class="tbl"><thead><tr><th>Nome / N&#186; SIM</th><th>Produtor</th><th>CADPRO</th><th>Tipo</th><th>Municipio</th><th>Processos</th><th></th></tr></thead><tbody>
           <tr data-municipio="Pien" data-produtor="Jorge Buba" data-empresa="Granja Albunio"><td><b>Granja Albunio</b><br>
       <div style="display:flex;align-items:center;gap:4px;margin-top:4px" id="sim-row-0">
@@ -547,7 +547,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
         <div class="tab-c on" id="tab-proc">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <h3 style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800">Processos de Legalizacao</h3>
-            <button class="btn bg" onclick="sm('m-addproc')">Adicionar +</button>
+            <button class="btn bg" id="btn-addproc" onclick="sm('m-addproc')">Adicionar +</button>
           </div>
           <div class="cd" style="margin-bottom:16px;padding:16px 20px">
             <b style="font-size:12px;color:var(--k5);text-transform:uppercase;letter-spacing:.5px">Informacoes da Empresa:</b>
@@ -638,7 +638,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
           <!-- Selecionar jornada para nova visita -->
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <h3 style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800">Inspecao / Fiscalizacao</h3>
-            <button class="btn bg" onclick="sm('m-sel-jornada-fiscal')">+ Nova visita de inspecao</button>
+            <button class="btn bg" id="btn-nova-inspecao" onclick="sm('m-sel-jornada-fiscal')">+ Nova visita de inspecao</button>
           </div>
 
           <!-- Historico de visitas realizadas -->
@@ -789,7 +789,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 </div>
 
 <div class="pg" id="pg-calendario">
-        <div class="ph2"><h2>Calendario</h2><button class="btn bg" onclick="sm('m-vis')">+ Agendar visita</button></div>
+        <div class="ph2"><h2>Calendario</h2><button class="btn bg" id="btn-nova-visita" onclick="sm('m-vis')">+ Agendar visita</button></div>
         <div class="g3">
           <div class="cd">
             <div class="cdh"><span class="cdt">maio de 2026</span><div style="display:flex;gap:5px"><button class="btn bo bsm">&#8249;</button><button class="btn bo bsm">&#8250;</button></div></div>
@@ -820,7 +820,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
           <p style="font-size:12px;color:var(--k5)">Gestao de produtores com Selo Arte — Lei Federal 13.680/2018</p>
         </div>
       </div>
-      <button class="btn bsm" style="background:#f59e0b;color:#fff;font-weight:700" onclick="sm('m-novo-selo-arte')">+ Novo produtor Selo Arte</button>
+      <button id="btn-novo-selo-arte" class="btn bsm" style="background:#f59e0b;color:#fff;font-weight:700" onclick="sm('m-novo-selo-arte')">+ Novo produtor Selo Arte</button>
     </div>
   </div>
 
@@ -834,10 +834,10 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
     <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
-      <div class="sc" style="border-color:#f59e0b"><div class="sl">Produtores</div><div class="sv">8</div><div class="ss">com Selo Arte</div></div>
-      <div class="sc gr"><div class="sl">Aptos</div><div class="sv">5</div><div class="ss">documentacao ok</div></div>
-      <div class="sc yw"><div class="sl">Em processo</div><div class="sv">2</div><div class="ss">docs pendentes</div></div>
-      <div class="sc rd"><div class="sl">Vencendo</div><div class="sv">1</div><div class="ss">proximos 30 dias</div></div>
+      <div class="sc" style="border-color:#f59e0b"><div class="sl">Produtores</div><div class="sv" id="selo-stat-total">0</div><div class="ss">com Selo Arte</div></div>
+      <div class="sc gr"><div class="sl">Aptos</div><div class="sv" id="selo-stat-aptos">0</div><div class="ss">documentacao ok</div></div>
+      <div class="sc yw"><div class="sl">Em processo</div><div class="sv" id="selo-stat-processo">0</div><div class="ss">docs pendentes</div></div>
+      <div class="sc rd"><div class="sl">Vencendo</div><div class="sv" id="selo-stat-vencendo">0</div><div class="ss">proximos 30 dias</div></div>
     </div>
 
     <!-- Tabs -->
@@ -948,7 +948,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 </div>
 
 <div class="pg" id="pg-cfg-docs">
-        <div class="ph2"><h2>Documentos exigidos do Produtor</h2><button class="btn bg" onclick="sm('m-dcfg')">+ Novo documento</button></div>
+        <div class="ph2"><h2>Documentos exigidos do Produtor</h2><button class="btn bg" id="btn-novo-doc-cfg" onclick="sm('m-dcfg')">+ Novo documento</button></div>
         <div class="cd"><table class="tbl" id="tbl-docs"><thead><tr><th>#</th><th>Documento</th><th>Obrigatorio</th><th>Validade</th><th>Prazo</th><th>Alerta</th><th></th></tr></thead><tbody id="tbody-docs"></tbody></table></div>
       </div>
 
@@ -966,7 +966,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
       <!-- CHECKLIST CONFIG -->
       <div class="pg" id="pg-cfg-cl">
-        <div class="ph2"><h2>Checklist de Fiscalizacao</h2><button class="btn bg" onclick="sm('m-clcfg')">+ Novo item</button></div>
+        <div class="ph2"><h2>Checklist de Fiscalizacao</h2><button class="btn bg" id="btn-novo-checklist" onclick="sm('m-clcfg')">+ Novo item</button></div>
         <div class="cd"><table class="tbl"><thead><tr><th>Ordem</th><th>Item</th><th>Categoria</th><th>Obrigatorio</th><th>Ativo</th><th></th></tr></thead><tbody>
           <tr><td>1</td><td><b>Boas Praticas de Fabricacao</b></td><td>Qualidade</td><td><span class="bdg bgr">Sim</span></td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
           <tr><td>2</td><td><b>Condicoes sanitarias</b></td><td>Sanitario</td><td><span class="bdg bgr">Sim</span></td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
@@ -976,7 +976,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
       <!-- USUARIOS -->
       <div class="pg" id="pg-usuarios">
-        <div class="ph2"><h2>Usuarios</h2><div class="act"><button class="btn bg" onclick="sm('m-usr'); renderTiposUsuario();">+ Novo usuario</button></div></div>
+        <div class="ph2"><h2>Usuarios</h2><div class="act"><button id="btn-novo-usr" class="btn bg" onclick="sm('m-usr'); renderTiposUsuario();">+ Novo usuario</button></div></div>
         <div class="cd"><table class="tbl"><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Municipio</th><th>Status</th><th></th></tr></thead><tbody>
           <tr><td><b>Cooltivando</b></td><td>admin@cooltivando.com.br</td><td><span class="bdg bbl">Admin Sistema</span></td><td>-</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
           <tr><td><b>Joao Silva</b></td><td>joao@pien.pr.gov.br</td><td><span class="bdg byw">Fiscal</span></td><td>Pien</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
@@ -1544,6 +1544,47 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 </div>
 <script>
+// ===CARREGAR STATS SELO ARTE===
+async function carregarStatsSeloArte() {
+  try {
+    var query = 'select=*';
+    // Filtrar por municipio do usuario se nao for admin
+    if (usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      query += '&municipio_id=eq.' + usr.municipio_id;
+    }
+    // Se for produtor, filtrar apenas o proprio produtor
+    if (usr.p === 'Produtor' && usr.proprietario) {
+      query += '&produtor_nome=eq.' + encodeURIComponent(usr.proprietario);
+    }
+
+    var data = await supaGet('produtores_selo_arte', query);
+    if (!data) data = [];
+
+    var total = data.length;
+    var aptos = data.filter(function(p){ return p.status === 'apto'; }).length;
+    var processo = data.filter(function(p){ return p.status === 'em_processo' || p.status === 'pendente'; }).length;
+    var vencendo = data.filter(function(p){ return p.status === 'vencendo'; }).length;
+
+    var elTotal = document.getElementById('selo-stat-total');
+    var elAptos = document.getElementById('selo-stat-aptos');
+    var elProcesso = document.getElementById('selo-stat-processo');
+    var elVencendo = document.getElementById('selo-stat-vencendo');
+
+    if (elTotal) elTotal.textContent = total;
+    if (elAptos) elAptos.textContent = aptos;
+    if (elProcesso) elProcesso.textContent = processo;
+    if (elVencendo) elVencendo.textContent = vencendo;
+
+  } catch(e) {
+    console.log('Erro stats selo arte:', e);
+    // Zerar stats em caso de erro
+    ['selo-stat-total','selo-stat-aptos','selo-stat-processo','selo-stat-vencendo'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.textContent = '0';
+    });
+  }
+}
+
 // ===CARREGAR MUNICIPIO DO USUARIO===
 async function carregarMunicipioUsuario() {
   if (!usr || !usr.municipio_id) return;
@@ -1554,6 +1595,9 @@ async function carregarMunicipioUsuario() {
       // Atualizar banner de docs do municipio
       var el = document.getElementById('docs-mun-nome');
       if (el) el.textContent = nome;
+      // Atualizar banner do selo arte
+      var seloEl = document.getElementById('selo-mun-nome');
+      if (seloEl) seloEl.textContent = nome;
       // Guardar no usr
       usr.municipio_nome = nome;
     }
@@ -1709,14 +1753,17 @@ function aplicarFiltroProdutor() {
     // Esconder area de adicionar documento de referencia
     var addArea = document.getElementById('docs-mun-add-area');
     if (addArea) addArea.style.display = 'none';
+    // Esconder botao novo selo arte
+    var btnSelo = document.getElementById('btn-novo-selo-arte');
+    if (btnSelo) btnSelo.style.display = 'none';
   }
 
-  // RT - mesmas restricoes do Produtor
+  // RT - mesmas restricoes do Produtor para botoes
   if (perfil === 'Resp. Tecnico') {
-    document.querySelectorAll('.sg .sc').forEach(function(sc) { sc.style.display = 'none'; });
-    document.querySelectorAll('.btn.bg[onclick*="sm("]').forEach(function(btn){ btn.style.display = 'none'; });
     var addArea = document.getElementById('docs-mun-add-area');
     if (addArea) addArea.style.display = 'none';
+    var btnSelo = document.getElementById('btn-novo-selo-arte');
+    if (btnSelo) btnSelo.style.display = 'none';
   }
 
   // Prefeito/Secretario - so visualizacao
@@ -1724,6 +1771,8 @@ function aplicarFiltroProdutor() {
     document.querySelectorAll('.btn.bg[onclick*="sm("]').forEach(function(btn){ btn.style.display = 'none'; });
     var addArea = document.getElementById('docs-mun-add-area');
     if (addArea) addArea.style.display = 'none';
+    var btnSelo = document.getElementById('btn-novo-selo-arte');
+    if (btnSelo) btnSelo.style.display = 'none';
   }
 
   // Fiscal - ver dados do seu municipio
@@ -2218,7 +2267,8 @@ async function doLogin() {
         p: u.perfil,
         proprietario: u.proprietario || null,
         empresasRT: u.empresas_rt || null,
-        id: u.id
+        id: u.id,
+        municipio_id: u.municipio_id || null
       };
 
       var munNome = null;
@@ -2319,6 +2369,7 @@ function carregarApp() {
   carregarMunicipios();
   carregarAgroindustrias();
   carregarMunicipioUsuario();
+  carregarStatsSeloArte();
 }
 
 async function carregarDadosBanco() {
