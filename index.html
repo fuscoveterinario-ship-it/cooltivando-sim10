@@ -1544,6 +1544,22 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 </div>
 <script>
+// ===CARREGAR MUNICIPIO DO USUARIO===
+async function carregarMunicipioUsuario() {
+  if (!usr || !usr.municipio_id) return;
+  try {
+    var mun = await supaGet('municipios', 'id=eq.' + usr.municipio_id + '&select=nome');
+    if (mun && mun.length > 0) {
+      var nome = mun[0].nome;
+      // Atualizar banner de docs do municipio
+      var el = document.getElementById('docs-mun-nome');
+      if (el) el.textContent = nome;
+      // Guardar no usr
+      usr.municipio_nome = nome;
+    }
+  } catch(e) { console.log('Erro municipio usuario:', e); }
+}
+
 // ===TIPOS DE USUARIO===
 var TIPOS_USUARIO = [
   {id:'fiscal', nome:'Fiscal', desc:'Realiza visitas e aprova documentos', icon:'🕵️', cor:'#f4a261', campos:[{id:'matricula', label:'Matricula funcional', placeholder:'Ex: 12345'}]},
@@ -1690,6 +1706,24 @@ function aplicarFiltroProdutor() {
     document.querySelectorAll('.btn.bg[onclick*="sm("]').forEach(function(btn){
       btn.style.display = 'none';
     });
+    // Esconder area de adicionar documento de referencia
+    var addArea = document.getElementById('docs-mun-add-area');
+    if (addArea) addArea.style.display = 'none';
+  }
+
+  // RT - mesmas restricoes do Produtor
+  if (perfil === 'Resp. Tecnico') {
+    document.querySelectorAll('.sg .sc').forEach(function(sc) { sc.style.display = 'none'; });
+    document.querySelectorAll('.btn.bg[onclick*="sm("]').forEach(function(btn){ btn.style.display = 'none'; });
+    var addArea = document.getElementById('docs-mun-add-area');
+    if (addArea) addArea.style.display = 'none';
+  }
+
+  // Prefeito/Secretario - so visualizacao
+  if (perfil === 'Prefeito' || perfil === 'Secretario') {
+    document.querySelectorAll('.btn.bg[onclick*="sm("]').forEach(function(btn){ btn.style.display = 'none'; });
+    var addArea = document.getElementById('docs-mun-add-area');
+    if (addArea) addArea.style.display = 'none';
   }
 
   // Fiscal - ver dados do seu municipio
@@ -2284,6 +2318,7 @@ function carregarApp() {
   carregarDadosBanco();
   carregarMunicipios();
   carregarAgroindustrias();
+  carregarMunicipioUsuario();
 }
 
 async function carregarDadosBanco() {
