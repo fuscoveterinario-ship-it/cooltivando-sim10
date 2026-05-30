@@ -2434,11 +2434,10 @@ function entrarSistema() {
 }
 
 window.addEventListener('load', function() {
-  // Sempre abrir direto no login
-  var landing = document.getElementById('landing');
   var ls = document.getElementById('ls');
-  if (landing) landing.style.display = 'none';
-  if (ls) ls.style.display = 'flex';
+  if (ls) ls.style.display = 'none';
+  // Auto-abrir login se URL tiver #login
+  if (window.location.hash === '#login') { setTimeout(entrarSistema, 100); }
 });
 
 function renderCredenciais() { /* removido - banco de dados ativo */ }
@@ -2674,9 +2673,25 @@ async function carregarDadosBanco() {
 
 function atualizarTabelaProdutores(prods) {
   var tbody = document.querySelector('#pg-produtores .tbl tbody');
-  if (!tbody || prods.length === 0) return;
-  // Manter dados existentes + adicionar do banco
+  if (!tbody) return;
   console.log('Produtores do banco disponíveis:', prods.length);
+  if (prods.length === 0) return;
+  tbody.innerHTML = '';
+  prods.forEach(function(p) {
+    var mun = (p.municipios && p.municipios.nome) ? p.municipios.nome : (p.municipio_id ? '' : '');
+    var numAg = p.num_agroindustrias || 0;
+    var status = p.status || 'Ativo';
+    var statusCor = status === 'Ativo' ? 'bgv' : 'bgr';
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><strong>' + (p.nome || '') + '</strong></td>' +
+      '<td>' + (p.cpf || '') + '</td>' +
+      '<td>' + mun + '</td>' +
+      '<td>' + numAg + '</td>' +
+      '<td><span class="bdg ' + statusCor + '">' + status + '</span></td>' +
+      '<td><button class="btn bo bsm" onclick="verProdutor(\'' + p.id + '\')">Ver empresa</button></td>';
+    tbody.appendChild(tr);
+  });
 }
 
 // ===SALVAR PRODUTOR NO BANCO===
