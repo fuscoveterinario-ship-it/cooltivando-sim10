@@ -2675,22 +2675,26 @@ function atualizarTabelaProdutores(prods) {
   var tbody = document.querySelector('#pg-produtores .tbl tbody');
   if (!tbody) return;
   console.log('Produtores do banco disponíveis:', prods.length);
-  if (prods.length === 0) return;
+  if (!prods || prods.length === 0) return;
+  // Filtrar apenas produtores com nome válido para evitar dados de teste
+  var validos = prods.filter(function(p) { return p && p.nome && p.id; });
+  if (validos.length === 0) return;
   tbody.innerHTML = '';
-  prods.forEach(function(p) {
-    var mun = (p.municipios && p.municipios.nome) ? p.municipios.nome : (p.municipio_id ? '' : '');
-    var numAg = p.num_agroindustrias || 0;
-    var status = p.status || 'Ativo';
-    var statusCor = status === 'Ativo' ? 'bgv' : 'bgr';
-    var tr = document.createElement('tr');
-    tr.innerHTML =
-      '<td><strong>' + (p.nome || '') + '</strong></td>' +
-      '<td>' + (p.cpf || '') + '</td>' +
-      '<td>' + mun + '</td>' +
-      '<td>' + numAg + '</td>' +
-      '<td><span class="bdg ' + statusCor + '">' + status + '</span></td>' +
-      '<td><button class="btn bo bsm" onclick="verProdutor(\'' + p.id + '\')">Ver empresa</button></td>';
-    tbody.appendChild(tr);
+  validos.forEach(function(p) {
+    try {
+      var mun = (p.municipios && p.municipios.nome) ? p.municipios.nome : '';
+      var status = p.status || 'Ativo';
+      var statusCor = status === 'Ativo' ? 'bgv' : 'bgr';
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><strong>' + (p.nome || '') + '</strong></td>' +
+        '<td>' + (p.cpf || '') + '</td>' +
+        '<td>' + mun + '</td>' +
+        '<td>0</td>' +
+        '<td><span class="bdg ' + statusCor + '">' + status + '</span></td>' +
+        '<td><button class="btn bo bsm" onclick="verProdutor(\'' + p.id + '\')">Ver empresa</button></td>';
+      tbody.appendChild(tr);
+    } catch(e) { console.log('Erro ao renderizar produtor:', e); }
   });
 }
 
