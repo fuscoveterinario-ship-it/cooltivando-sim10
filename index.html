@@ -172,51 +172,6 @@
   /* FADE IN */
   .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
   .fade-in.visible { opacity: 1; transform: translateY(0); }
-
-/* === MODAL LOGIN === */
-:root {
-  --g9:#1a3a2a; --g8:#1e4d35; --g7:#276344; --g6:#2d7a50; --g5:#3a9463;
-  --g4:#52b788; --g3:#74c69d; --g2:#b7e4c7; --g1:#d8f3dc; --g0:#f0faf3;
-  --k9:#1a202c; --k7:#374151; --k5:#6b7280; --k3:#d1d5db; --k1:#f3f4f6;
-  --white:#fff;
-}
-#ls {
-  position: fixed; inset: 0; z-index: 9999;
-  background: linear-gradient(135deg, var(--g9), var(--g7) 55%, var(--g5));
-  display: none; align-items: center; justify-content: center;
-}
-.lb {
-  background: var(--white); border-radius: 20px; padding: 44px 40px;
-  width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.25);
-  animation: fu .4s ease;
-}
-.ll { display: flex; justify-content: center; margin-bottom: 6px; }
-.ll img { height: 46px; width: auto; }
-.lsub { text-align: center; font-size: 12px; color: var(--k5); margin-bottom: 30px; }
-.llab { display: block; font-size: 11px; font-weight: 700; color: var(--k7);
-  margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
-.lin {
-  width: 100%; padding: 11px 14px; border: 1.5px solid var(--k3);
-  border-radius: 8px; font-size: 14px; margin-bottom: 16px;
-  font-family: 'DM Sans', sans-serif; outline: none; transition: border .2s;
-}
-.lin:focus { border-color: var(--g6); }
-.lbtn {
-  width: 100%; padding: 13px; background: var(--g6); color: #fff;
-  border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
-  font-size: 15px; font-weight: 700; cursor: pointer; transition: background .2s;
-}
-.lbtn:hover { background: var(--g7); }
-#login-erro {
-  color: #e63946; font-size: 13px; text-align: center;
-  margin-top: 10px; display: none;
-}
-.lesq { text-align: center; margin-top: 14px; font-size: 13px; color: var(--k5); cursor: pointer; }
-@keyframes fu {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
 </style>
 </head>
 <body>
@@ -234,7 +189,7 @@
     <a href="#selo-arte">Selo Arte</a>
     <a href="#produtos">Produtos</a>
     <a href="#depoimentos">Depoimentos</a>
-    <a href="#" onclick="entrarSistema();return false;" class="nav-btn">Entrar no sistema &#x2192;</a>
+    <a href="sistema.html" class="nav-btn">Entrar no sistema &#x2192;</a>
   </div>
 </nav>
 
@@ -245,7 +200,7 @@
     <h1>Gestão completa do<br/><em>SIM</em> na palma<br/>da mão</h1>
     <p>Plataforma integrada para municípios fiscalizarem, registrarem e rastrearem agroindustrias rurais. Do cadastro do produtor ao Selo Arte &#x2014; tudo em um só lugar.</p>
     <div class="hero-btns">
-      <a href="#" onclick="entrarSistema();return false;" class="btn-primary">Acessar o sistema</a>
+      <a href="sistema.html" class="btn-primary">Acessar o sistema</a>
       <a href="#selo-arte" class="btn-ghost">Selo Arte</a>
     </div>
   </div>
@@ -463,7 +418,7 @@
   <h2>Pronto para modernizar a<br/><em>inspeção do seu município?</em></h2>
   <p>Cooltivando SIM é feito para fiscais, produtores e gestores municipais que querem rastreabilidade real e processos eficientes.</p>
   <div class="cta-btns">
-    <a href="#" onclick="entrarSistema();return false;" class="btn-primary">Acessar o sistema agora</a>
+    <a href="sistema.html" class="btn-primary">Acessar o sistema agora</a>
     <a href="mailto:fusco.veterinario@gmail.com" class="btn-ghost">Falar com a equipe</a>
   </div>
 </section>
@@ -474,7 +429,7 @@
   <div class="footer-links">
     <a href="#">Sobre</a>
     <a href="#">Suporte</a>
-    <a href="#" onclick="entrarSistema();return false;">Entrar</a>
+    <a href="sistema.html">Entrar</a>
   </div>
   <div class="footer-copy">&#169; 2026 Cooltivando &#xB7; Biotec Consultoria</div>
 </footer>
@@ -533,192 +488,5 @@
   fadeEls.forEach(function(el) { observer.observe(el); });
 })();
 </script>
-
-<div id="ls">
-  <div class="lb">
-    <div class="ll"><div style="font-size:28px;font-weight:800;color:#2d7a50;letter-spacing:-1px;font-family:'DM Sans',sans-serif;">cooltivando</div></div>
-    <p class="lsub">Sistema de Inspecao Municipal - SIM</p>
-    <label class="llab">E-mail</label>
-    <input class="lin" type="email" id="le" placeholder="seu@email.com">
-    <label class="llab">Senha</label>
-    <input class="lin" type="password" id="ls2" placeholder="Sua senha" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="lbtn" onclick="doLogin()">Entrar no sistema</button>
-    <div style="text-align:center;margin-top:12px">
-      <a href="#" onclick="esqueceuSenha(event)" style="font-size:12px;color:var(--g6);text-decoration:none;font-weight:600">Esqueci minha senha</a>
-    </div>
-    <div id="login-erro" style="display:none;background:var(--rd0);color:var(--rd);border-radius:8px;padding:8px 12px;font-size:12px;text-align:center;margin-top:10px;font-weight:600">
-      E-mail ou senha incorretos
-    </div>
-
-  </div>
-</div>
-<script>
-const SUPA_URL = 'https://tjlyacncefsocgvlatfd.supabase.co';
-const SUPA_KEY = 'sb_publishable_WBDsBQAfH18wgpRPnIGufA_jJTWdXBs';
-
-async function supaFetch(path, options = {}) {
-  const res = await fetch(SUPA_URL + path, {
-    ...options,
-    headers: {
-      'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation',
-      ...(options.headers || {})
-    }
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    console.error('Supabase error:', err);
-    return null;
-  }
-  return res.json();
-}
-
-async function supaGet(table, query = '') {
-  return supaFetch('/rest/v1/' + table + '?' + query);
-}
-
-async function supaInsert(table, data) {
-  return supaFetch('/rest/v1/' + table, {
-    method: 'POST',
-    body: JSON.stringify(data)
-  });
-}
-
-async function supaUpdate(table, id, data) {
-  return supaFetch('/rest/v1/' + table + '?id=eq.' + id, {
-    method: 'PATCH',
-    body: JSON.stringify(data)
-  });
-}
-
-async function supaDelete(table, id) {
-  return supaFetch('/rest/v1/' + table + '?id=eq.' + id, {
-    method: 'DELETE'
-  });
-}
-
-// ===LOGIN REAL COM SUPABASE===
-
-function entrarSistema() {
-  var ls = document.getElementById('ls');
-  if (ls) { ls.style.display = 'flex'; }
-}
-
-async function doLogin() {
-  var email = document.getElementById('le').value.trim().toLowerCase();
-  var senha = document.getElementById('ls2').value.trim();
-  var erroEl = document.getElementById('login-erro');
-  var btn = document.querySelector('.lbtn');
-
-  if (!email || !senha) {
-    if (erroEl) { erroEl.textContent = 'Preencha e-mail e senha!'; erroEl.style.display = 'block'; }
-    return;
-  }
-
-  if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
-
-  try {
-    // Login via Supabase Auth
-    var res = await fetch(SUPA_URL + '/auth/v1/token?grant_type=password', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPA_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email: email, password: senha })
-    });
-
-    var data = await res.json();
-
-    if (!res.ok || data.error) {
-      // Fallback: tentar tabela usuarios
-      var result = await supaFetch(
-        '/rest/v1/usuarios?email=eq.' + encodeURIComponent(email) +
-        '&senha_hash=eq.' + encodeURIComponent(senha) +
-        '&ativo=eq.true&select=*'
-      );
-
-      if (!result || result.length === 0) {
-        if (erroEl) { erroEl.textContent = 'E-mail ou senha incorretos'; erroEl.style.display = 'block'; }
-        if (btn) { btn.textContent = 'Entrar no sistema'; btn.disabled = false; }
-        return;
-      }
-
-      var u = result[0];
-      usr = {
-        n: u.nome,
-        i: u.nome.split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase(),
-        p: u.perfil,
-        proprietario: u.proprietario || null,
-        empresasRT: u.empresas_rt || null,
-        id: u.id,
-        municipio_id: u.municipio_id || null
-      };
-
-      var munNome = null;
-      if (u.municipio_id) {
-        var munRes = await supaFetch('/rest/v1/municipios?id=eq.' + u.municipio_id + '&select=nome');
-        if (munRes && munRes.length > 0) munNome = munRes[0].nome;
-      }
-      USUARIO_MUNICIPIO[u.perfil] = munNome;
-
-    } else {
-      // Auth bem sucedido — pegar dados do usuario
-      var meta = data.user.user_metadata || {};
-      var nome = meta.nome || data.user.email.split('@')[0];
-      
-      // Buscar perfil na tabela usuarios
-      var result2 = await supaFetch(
-        '/rest/v1/usuarios?email=eq.' + encodeURIComponent(email) + '&select=*'
-      );
-
-      if (result2 && result2.length > 0) {
-        var u2 = result2[0];
-        usr = {
-          n: u2.nome,
-          i: u2.nome.split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase(),
-          p: u2.perfil,
-          proprietario: u2.proprietario || null,
-          empresasRT: u2.empresas_rt || null,
-          id: u2.id,
-          token: data.access_token
-        };
-        var munNome2 = null;
-        if (u2.municipio_id) {
-          var munRes2 = await supaFetch('/rest/v1/municipios?id=eq.' + u2.municipio_id + '&select=nome');
-          if (munRes2 && munRes2.length > 0) munNome2 = munRes2[0].nome;
-        }
-        USUARIO_MUNICIPIO[u2.perfil] = munNome2;
-      } else {
-        // Admin sem registro na tabela
-        usr = {
-          n: nome,
-          i: nome.substring(0,2).toUpperCase(),
-          p: 'Admin Sistema',
-          proprietario: null,
-          empresasRT: null,
-          token: data.access_token
-        };
-        USUARIO_MUNICIPIO['Admin Sistema'] = null;
-      }
-    }
-
-    if (erroEl) erroEl.style.display = 'none';
-    if (btn) { btn.textContent = 'Entrar no sistema'; btn.disabled = false; }
-    carregarApp();
-
-  } catch(e) {
-    console.error('Erro login:', e);
-    if (erroEl) { erroEl.textContent = 'Erro de conexao. Tente novamente.'; erroEl.style.display = 'block'; }
-    if (btn) { btn.textContent = 'Entrar no sistema'; btn.disabled = false; }
-  }
-}
-
-
-function checkEnter(e) { if(e.key==='Enter') doLogin(); }
-</script>
-
 </body>
 </html>
