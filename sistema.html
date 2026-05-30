@@ -491,7 +491,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
       <!-- AGROINDUSTRIAS -->
       <div class="pg" id="pg-agroindustrias">
-        <div class="ph2"><h2>Agroindustrias</h2><div class="act"><button id="btn-nova-agro" class="btn bg" onclick="sm('m-agro')">+ Nova agroindustria</button></div></div>
+        <div class="ph2"><h2>Agroindustrias</h2><div class="act"><button id="btn-nova-agro" class="btn bg" onclick="abrirModalAgro()">+ Nova agroindustria</button></div></div>
         <div class="cd"><table class="tbl"><thead><tr><th>Nome / N&#186; SIM</th><th>Produtor</th><th>CADPRO</th><th>Tipo</th><th>Municipio</th><th>Processos</th><th></th></tr></thead><tbody>
           <tr data-municipio="Pien" data-produtor="Jorge Buba" data-empresa="Granja Albunio"><td><b>Granja Albunio</b><br>
       <div style="display:flex;align-items:center;gap:4px;margin-top:4px" id="sim-row-0">
@@ -1114,7 +1114,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 <div class="fact"><button class="btn bo" onclick="hm('m-prod')">Cancelar</button><button class="btn bg" onclick="salvarProdutor()">Salvar produtor</button></div></div></div>
 
 <div class="mo" id="m-agro" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Nova Agroindustria</h3><button class="mc" onclick="hm('m-agro')">x</button></div><div class="fm">
-  <div class="fm1"><label class="fl">Produtor <span style="color:var(--rd)">*</span></label><select class="fi"><option value="">Selecione...</option><option>Jorge Buba</option><option>Maria Santos</option><option>Joao Oliveira</option></select></div>
+  <div class="fm1"><label class="fl">Produtor <span style="color:var(--rd)">*</span></label><select class="fi" id="agro-sel-produtor"><option value="">Selecione...</option></select></div>
   <div><label class="fl">Nome da agroindústria <span style="color:var(--rd)">*</span></label><input class="fi" placeholder="Ex: Granja Albunio"></div>
   <div><label class="fl">Numero SIM <span style="color:var(--rd)">*</span></label>
     <div style="display:flex;align-items:center;gap:6px">
@@ -1366,6 +1366,35 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
 <div class="mo" id="m-logs" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Log de rastreabilidade</h3><button class="mc" onclick="hm('m-logs')">x</button></div><div style="padding:16px 20px"><div style="display:flex;flex-direction:column;gap:8px" id="logs-lista"><div style="background:var(--g0);border:1px solid var(--g2);border-radius:8px;padding:10px 14px;font-size:12px"><div style="font-weight:700;color:var(--g7)">Aprovado - RG e CPF</div><div style="color:var(--k5);margin-top:2px">Joao Silva (Fiscal) - 18/03/2026 - 090144</div></div><div style="background:var(--g0);border:1px solid var(--g2);border-radius:8px;padding:10px 14px;font-size:12px"><div style="font-weight:700;color:var(--g7)">Aprovado - Comprovante Endereco</div><div style="color:var(--k5);margin-top:2px">Joao Silva (Fiscal) - 18/03/2026 - 091522</div></div><div style="background:var(--yw0);border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;font-size:12px"><div style="font-weight:700;color:#92400e">Licenca Sanitaria - Vencendo em 5 dias</div><div style="color:var(--k5);margin-top:2px">Alerta automatico - 06/05/2026</div></div></div></div><div class="fact"><button class="btn bo" oncli
 // ===SALVAR AGROINDUSTRIA===
+async 
+async function abrirModalAgro() {
+  // Popular select de produtores com dados reais do banco
+  var sel = document.getElementById('agro-sel-produtor');
+  if (sel) {
+    sel.innerHTML = '<option value="">Selecione...</option>';
+    var prods = await supaGet('produtores', 'select=id,nome&order=nome');
+    if (prods && prods.length > 0) {
+      prods.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p.nome;
+        opt.textContent = p.nome;
+        sel.appendChild(opt);
+      });
+    }
+  }
+  // Popular município com o município do usuário logado
+  var munSel = document.querySelectorAll('#m-agro select')[2];
+  if (munSel) {
+    var munAtual = getMunicipioUsuario();
+    if (munAtual) {
+      Array.from(munSel.options).forEach(function(o) {
+        if (o.value === munAtual) o.selected = true;
+      });
+    }
+  }
+  sm('m-agro');
+}
+
 async function salvarAgroindustria() {
   var produtor = document.querySelector('#m-agro select').value;
   var nome = document.querySelectorAll('#m-agro input')[0].value.trim();
@@ -2162,6 +2191,35 @@ async function carregarMunicipios() {
 
 
 // ===SALVAR AGROINDUSTRIA===
+async 
+async function abrirModalAgro() {
+  // Popular select de produtores com dados reais do banco
+  var sel = document.getElementById('agro-sel-produtor');
+  if (sel) {
+    sel.innerHTML = '<option value="">Selecione...</option>';
+    var prods = await supaGet('produtores', 'select=id,nome&order=nome');
+    if (prods && prods.length > 0) {
+      prods.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p.nome;
+        opt.textContent = p.nome;
+        sel.appendChild(opt);
+      });
+    }
+  }
+  // Popular município com o município do usuário logado
+  var munSel = document.querySelectorAll('#m-agro select')[2];
+  if (munSel) {
+    var munAtual = getMunicipioUsuario();
+    if (munAtual) {
+      Array.from(munSel.options).forEach(function(o) {
+        if (o.value === munAtual) o.selected = true;
+      });
+    }
+  }
+  sm('m-agro');
+}
+
 async function salvarAgroindustria() {
   var selects = document.querySelectorAll('#m-agro select');
   var inputs = document.querySelectorAll('#m-agro input');
