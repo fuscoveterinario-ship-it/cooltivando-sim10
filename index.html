@@ -172,6 +172,78 @@
   /* FADE IN */
   .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
   .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+/* === MODAL LOGIN === */
+:root {
+  --g9:#1a3a2a; --g8:#1e4d35; --g7:#276344; --g6:#2d7a50; --g5:#3a9463;
+  --g4:#52b788; --g3:#74c69d; --g2:#b7e4c7; --g1:#d8f3dc; --g0:#f0faf3;
+  --k9:#1a202c; --k7:#374151; --k5:#6b7280; --k3:#d1d5db; --k1:#f3f4f6;
+  --white:#fff;
+}
+#ls {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(135deg, var(--g9), var(--g7) 55%, var(--g5));
+  display: none; align-items: center; justify-content: center;
+}
+.lb {
+  background: var(--white); border-radius: 20px; padding: 44px 40px;
+  width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  animation: fu .4s ease;
+}
+.ll { display: flex; justify-content: center; margin-bottom: 6px; }
+.ll img { height: 46px; width: auto; }
+.lsub { text-align: center; font-size: 12px; color: var(--k5); margin-bottom: 30px; }
+.llab { display: block; font-size: 11px; font-weight: 700; color: var(--k7);
+  margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
+.lin {
+  width: 100%; padding: 11px 14px; border: 1.5px solid var(--k3);
+  border-radius: 8px; font-size: 14px; margin-bottom: 16px;
+  font-family: 'DM Sans', sans-serif; outline: none; transition: border .2s;
+}
+.lin:focus { border-color: var(--g6); }
+.lbtn {
+  width: 100%; padding: 13px; background: var(--g6); color: #fff;
+  border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: background .2s;
+}
+.lbtn:hover { background: var(--g7); }
+#login-erro {
+  color: #e63946; font-size: 13px; text-align: center;
+  margin-top: 10px; display: none;
+}
+.lesq { text-align: center; margin-top: 14px; font-size: 13px; color: var(--k5); cursor: pointer; }
+@keyframes fu {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* === ANALISADOR DE RÓTULO === */
+.nav-rotulo { display: inline-flex; align-items: center; gap: 6px; background: rgba(110,232,154,0.08); color: var(--verde-neon); border: 0.5px solid rgba(110,232,154,0.35); border-radius: 7px; padding: 6px 14px; font-size: 13px; font-weight: 500; text-decoration: none; transition: background 0.2s, transform 0.1s; letter-spacing: 0.01em; }
+.nav-rotulo::before { content: ''; width: 7px; height: 7px; background: var(--verde-neon); border-radius: 50%; animation: pulse 2s infinite; flex-shrink: 0; }
+.nav-rotulo:hover { background: rgba(110,232,154,0.15); transform: translateY(-1px); color: var(--verde-neon) !important; }
+.analisador-section { background: var(--verde-escuro); border-top: 0.5px solid var(--verde-borda); padding: 80px; }
+.analisador-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.analisador-texto h2 { font-family: 'DM Serif Display',serif; font-size: 38px; color: var(--branco); margin-bottom: 16px; line-height: 1.2; }
+.analisador-texto h2 em { font-style: italic; color: var(--verde-neon); }
+.analisador-intro { color: var(--verde-suave); font-size: 15px; font-weight: 300; line-height: 1.7; margin-bottom: 36px; }
+.analisador-features { display: flex; flex-direction: column; gap: 0; margin-bottom: 36px; }
+.analisador-feat { display: flex; gap: 16px; align-items: flex-start; padding: 16px 0; border-bottom: 0.5px solid var(--verde-borda); }
+.analisador-feat:last-child { border-bottom: none; }
+.analisador-feat-icon { width: 36px; height: 36px; border-radius: 8px; background: #0f3520; border: 0.5px solid #2a8a50; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.analisador-feat-title { font-size: 14px; font-weight: 600; color: var(--branco); margin-bottom: 4px; }
+.analisador-feat-desc { font-size: 13px; color: var(--verde-suave); line-height: 1.5; font-weight: 300; }
+.analisador-card { background: var(--verde-medio); border: 0.5px solid var(--verde-borda); border-radius: 16px; padding: 36px; position: relative; overflow: hidden; }
+.analisador-card::before { content: ''; position: absolute; top: -60px; right: -60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(110,232,154,0.08) 0%, transparent 70%); pointer-events: none; }
+.analisador-card-label { font-size: 10px; font-weight: 500; color: var(--verde-neon); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 6px; }
+.analisador-card-label::before { content: ''; width: 6px; height: 6px; background: var(--verde-neon); border-radius: 50%; animation: pulse 2s infinite; }
+.analisador-steps { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+.analisador-step { display: flex; align-items: center; gap: 14px; }
+.analisador-step-num { width: 28px; height: 28px; border-radius: 6px; background: #122b1c; border: 0.5px solid #2a8a50; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--verde-neon); flex-shrink: 0; }
+.analisador-step-text { font-size: 13.5px; color: var(--verde-suave); font-weight: 300; }
+.analisador-step-text strong { color: var(--branco); font-weight: 500; }
+.analisador-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--verde-neon); color: var(--verde-escuro); font-size: 14px; font-weight: 700; padding: 13px 28px; border-radius: 8px; text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; }
+.analisador-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(110,232,154,0.3); }
 </style>
 </head>
 <body>
@@ -189,7 +261,7 @@
     <a href="#selo-arte">Selo Arte</a>
     <a href="#produtos">Produtos</a>
     <a href="#depoimentos">Depoimentos</a>
-    <a href="sistema.html" class="nav-btn">Entrar no sistema &#x2192;</a>
+    <a href="#" onclick="entrarSistema();return false;" class="nav-btn">Entrar no sistema &#x2192;</a>
   </div>
 </nav>
 
@@ -200,7 +272,7 @@
     <h1>Gestão completa do<br/><em>SIM</em> na palma<br/>da mão</h1>
     <p>Plataforma integrada para municípios fiscalizarem, registrarem e rastrearem agroindustrias rurais. Do cadastro do produtor ao Selo Arte &#x2014; tudo em um só lugar.</p>
     <div class="hero-btns">
-      <a href="sistema.html" class="btn-primary">Acessar o sistema</a>
+      <a href="#" onclick="entrarSistema();return false;" class="btn-primary">Acessar o sistema</a>
       <a href="#selo-arte" class="btn-ghost">Selo Arte</a>
     </div>
   </div>
@@ -418,18 +490,83 @@
   <h2>Pronto para modernizar a<br/><em>inspeção do seu município?</em></h2>
   <p>Cooltivando SIM é feito para fiscais, produtores e gestores municipais que querem rastreabilidade real e processos eficientes.</p>
   <div class="cta-btns">
-    <a href="sistema.html" class="btn-primary">Acessar o sistema agora</a>
+    <a href="#" onclick="entrarSistema();return false;" class="btn-primary">Acessar o sistema agora</a>
     <a href="mailto:fusco.veterinario@gmail.com" class="btn-ghost">Falar com a equipe</a>
   </div>
 </section>
 
 <!-- FOOTER -->
+<section class="analisador-section" id="analisador">
+  <div class="analisador-inner">
+    <div class="analisador-texto">
+      <span class="section-label fade-in">Inteligência Artificial</span>
+      <h2 class="fade-in">Analise rótulos com<br/><em>IA em segundos</em></h2>
+      <p class="analisador-intro fade-in">Fotografe o rótulo de qualquer produto alimentício e nossa IA verifica automaticamente a conformidade com a legislação vigente — gerando um laudo técnico pronto para assinar.</p>
+      <div class="analisador-features">
+        <div class="analisador-feat fade-in">
+          <div class="analisador-feat-icon">&#x1F4F7;</div>
+          <div>
+            <div class="analisador-feat-title">Qualquer produto alimentício</div>
+            <div class="analisador-feat-desc">Laticínios, embutidos, mel, conservas, panificados, bebidas e muito mais — a IA reconhece a categoria automaticamente.</div>
+          </div>
+        </div>
+        <div class="analisador-feat fade-in">
+          <div class="analisador-feat-icon">&#x2705;</div>
+          <div>
+            <div class="analisador-feat-title">Verificação completa de conformidade</div>
+            <div class="analisador-feat-desc">Analisa todos os elementos obrigatórios: denominação, ingredientes, peso, validade, fabricante, registro SIM/SIE/SIF e mais.</div>
+          </div>
+        </div>
+        <div class="analisador-feat fade-in">
+          <div class="analisador-feat-icon">&#x1F4C4;</div>
+          <div>
+            <div class="analisador-feat-title">Laudo em .docx + PDF</div>
+            <div class="analisador-feat-desc">Relatório oficial padrão SIM/POA gerado automaticamente, pronto para assinar e arquivar no processo de legalização.</div>
+          </div>
+        </div>
+      </div>
+      <a href="#" onclick="abrirModalAnalisador();return false;" class="analisador-cta fade-in">&#x26A1; Analisar um rótulo agora</a>
+    </div>
+    <div class="analisador-card fade-in">
+      <div class="analisador-card-label">Como funciona</div>
+      <div class="analisador-steps">
+        <div class="analisador-step">
+          <div class="analisador-step-num">01</div>
+          <div class="analisador-step-text"><strong>Envie a foto</strong> do rótulo do produto</div>
+        </div>
+        <div class="analisador-step">
+          <div class="analisador-step-num">02</div>
+          <div class="analisador-step-text"><strong>A IA analisa</strong> todos os campos obrigatórios</div>
+        </div>
+        <div class="analisador-step">
+          <div class="analisador-step-num">03</div>
+          <div class="analisador-step-text"><strong>Revise e confirme</strong> os itens encontrados</div>
+        </div>
+        <div class="analisador-step">
+          <div class="analisador-step-num">04</div>
+          <div class="analisador-step-text"><strong>Baixe o laudo</strong> em .docx e PDF assinável</div>
+        </div>
+      </div>
+      <div style="border-top:0.5px solid var(--verde-borda);padding-top:20px;margin-top:4px;">
+        <div style="font-size:11px;color:var(--verde-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.06em;">Produtos suportados</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:12px;background:#122b1c;color:var(--verde-suave);border:0.5px solid var(--verde-borda);border-radius:20px;padding:4px 12px;">&#x1F9C0; Laticínios</span>
+          <span style="font-size:12px;background:#122b1c;color:var(--verde-suave);border:0.5px solid var(--verde-borda);border-radius:20px;padding:4px 12px;">&#x1F356; Embutidos</span>
+          <span style="font-size:12px;background:#122b1c;color:var(--verde-suave);border:0.5px solid var(--verde-borda);border-radius:20px;padding:4px 12px;">&#x1F36F; Mel</span>
+          <span style="font-size:12px;background:#122b1c;color:var(--verde-suave);border:0.5px solid var(--verde-borda);border-radius:20px;padding:4px 12px;">&#x1F96B; Conservas</span>
+          <span style="font-size:12px;background:#122b1c;color:var(--verde-suave);border:0.5px solid var(--verde-borda);border-radius:20px;padding:4px 12px;">&#x1F950; Panificados</span>
+          <span style="font-size:12px;background:#122b1c;color:var(--verde-suave);border:0.5px solid var(--verde-borda);border-radius:20px;padding:4px 12px;">&#x1F377; Bebidas</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 <footer>
   <div class="footer-logo">Cooltivando <span>SIM</span> &#x2014; Sistema de Inspeção Municipal</div>
   <div class="footer-links">
     <a href="#">Sobre</a>
     <a href="#">Suporte</a>
-    <a href="sistema.html">Entrar</a>
+    <a href="#" onclick="entrarSistema();return false;">Entrar</a>
   </div>
   <div class="footer-copy">&#169; 2026 Cooltivando &#xB7; Biotec Consultoria</div>
 </footer>
@@ -488,5 +625,944 @@
   fadeEls.forEach(function(el) { observer.observe(el); });
 })();
 </script>
+
+<div id="ls">
+  <div class="lb">
+    <div class="ll"><div style="font-size:28px;font-weight:800;color:#2d7a50;letter-spacing:-1px;font-family:'DM Sans',sans-serif;">cooltivando</div></div>
+    <p class="lsub">Sistema de Inspecao Municipal - SIM</p>
+    <label class="llab">E-mail</label>
+    <input class="lin" type="email" id="le" placeholder="seu@email.com">
+    <label class="llab">Senha</label>
+    <input class="lin" type="password" id="ls2" placeholder="Sua senha" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="lbtn" onclick="doLogin()">Entrar no sistema</button>
+    <div style="text-align:center;margin-top:12px">
+      <a href="#" onclick="esqueceuSenha(event)" style="font-size:12px;color:var(--g6);text-decoration:none;font-weight:600">Esqueci minha senha</a>
+    </div>
+    <div id="login-erro" style="display:none;background:var(--rd0);color:var(--rd);border-radius:8px;padding:8px 12px;font-size:12px;text-align:center;margin-top:10px;font-weight:600">
+      E-mail ou senha incorretos
+    </div>
+
+  </div>
+</div>
+<script>
+const SUPA_URL = 'https://tjlyacncefsocgvlatfd.supabase.co';
+const SUPA_KEY = 'sb_publishable_WBDsBQAfH18wgpRPnIGufA_jJTWdXBs';
+
+async function supaFetch(path, options = {}) {
+  const res = await fetch(SUPA_URL + path, {
+    ...options,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('Supabase error:', err);
+    return null;
+  }
+  return res.json();
+}
+
+async function supaGet(table, query = '') {
+  return supaFetch('/rest/v1/' + table + '?' + query);
+}
+
+async function supaInsert(table, data) {
+  return supaFetch('/rest/v1/' + table, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+async function supaUpdate(table, id, data) {
+  return supaFetch('/rest/v1/' + table + '?id=eq.' + id, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
+async function supaDelete(table, id) {
+  return supaFetch('/rest/v1/' + table + '?id=eq.' + id, {
+    method: 'DELETE'
+  });
+}
+
+// ===LOGIN REAL COM SUPABASE===
+async async function doLogin() {
+  var email = document.getElementById('le').value.trim().toLowerCase();
+  var senha = document.getElementById('ls2').value.trim();
+  var erroEl = document.getElementById('login-erro');
+  var btn = document.querySelector('.lbtn');
+
+  if (!email || !senha) {
+    if (erroEl) { erroEl.textContent = 'Preencha e-mail e senha!'; erroEl.style.display = 'block'; }
+    return;
+  }
+
+  if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
+
+  try {
+    // Login via Supabase Auth
+    var res = await fetch(SUPA_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email: email, password: senha })
+    });
+
+    var data = await res.json();
+
+    if (!res.ok || data.error) {
+      // Fallback: tentar tabela usuarios
+      var result = await supaFetch(
+        '/rest/v1/usuarios?email=eq.' + encodeURIComponent(email) +
+        '&senha_hash=eq.' + encodeURIComponent(senha) +
+        '&ativo=eq.true&select=*'
+      );
+
+      if (!result || result.length === 0) {
+        if (erroEl) { erroEl.textContent = 'E-mail ou senha incorretos'; erroEl.style.display = 'block'; }
+        if (btn) { btn.textContent = 'Entrar no sistema'; btn.disabled = false; }
+        return;
+      }
+
+      var u = result[0];
+      usr = {
+        n: u.nome,
+        i: u.nome.split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase(),
+        p: u.perfil,
+        proprietario: u.proprietario || null,
+        empresasRT: u.empresas_rt || null,
+        id: u.id,
+        municipio_id: u.municipio_id || null
+      };
+
+      var munNome = null;
+      if (u.municipio_id) {
+        var munRes = await supaFetch('/rest/v1/municipios?id=eq.' + u.municipio_id + '&select=nome');
+        if (munRes && munRes.length > 0) munNome = munRes[0].nome;
+      }
+      USUARIO_MUNICIPIO[u.perfil] = munNome;
+
+    } else {
+      // Auth bem sucedido — pegar dados do usuario
+      var meta = data.user.user_metadata || {};
+      var nome = meta.nome || data.user.email.split('@')[0];
+      
+      // Buscar perfil na tabela usuarios
+      var result2 = await supaFetch(
+        '/rest/v1/usuarios?email=eq.' + encodeURIComponent(email) + '&select=*'
+      );
+
+      if (result2 && result2.length > 0) {
+        var u2 = result2[0];
+        usr = {
+          n: u2.nome,
+          i: u2.nome.split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase(),
+          p: u2.perfil,
+          proprietario: u2.proprietario || null,
+          empresasRT: u2.empresas_rt || null,
+          id: u2.id,
+          token: data.access_token
+        };
+        var munNome2 = null;
+        if (u2.municipio_id) {
+          var munRes2 = await supaFetch('/rest/v1/municipios?id=eq.' + u2.municipio_id + '&select=nome');
+          if (munRes2 && munRes2.length > 0) munNome2 = munRes2[0].nome;
+        }
+        USUARIO_MUNICIPIO[u2.perfil] = munNome2;
+      } else {
+        // Admin sem registro na tabela
+        usr = {
+          n: nome,
+          i: nome.substring(0,2).toUpperCase(),
+          p: 'Admin Sistema',
+          proprietario: null,
+          empresasRT: null,
+          token: data.access_token
+        };
+        USUARIO_MUNICIPIO['Admin Sistema'] = null;
+      }
+    }
+
+    if (erroEl) erroEl.style.display = 'none';
+    if (btn) { btn.textContent = 'Entrar no sistema'; btn.disabled = false; }
+    carregarApp();
+
+  } catch(e) {
+    console.error('Erro login:', e);
+    if (erroEl) { erroEl.textContent = 'Erro de conexao. Tente novamente.'; erroEl.style.display = 'block'; }
+    if (btn) { btn.textContent = 'Entrar no sistema'; btn.disabled = false; }
+  }
+}
+
+
+function entrarSistema() {
+  var ls = document.getElementById('ls');
+  if (ls) { ls.style.display = 'flex'; }
+}
+
+async function doLogin() {
+  var email = document.getElementById('le').value.trim().toLowerCase();
+  var senha = document.getElementById('ls2').value.trim();
+  var erroEl = document.getElementById('login-erro');
+  var btn = document.querySelector('.lbtn');
+
+  if (!email || !senha) {
+    if (erroEl) { erroEl.textContent = 'Preencha e-mail e senha!'; erroEl.style.display = 'block'; }
+    return;
+  }
+
+  if (btn) { btn.textContent = 'Entrando...'; btn.disabled = true; }
+
+  try {
+    // Login via Supabase Auth
+    var res = await fetch(SUPA_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email: email, password: senha })
+    });
+
+    var data = await res.json();
+
+    if (!res.ok || data.error) {
+      // Fallback: tentar tabela usuarios
+      var result = await supaFetch(
+        '/rest/v1/usuarios?email=eq.' + encodeURIComponent(email) +
+        '&senha_hash=eq.' + encodeURIComponent(senha) +
+        '&ativo=eq.true&select=*'
+      );
+
+      if (!result || result.length === 0) {
+        if (erroEl) { erroEl.textContent = 'E-mail ou senha incorretos'; erroEl.style.display = 'block'; }
+        if (btn) { btn.textContent = 'Entrar no sistema'; btn.disabled = false; }
+        return;
+      }
+
+      var u = result[0];
+      usr = {
+        n: u.nome,
+        i: u.nome.split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase(),
+        p: u.perfil,
+        proprietario: u.proprietario || null,
+        empresasRT: u.empresas_rt || null,
+        id: u.id,
+        municipio_id: u.municipio_id || null
+      };
+
+      var munNome = null;
+      if (u.municipio_id) {
+        var munRes = await supaFetch('/rest/v1/municipios?id=eq.' + u.municipio_id + '&select=nome');
+        if (munRes && munRes.length > 0) munNome = munRes[0].nome;
+      }
+      USUARIO_MUNICIPIO[u.perfil] = munNome;
+
+    } else {
+      // Auth bem sucedido — pegar dados do usuario
+      var meta = data.user.user_metadata || {};
+      var nome = meta.nome || data.user.email.split('@')[0];
+      
+      // Buscar perfil na tabela usuarios
+      var result2 = await supaFetch(
+        '/rest/v1/usuarios?email=eq.' + encodeURIComponent(email) + '&select=*'
+      );
+
+      if (result2 && result2.length > 0) {
+        var u2 = result2[0];
+        usr = {
+          n: u2.nome,
+          i: u2.nome.split(' ').map(function(p){return p[0];}).join('').substring(0,2).toUpperCase(),
+          p: u2.perfil,
+          proprietario: u2.proprietario || null,
+          empresasRT: u2.empresas_rt || null,
+          id: u2.id,
+          token: data.access_token
+        };
+        var munNome2 = null;
+        if (u2.municipio_id) {
+          var munRes2 = await supaFetch('/rest/v1/municipios?id=eq.' + u2.municipio_id + '&select=nome');
+          if (munRes2 && munRes2.length > 0) munNome2 = munRes2[0].nome;
+        }
+        USUARIO_MUNICIPIO[u2.perfil] = munNome2;
+      } else {
+        // Admin sem registro na tabela
+        usr = {
+          n: nome,
+          i: nome.substring(0,2).toUpperCase(),
+          p: 'Admin Sistema',
+          proprietario: null,
+          empresasRT: null,
+          token: data.access_token
+        };
+        USUARIO_MUNICIPIO['Admin Sistema'] = null;
+      }
+    }
+
+    if (erroEl) erroEl.style.display = 'none';
+    if (btn) { btn.textContent = 'Entrar no sistema'; btn.disabled = false; }
+    carregarApp();
+
+  } catch(e) {
+    console.error('Erro login:', e);
+    if (erroEl) { erroEl.textContent = 'Erro de conexao. Tente novamente.'; erroEl.style.display = 'block'; }
+    if (btn) { btn.textContent = 'Entrar no sistema'; btn.disabled = false; }
+  }
+}
+
+
+function abrirModalAnalisador() {
+  document.getElementById('modal-analisador').classList.add('aberto');
+  document.body.style.overflow = 'hidden';
+}
+function checkEnter(e) { if(e.key==='Enter') doLogin(); }
+</script>
+
+<div id="modal-analisador">
+  <button id="modal-fechar" onclick="fecharModalAnalisador()" aria-label="Fechar">&#x2715;</button>
+  <div id="modal-analisador-box">
+    <iframe id="iframe-analisador" srcdoc="<!DOCTYPE html>
+<html lang=&quot;pt-BR&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0, maximum-scale=1.0&quot;>
+<title>Cooltivando.ai — Análise de Rótulos</title>
+<link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+<link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+<link href=&quot;https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&amp;family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --v:#1A6B3C;--vl:#2A8A50;--vp:#EAF5EE;--v10:#F0F9F3;--vd:#0D4A28;
+  --ouro:#C8860A;--op:#FEF3E2;--oa:#E8A022;
+  --r:#B22222;--rp:#FDF4F4;--ra:#C53030;
+  --c1:#1C1C1A;--c2:#3D3D3A;--c3:#6B6B66;--c4:#9E9E98;--c5:#D4D4CC;--c6:#F2F2ED;
+  --branco:#FAFAF7;
+  --radius:12px;--radius-sm:8px;--radius-xs:6px;
+  --shadow:0 2px 12px rgba(0,0,0,.06);
+  --shadow-md:0 4px 24px rgba(0,0,0,.09);
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--c6);color:var(--c1);line-height:1.6;min-height:100vh}
+
+/* ── LAYOUT ── */
+.app{display:flex;flex-direction:column;min-height:100vh;max-width:480px;margin:0 auto;background:var(--branco);position:relative}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(250,250,247,.95);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--c5);
+  padding:0 16px;
+  height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--v);letter-spacing:-.3px}
+.logo span{color:var(--c3);font-weight:300;font-size:18px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.credits-pill{
+  display:flex;align-items:center;gap:5px;
+  background:var(--vp);color:var(--v);
+  font-size:12px;font-weight:500;
+  padding:5px 10px;border-radius:100px;
+  border:1px solid rgba(26,107,60,.15);
+}
+.credits-pill .num{font-weight:700;font-family:'Fraunces',serif;font-size:14px}
+.avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--v);color:white;
+  font-size:12px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:2px solid var(--vp);
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:sticky;bottom:0;z-index:50;
+  background:rgba(250,250,247,.97);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--c5);
+  display:grid;grid-template-columns:repeat(4,1fr);
+  padding:6px 0 max(6px,env(safe-area-inset-bottom));
+}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 4px;cursor:pointer;
+  font-size:10px;color:var(--c4);font-weight:400;
+  border:none;background:none;
+  transition:color .15s;
+}
+.nav-item svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nav-item.active{color:var(--v)}
+.nav-item.active svg{stroke:var(--v)}
+
+/* ── PÁGINAS ── */
+.page{display:none;flex:1;flex-direction:column;padding:16px;padding-bottom:8px;overflow-y:auto}
+.page.active{display:flex}
+
+/* ── HERO DA ANÁLISE ── */
+.hero-analisar{
+  background:linear-gradient(160deg,var(--vd) 0%,var(--v) 60%,var(--vl) 100%);
+  border-radius:var(--radius);
+  padding:24px 20px;
+  margin-bottom:16px;
+  position:relative;
+  overflow:hidden;
+}
+.hero-analisar::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,.06);
+}
+.hero-analisar::after{
+  content:'';position:absolute;bottom:-30px;left:-20px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.15);
+  color:rgba(255,255,255,.9);
+  font-size:11px;font-weight:500;
+  padding:4px 10px;border-radius:100px;
+  margin-bottom:12px;
+  letter-spacing:.02em;
+}
+.hero-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:#5DCB9A;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+.hero-analisar h1{
+  font-family:'Fraunces',serif;
+  font-size:22px;font-weight:700;
+  color:white;line-height:1.2;
+  margin-bottom:6px;letter-spacing:-.3px;
+}
+.hero-analisar h1 em{font-style:italic;font-weight:300;color:rgba(255,255,255,.8)}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.7);font-weight:300;line-height:1.5;margin-bottom:0}
+
+/* ── UPLOAD CARD ── */
+.upload-card{
+  background:white;
+  border-radius:var(--radius);
+  border:1px solid var(--c5);
+  padding:20px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+.upload-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.upload-title{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
+.badge-gratis{
+  background:var(--v);color:white;
+  font-size:10px;font-weight:600;
+  padding:2px 8px;border-radius:100px;
+  letter-spacing:.04em;
+}
+.credits-info{font-size:12px;color:var(--c3)}
+.credits-info .num{color:var(--v);font-weight:600}
+
+.upload-area{
+  border:2px dashed var(--c5);
+  border-radius:var(--radius-sm);
+  padding:24px 16px;
+  text-align:center;
+  cursor:pointer;
+  transition:border-color .2s,background .2s;
+  margin-bottom:12px;
+  position:relative;
+}
+.upload-area:hover,.upload-area.dragover{border-color:var(--v);background:var(--v10)}
+.upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{
+  width:44px;height:44px;border-radius:10px;
+  background:var(--vp);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 10px;
+}
+.upload-icon svg{width:22px;height:22px;stroke:var(--v);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.upload-area p{font-size:13px;color:var(--c3);font-weight:300}
+.upload-area strong{color:var(--v);font-weight:500}
+.upload-area .file-selected{font-size:13px;color:var(--v);font-weight:500;display:none}
+
+.btn-analisar{
+  width:100%;background:var(--v);color:white;
+  border:none;border-radius:var(--radius-sm);
+  padding:14px;font-size:15px;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:background .2s,transform .1s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-analisar:hover{background:var(--vl)}
+.btn-analisar:active{transform:scale(.98)}
+.btn-analisar:disabled{background:var(--c5);color:var(--c4);cursor:not-allowed;transform:none}
+.btn-disclaimer{font-size:11px;color:var(--c4);text-align:center;margin-top:8px;font-weight:300}
+
+/* ── LOADING ── */
+.loading-card{
+  background:white;border-radius:var(--radius);
+  border:1px solid var(--c5);padding:24px 20px;
+  margin-bottom:12px;box-shadow:var(--shadow);
+  display:none;
+}
+.loading-card.show{display:block}
+.loading-steps{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.loading-step{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:var(--c3);
+}
+.loading-step .step-dot{
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid var(--c5);
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;
+}
+.loading-step.done .step-dot{background:var(--v);border-color:var(--v)}
+.loading-step.done .step-dot::after{content:'✓';color:white;font-size:10px;font-weight:700}
+.loading-step.active .step-dot{border-color:var(--v);border-top-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-step.done,.loading-step.active{color:var(--c1)}
+.progress-bar{height:3px;background:var(--c6);border-radius:100px;margin-bottom:4px;overflow:hidden}
+.progress-fill{height:100%;background:var(--v);border-radius:100px;width:0%;transition:width .4s ease}
+
+/* ── RESULTADO ── */
+.result-card{
+  background:white;border-radius:var(--radius);
+  border:1px solid var(--c5);padding:20px;
+  margin-bottom:12px;box-shadow:var(--shadow);
+  display:none;
+}
+.result-card.show{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.result-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:14px;padding-bottom:14px;
+  border-bottom:1px solid var(--c6);
+}
+.result-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:var(--vp);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  flex-shrink:0;
+}
+.result-produto{font-size:13px;font-weight:500;color:var(--c1)}
+.result-meta{font-size:11px;color:var(--c4);margin-top:2px}
+
+.risco-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:600;
+  padding:6px 12px;border-radius:100px;
+  margin-bottom:12px;
+}
+.risco-alto{background:#FEECEC;color:var(--ra);border:1px solid rgba(197,48,48,.15)}
+.risco-medio{background:var(--op);color:var(--ouro);border:1px solid rgba(200,134,10,.15)}
+.risco-baixo{background:var(--vp);color:var(--v);border:1px solid rgba(26,107,60,.15)}
+
+.result-subtitle{font-size:12px;color:var(--c3);margin-bottom:14px}
+
+.alertas{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.alerta{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 12px;border-radius:var(--radius-xs);
+  font-size:13px;line-height:1.4;
+}
+.alerta.err{background:var(--rp);color:#8B1A1A}
+.alerta.warn{background:var(--op);color:#7A5200}
+.alerta.ok{background:var(--vp);color:#1A5C35}
+.alerta-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.alerta strong{font-weight:500;display:block;margin-bottom:2px}
+.alerta span{font-size:12px;opacity:.8;font-weight:300}
+
+/* Blur dos itens extras */
+.blur-preview{
+  position:relative;border-radius:var(--radius-xs);
+  overflow:hidden;margin-bottom:12px;
+}
+.blur-content{
+  display:flex;flex-direction:column;gap:6px;
+  filter:blur(5px);user-select:none;pointer-events:none;
+}
+.blur-overlay{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(250,250,247,.82);
+  backdrop-filter:blur(2px);
+  font-size:12px;font-weight:500;color:var(--c2);
+  text-align:center;padding:8px;
+}
+
+.btn-ver-completo{
+  width:100%;background:var(--ouro);color:white;
+  border:none;border-radius:var(--radius-sm);
+  padding:13px;font-size:14px;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:background .2s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-ver-completo:hover{background:#B07608}
+
+/* ── VOUCHER ── */
+.voucher-wrap{margin-top:10px}
+.voucher-divider{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--c4);margin:10px 0;text-align:center}
+.voucher-divider::before,.voucher-divider::after{content:'';flex:1;height:1px;background:var(--c5)}
+.voucher-row{text-align:center}
+.voucher-label{font-size:13px;color:var(--c3);cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;transition:color .2s}
+.voucher-label:hover{color:var(--v)}
+.voucher-input-wrap{display:flex;flex-direction:column;gap:6px;margin-top:8px;animation:fadeUp .25s ease}
+.voucher-input{width:100%;padding:11px 14px;border:1.5px solid var(--c5);border-radius:var(--radius-xs);font-size:14px;font-family:'DM Sans',sans-serif;letter-spacing:.08em;font-weight:500;color:var(--c1);background:white;transition:border-color .2s;text-transform:uppercase}
+.voucher-input:focus{outline:none;border-color:var(--v)}
+.voucher-btn{width:100%;background:var(--c1);color:white;border:none;border-radius:var(--radius-xs);padding:12px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s}
+.voucher-btn:hover{background:#333}
+.voucher-btn:disabled{background:var(--c5);color:var(--c4);cursor:not-allowed}
+.voucher-msg{font-size:12px;text-align:center;min-height:16px;font-weight:500}
+.voucher-msg.ok{color:var(--v)}
+.voucher-msg.err{color:var(--ra)}
+
+/* ── ADMIN PANEL ── */
+.admin-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
+.admin-overlay.show{display:flex}
+.admin-box{background:white;border-radius:16px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.admin-header{background:var(--vd);padding:20px;display:flex;align-items:center;justify-content:space-between}
+.admin-title{font-family:'Fraunces',serif;font-size:18px;color:white;font-weight:700}
+.admin-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:20px;cursor:pointer;padding:4px}
+.admin-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.admin-section{font-size:11px;font-weight:500;color:var(--c4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.admin-field{display:flex;flex-direction:column;gap:4px}
+.admin-label{font-size:12px;font-weight:500;color:var(--c2)}
+.admin-input{padding:10px 12px;border:1.5px solid var(--c5);border-radius:var(--radius-xs);font-size:14px;font-family:'DM Sans',sans-serif;color:var(--c1);background:white;transition:border-color .2s}
+.admin-input:focus{outline:none;border-color:var(--v)}
+.admin-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.admin-btn-gerar{width:100%;background:var(--v);color:white;border:none;border-radius:var(--radius-xs);padding:13px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s}
+.admin-btn-gerar:hover{background:var(--vl)}
+.admin-btn-gerar:disabled{background:var(--c5);color:var(--c4);cursor:not-allowed}
+.admin-resultado{background:var(--vp);border:1px solid rgba(26,107,60,.2);border-radius:var(--radius-xs);padding:14px;display:none}
+.admin-resultado.show{display:block}
+.admin-resultado-titulo{font-size:12px;font-weight:600;color:var(--v);margin-bottom:10px}
+.admin-voucher-lista{display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto}
+.admin-voucher-item{display:flex;align-items:center;justify-content:space-between;background:white;border:1px solid var(--c5);border-radius:6px;padding:8px 10px}
+.admin-voucher-code{font-family:monospace;font-size:13px;font-weight:600;color:var(--c1);letter-spacing:.05em}
+.admin-voucher-copy{font-size:11px;color:var(--v);cursor:pointer;font-weight:500}
+.admin-copiar-todos{width:100%;margin-top:10px;padding:9px;border-radius:6px;border:1px solid var(--v);background:transparent;color:var(--v);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.admin-copiar-todos:hover{background:var(--vp)}
+.admin-login-wrap{padding:20px;display:flex;flex-direction:column;gap:12px}
+.admin-login-titulo{font-size:16px;font-weight:600;color:var(--c1)}
+.admin-login-sub{font-size:13px;color:var(--c3);font-weight:300}
+
+/* ── SEÇÃO TITLE ── */
+.section-title{
+  font-size:11px;font-weight:500;
+  color:var(--c4);letter-spacing:.08em;
+  text-transform:uppercase;
+  margin:20px 0 10px;
+}
+
+/* ── CARDS DE PLANOS ── */
+.planos-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.plano-card{
+  background:white;border:1px solid var(--c5);
+  border-radius:var(--radius);padding:16px;
+  cursor:pointer;transition:border-color .2s,box-shadow .2s;
+  position:relative;
+}
+.plano-card.destaque{border:2px solid var(--v)}
+.plano-badge{
+  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  background:var(--v);color:white;
+  font-size:10px;font-weight:600;
+  padding:3px 12px;border-radius:100px;
+  white-space:nowrap;letter-spacing:.04em;
+}
+.plano-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.plano-nome{font-size:11px;color:var(--c4);text-transform:uppercase;letter-spacing:.06em;font-weight:500}
+.plano-titulo{font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-top:2px}
+.plano-preco{text-align:right}
+.plano-valor{font-family:'Fraunces',serif;font-size:26px;font-weight:700;line-height:1}
+.plano-moeda{font-size:13px;font-weight:500;color:var(--c3);vertical-align:top;margin-top:5px;display:inline-block}
+.plano-periodo{font-size:11px;color:var(--c4);margin-top:2px}
+.plano-creditos{font-size:12px;color:var(--v);font-weight:500;margin-bottom:10px}
+.plano-features{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.plano-feature{font-size:13px;color:var(--c2);display:flex;align-items:flex-start;gap:7px;font-weight:300}
+.plano-feature::before{content:'✓';color:var(--v);font-weight:700;font-size:12px;flex-shrink:0;margin-top:1px}
+.btn-plano{
+  width:100%;padding:12px;border-radius:var(--radius-xs);
+  font-size:14px;font-weight:500;cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all .2s;
+  border:1px solid var(--c5);background:transparent;color:var(--c2);
+}
+.btn-plano.primario{background:var(--v);color:white;border-color:var(--v)}
+.btn-plano:hover{border-color:var(--c3)}
+.btn-plano.primario:hover{background:var(--vl)}
+
+/* ── CRÉDITOS AVULSOS ── */
+.creditos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.credito-card{
+  background:white;border:1px solid var(--c5);
+  border-radius:var(--radius-sm);padding:14px;
+  text-align:center;cursor:pointer;
+  transition:border-color .2s,background .2s;
+  position:relative;
+}
+.credito-card.popular{border-color:var(--v);background:var(--vp)}
+.credito-card.popular::before{
+  content:'Popular';
+  position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+  background:var(--v);color:white;font-size:9px;font-weight:600;
+  padding:2px 8px;border-radius:100px;
+}
+.credito-qty{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--c1)}
+.credito-label{font-size:10px;color:var(--c4);margin:2px 0 8px;text-transform:uppercase;letter-spacing:.05em}
+.credito-preco{font-size:16px;font-weight:500;color:var(--v)}
+.credito-unit{font-size:10px;color:var(--c4);margin-top:2px}
+
+/* ── HISTÓRICO ── */
+.historico-list{display:flex;flex-direction:column;gap:10px}
+.hist-item{
+  background:white;border:1px solid var(--c5);
+  border-radius:var(--radius-sm);padding:14px;
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:box-shadow .2s;
+}
+.hist-item:hover{box-shadow:var(--shadow)}
+.hist-icon{
+  width:38px;height:38px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.hist-icon.ok{background:var(--vp)}
+.hist-icon.warn{background:var(--op)}
+.hist-icon.err{background:var(--rp)}
+.hist-info{flex:1;min-width:0}
+.hist-produto{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-meta{font-size:11px;color:var(--c4);margin-top:2px}
+.hist-badge{
+  font-size:10px;font-weight:500;
+  padding:3px 8px;border-radius:100px;
+  white-space:nowrap;flex-shrink:0;
+}
+.hist-badge.ok{background:var(--vp);color:var(--v)}
+.hist-badge.warn{background:var(--op);color:var(--ouro)}
+.hist-badge.err{background:var(--rp);color:var(--ra)}
+
+/* ── PERFIL ── */
+.perfil-card{
+  background:white;border:1px solid var(--c5);
+  border-radius:var(--radius);padding:20px;
+  margin-bottom:12px;
+}
+.perfil-header{
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:16px;padding-bottom:16px;
+  border-bottom:1px solid var(--c6);
+}
+.perfil-avatar{
+  width:52px;height:52px;border-radius:50%;
+  background:var(--v);color:white;
+  font-family:'Fraunces',serif;font-size:20px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.perfil-nome{font-size:16px;font-weight:500}
+.perfil-plano{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:500;
+  background:var(--vp);color:var(--v);
+  padding:3px 10px;border-radius:100px;
+  margin-top:4px;
+}
+.perfil-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-item{text-align:center}
+.stat-num{font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--v)}
+.stat-label{font-size:10px;color:var(--c4);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.menu-list{display:flex;flex-direction:column;gap:0}
+.menu-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 0;border-bottom:1px solid var(--c6);
+  cursor:pointer;font-size:14px;color:var(--c2);
+}
+.menu-item:last-child{border-bottom:none}
+.menu-item svg{width:18px;height:18px;stroke:var(--c4);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.menu-item .chevron{margin-left:auto;stroke:var(--c5)}
+.menu-item.danger{color:var(--ra)}
+.menu-item.danger svg{stroke:var(--ra)}
+
+/* ── MODAL LOGIN ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.5);
+  display:flex;align-items:flex-end;
+  justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s;
+}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{
+  background:var(--branco);
+  border-radius:20px 20px 0 0;
+  padding:28px 20px max(28px,env(safe-area-inset-bottom));
+  width:100%;max-width:480px;
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--c5);border-radius:100px;margin:0 auto 20px}
+.modal h2{font-family:'Fraunces',serif;font-size:22px;font-weight:700;margin-bottom:6px;letter-spacing:-.3px}
+.modal p{font-size:14px;color:var(--c3);margin-bottom:20px;font-weight:300}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:500;color:var(--c2);margin-bottom:6px;display:block;letter-spacing:.02em}
+.form-input{
+  width:100%;padding:13px 14px;
+  border:1.5px solid var(--c5);
+  border-radius:var(--radius-xs);
+  font-size:15px;font-family:'DM Sans',sans-serif;
+  background:white;color:var(--c1);
+  transition:border-color .2s;
+  -webkit-appearance:none;
+}
+.form-input:focus{outline:none;border-color:var(--v)}
+.btn-login{
+  width:100%;background:var(--v);color:white;
+  border:none;border-radius:var(--radius-xs);
+  padding:15px;font-size:15px;font-weight:500;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  margin-top:4px;transition:background .2s;
+}
+.btn-login:hover{background:var(--vl)}
+.modal-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--c4);font-size:12px}
+.modal-divider::before,.modal-divider::after{content:'';flex:1;height:1px;background:var(--c5)}
+.btn-social{
+  width:100%;background:white;color:var(--c2);
+  border:1.5px solid var(--c5);border-radius:var(--radius-xs);
+  padding:13px;font-size:14px;font-weight:400;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:border-color .2s;
+}
+.btn-social:hover{border-color:var(--c3)}
+.modal-footer{font-size:12px;color:var(--c4);text-align:center;margin-top:16px;font-weight:300}
+.modal-footer a{color:var(--v);text-decoration:none;font-weight:500}
+
+/* ── ESTADO VAZIO ── */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:40px 20px;
+  text-align:center;flex:1;
+}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:500;margin-bottom:6px}
+.empty-sub{font-size:14px;color:var(--c3);font-weight:300;max-width:240px}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--c1);color:white;
+  font-size:13px;font-weight:400;
+  padding:10px 18px;border-radius:100px;
+  z-index:300;transition:transform .3s ease;
+  white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── WPP FLOAT ── */
+.wpp-float{
+  position:fixed;bottom:max(82px,calc(72px + env(safe-area-inset-bottom)));
+  right:16px;z-index:40;
+  width:50px;height:50px;
+  background:#25D366;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(37,211,102,.4);
+  cursor:pointer;
+  transition:transform .2s;
+}
+.wpp-float:hover{transform:scale(1.08)}
+.wpp-float svg{width:26px;height:26px;fill:white}
+
+@media(min-width:520px){
+  .app{box-shadow:0 0 0 1px var(--c5),0 8px 40px rgba(0,0,0,.08)}
+  body{background:var(--c6);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px 0}
+  .app{border-radius:24px;overflow:hidden;min-height:860px}
+}
+</style>
+</head>
+<body>
+
+<div class=&quot;app&quot;>
+
+  <!-- TOPBAR -->
+  <header class=&quot;topbar&quot;>
+    <div class=&quot;logo&quot;>Cooltivando<span>.ai</span></div>
+    <div class=&quot;topbar-right&quot;>
+      <div class=&quot;credits-pill&quot; id=&quot;creditsPill&quot;>
+        🎁 <span class=&quot;num&quot; id=&quot;creditsNum&quot;>1</span> grátis
+      </div>
+      <div class=&quot;avatar&quot; id=&quot;avatarBtn&quot; onclick=&quot;showLogin()&quot;>AB</div>
+    </div>
+  </header>
+
+  <!-- ══ PÁGINA: ANALISAR ══ -->
+  <div class=&quot;page active&quot; id=&quot;pg-analisar&quot;>
+
+    <!-- Hero -->
+    <div class=&quot;hero-analisar&quot;>
+      <div class=&quot;hero-badge&quot;>IA analisa em segundos</div>
+      <h1>Seu rótulo está pronto para vender ou pode <em>gerar problema?</em></h1>
+      <p class=&quot;hero-sub&quot;>Envie a foto e descubra antes de imprimir ou protocolar.</p>
+    </div>
+
+    <!-- Upload -->
+    <div class=&quot;upload-card&quot; id=&quot;uploadCard&quot;>
+      <div class=&quot;upload-header&quot;>
+        <div class=&quot;upload-title&quot;>
+          🎁 Análise gratuita
+          <span class=&quot;badge-gratis&quot; id=&quot;gratisBadge&quot;>1 grátis</span>
+        </div>
+        <div class=&quot;credits-info&quot;>
+          Você tem <span class=&quot;num&quot; id=&quot;creditsDisplay&quot;>1</span> análise
+        </div>
+      </div>
+
+      <div class=&quot;upload-area&quot; id=&quot;uploadArea&quot;>
+        <input type=&quot;file&quot; id=&quot;fileInput&quot; accept=&quot;.png,.jpg,.jpeg,.pdf&quot; onchange=&quot;handleFile(this)&quot;>
+        <div class=&quot;upload-icon&quot;>
+          <svg viewBox=&quot;0 0 24 24&quot;><path d=&quot;M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4&quot;/><polyline points=&quot;17 8 12 3 7 8&quot;/><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;15&quot;/></svg>
+        </div>
+        <p id=&quot;uploadText&quot;><strong>Toque para enviar</strong> ou arraste aqui</p>
+        <p>PNG, JPG ou PDF · até 10 MB</p>
+        <div class=&quot;file-selected&quot; id=&quot;fileSelected&quot;></div>
+      </div>
+
+      <button class=&quot;btn-analisar&quot; id=&quot;btnAnalisar&quot; onclick=&quot;iniciarAnalise()&quot;>
+        <svg width=&quot;18&quot; height=&quot;18&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;8&quot;/><line x1=&quot;21&quot; y1=&quot;21&quot; x2=&quot;16.65&quot; y2=&quot;16.65&quot;/></svg>
+        Analisar meu rótulo agora
+      </button>
+      <div class=&quot;btn-disclaimer&quot;>Análise orientativa · Não substitui avaliação do fiscal ou RT</div>
+    </div>
+
+    <!-- Loading -->
+    <div class=&quot;loading-card&quot; id=&quot;loadingCard&quot;>
+      <div style=&quot;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px&quot;>
+        <span style=&quot;font-size:14px;font-weight:500&quot;>Analisando rótulo...</span>
+        <span style=&quot;font-size:12px;color:var(--c4)&quot; id=&quot;loadingPct&quot;>0%</span>
+      </div>
+      <div class=&quot;progress-bar&quot;><div class=&quot;progress-fill&quot; id=&quot;progressFill&quot;></div></div>
+      <div class=&quot;loading-steps&quot;>
+        <div class=&quot;loading-step&quot; id=&quot;step1&quot;><div class=&quot;step-dot&quot;></div><span>Identificando produto e categoria</span></div>
+        <div class=&quot;loading-step&quot; id=&quot;step2&quot;><div class=&quot;step-dot&quot;></div><span>Verificando legislação vigente</span></div>
+        <div class=&quot;loading-step&quot; id=&quot;step3&quot;><div class=&quot;step-dot&quot;></div><span>Analisando 23 itens obrigatórios</span></div>
+        <div class=&quot;loading-step&quot; id=&quot;step4&quot;><div class=&quot;step-dot&quot;></div><span>Calculando nota de risco</span></div>
+        <div class=&quot;loading-step&quot; id=&quot;step5&quot;><div class=&quot;step-dot&quot;></div><span>Gerando relatório preliminar</span></div>
+      </div>
+    </div>
 </body>
 </html>
