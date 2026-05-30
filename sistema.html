@@ -1369,6 +1369,34 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 async 
 
 
+
+async function abrirModalAgro() {
+  // Popular select de produtores com dados reais do banco
+  var sel = document.getElementById('agro-sel-produtor');
+  if (sel) {
+    sel.innerHTML = '<option value="">Selecione...</option>';
+    var prods = await supaGet('produtores', 'select=id,nome&order=nome');
+    if (prods && prods.length > 0) {
+      prods.forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p.nome;
+        opt.textContent = p.nome;
+        sel.appendChild(opt);
+      });
+    }
+  }
+  // Popular município com o município do usuário logado
+  var munSel = document.querySelectorAll('#m-agro select')[2];
+  if (munSel) {
+    var munAtual = getMunicipioUsuario();
+    if (munAtual) {
+      Array.from(munSel.options).forEach(function(o) {
+        if (o.value === munAtual) o.selected = true;
+      });
+    }
+  }
+  sm('m-agro');
+}
 async function salvarAgroindustria() {
   var produtor = document.querySelector('#m-agro select').value;
   var nome = document.querySelectorAll('#m-agro input')[0].value.trim();
@@ -2167,6 +2195,9 @@ async function carregarMunicipios() {
 // ===SALVAR AGROINDUSTRIA===
 async 
 
+
+
+
 async function abrirModalAgro() {
   // Popular select de produtores com dados reais do banco
   var sel = document.getElementById('agro-sel-produtor');
@@ -2194,7 +2225,6 @@ async function abrirModalAgro() {
   }
   sm('m-agro');
 }
-
 async function salvarAgroindustria() {
   var selects = document.querySelectorAll('#m-agro select');
   var inputs = document.querySelectorAll('#m-agro input');
