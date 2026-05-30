@@ -1367,33 +1367,26 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 <div class="mo" id="m-logs" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Log de rastreabilidade</h3><button class="mc" onclick="hm('m-logs')">x</button></div><div style="padding:16px 20px"><div style="display:flex;flex-direction:column;gap:8px" id="logs-lista"><div style="background:var(--g0);border:1px solid var(--g2);border-radius:8px;padding:10px 14px;font-size:12px"><div style="font-weight:700;color:var(--g7)">Aprovado - RG e CPF</div><div style="color:var(--k5);margin-top:2px">Joao Silva (Fiscal) - 18/03/2026 - 090144</div></div><div style="background:var(--g0);border:1px solid var(--g2);border-radius:8px;padding:10px 14px;font-size:12px"><div style="font-weight:700;color:var(--g7)">Aprovado - Comprovante Endereco</div><div style="color:var(--k5);margin-top:2px">Joao Silva (Fiscal) - 18/03/2026 - 091522</div></div><div style="background:var(--yw0);border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;font-size:12px"><div style="font-weight:700;color:#92400e">Licenca Sanitaria - Vencendo em 5 dias</div><div style="color:var(--k5);margin-top:2px">Alerta automatico - 06/05/2026</div></div></div></div><div class="fact"><button class="btn bo" oncli
 // ===SALVAR AGROINDUSTRIA===
 
+
 async function abrirModalAgro() {
-  // Popular select de produtores com dados reais do banco
   var sel = document.getElementById('agro-sel-produtor');
   if (sel) {
     sel.innerHTML = '<option value="">Selecione...</option>';
-    var prods = await supaGet('produtores', 'select=id,nome&order=nome');
-    if (prods && prods.length > 0) {
-      prods.forEach(function(p) {
-        var opt = document.createElement('option');
-        opt.value = p.nome;
-        opt.textContent = p.nome;
-        sel.appendChild(opt);
-      });
-    }
-  }
-  // Popular município com o município do usuário logado
-  var munSel = document.querySelectorAll('#m-agro select')[2];
-  if (munSel) {
-    var munAtual = getMunicipioUsuario();
-    if (munAtual) {
-      Array.from(munSel.options).forEach(function(o) {
-        if (o.value === munAtual) o.selected = true;
-      });
-    }
+    try {
+      var prods = await supaGet('produtores', 'select=id,nome&order=nome');
+      if (prods && prods.length > 0) {
+        prods.forEach(function(p) {
+          var opt = document.createElement('option');
+          opt.value = p.nome;
+          opt.textContent = p.nome;
+          sel.appendChild(opt);
+        });
+      }
+    } catch(e) { console.log('Erro ao carregar produtores:', e); }
   }
   sm('m-agro');
 }
+
 async function salvarAgroindustria() {
   var produtor = document.querySelector('#m-agro select').value;
   var nome = document.querySelectorAll('#m-agro input')[0].value.trim();
@@ -2194,33 +2187,7 @@ async function carregarMunicipios() {
 
 // ===SALVAR AGROINDUSTRIA===
 
-async function abrirModalAgro() {
-  // Popular select de produtores com dados reais do banco
-  var sel = document.getElementById('agro-sel-produtor');
-  if (sel) {
-    sel.innerHTML = '<option value="">Selecione...</option>';
-    var prods = await supaGet('produtores', 'select=id,nome&order=nome');
-    if (prods && prods.length > 0) {
-      prods.forEach(function(p) {
-        var opt = document.createElement('option');
-        opt.value = p.nome;
-        opt.textContent = p.nome;
-        sel.appendChild(opt);
-      });
-    }
-  }
-  // Popular município com o município do usuário logado
-  var munSel = document.querySelectorAll('#m-agro select')[2];
-  if (munSel) {
-    var munAtual = getMunicipioUsuario();
-    if (munAtual) {
-      Array.from(munSel.options).forEach(function(o) {
-        if (o.value === munAtual) o.selected = true;
-      });
-    }
-  }
-  sm('m-agro');
-}
+
 async function salvarAgroindustria() {
   var selects = document.querySelectorAll('#m-agro select');
   var inputs = document.querySelectorAll('#m-agro input');
@@ -2509,33 +2476,7 @@ function renderCredenciais() { /* removido - banco de dados ativo */ }
 var SUPA_URL = 'https://tjlyacncefsocgvlatfd.supabase.co';
 var SUPA_KEY = 'sb_publishable_WBDsBQAfH18wgpRPnIGufA_jJTWdXBs';
 
-async function abrirModalAgro() {
-  // Popular select de produtores com dados reais do banco
-  var sel = document.getElementById('agro-sel-produtor');
-  if (sel) {
-    sel.innerHTML = '<option value="">Selecione...</option>';
-    var prods = await supaGet('produtores', 'select=id,nome&order=nome');
-    if (prods && prods.length > 0) {
-      prods.forEach(function(p) {
-        var opt = document.createElement('option');
-        opt.value = p.nome;
-        opt.textContent = p.nome;
-        sel.appendChild(opt);
-      });
-    }
-  }
-  // Popular município com o município do usuário logado
-  var munSel = document.querySelectorAll('#m-agro select')[2];
-  if (munSel) {
-    var munAtual = getMunicipioUsuario();
-    if (munAtual) {
-      Array.from(munSel.options).forEach(function(o) {
-        if (o.value === munAtual) o.selected = true;
-      });
-    }
-  }
-  sm('m-agro');
-}
+
 
 async function supaFetch(path, options = {}) {
   const res = await fetch(SUPA_URL + path, {
