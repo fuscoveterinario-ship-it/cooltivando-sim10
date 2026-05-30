@@ -1415,14 +1415,17 @@ async function salvarAgroindustria() {
     var munData = await supaGet('municipios', 'nome=eq.' + encodeURIComponent(munNome) + '&select=id');
     var munId = munData && munData.length > 0 ? munData[0].id : null;
 
+    // Buscar ID do produtor pelo nome
+    var prodData = await supaGet('produtores', 'nome=eq.' + encodeURIComponent(produtor) + '&select=id');
+    var prodId = prodData && prodData.length > 0 ? prodData[0].id : null;
+
     var result = await supaInsert('agroindustrias', {
       nome: nome,
       num_sim: simNum ? simNum + ' - ' + simTipo : null,
       cadpro: cadpro || null,
       tipo_produto: tipo || null,
       municipio_id: munId,
-      municipio_nome: munNome,
-      produtor_nome: produtor
+      produtor_id: prodId
     });
 
     if (result && result.length > 0) {
@@ -2245,14 +2248,17 @@ async function salvarAgroindustria() {
     var munData = await supaGet('municipios', 'nome=eq.' + encodeURIComponent(munNome) + '&select=id');
     var munId = munData && munData.length > 0 ? munData[0].id : null;
 
+    // Buscar ID do produtor pelo nome
+    var prodData = await supaGet('produtores', 'nome=eq.' + encodeURIComponent(produtor) + '&select=id');
+    var prodId = prodData && prodData.length > 0 ? prodData[0].id : null;
+
     var result = await supaInsert('agroindustrias', {
       nome: nome,
       num_sim: simNum ? simNum + ' - ' + simTipo : null,
       cadpro: cadpro || null,
       tipo_produto: tipo || null,
       municipio_id: munId,
-      municipio_nome: munNome,
-      produtor_nome: produtor
+      produtor_id: prodId
     });
 
     if (result && result.length > 0) {
