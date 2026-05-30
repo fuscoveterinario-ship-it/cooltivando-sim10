@@ -2537,7 +2537,7 @@ async function abrirModalAgro() {
   sm('m-agro');
 }
 
-async async function supaFetch(path, options = {}) {
+async function supaFetch(path, options = {}) {
   const res = await fetch(SUPA_URL + path, {
     ...options,
     headers: {
