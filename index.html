@@ -199,8 +199,33 @@
 .analisador-step-text strong { color: var(--branco); font-weight: 500; }
 .analisador-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--verde-neon); color: var(--verde-escuro); font-size: 14px; font-weight: 700; padding: 13px 28px; border-radius: 8px; text-decoration: none; transition: transform 0.15s, box-shadow 0.15s; }
 .analisador-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(110,232,154,0.3); }
-
+#modal-analisador {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
 #modal-analisador.aberto { display: flex; }
+#modal-analisador-box {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    height: 90vh;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  }
+#modal-analisador-box iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 16px;
+  }
 </style>
 </head>
 <body>
@@ -218,8 +243,7 @@
     <a href="#selo-arte">Selo Arte</a>
     <a href="#produtos">Produtos</a>
     <a href="#depoimentos">Depoimentos</a>
-    <a href="#" onclick="abrirModalAnalisador();return false;" class="nav-rotulo">Analisador de Rótulo</a>
-    <a href="sistema.html" class="nav-btn">Entrar no sistema &#x2192;</a>
+    <a href="sistema.html#login" class="nav-btn">Entrar no sistema &#x2192;</a>
   </div>
 </nav>
 
@@ -1221,6 +1245,342 @@ body{font-family:'DM Sans',sans-serif;background:var(--c6);color:var(--c1);line-
         <div class=&quot;loading-step&quot; id=&quot;step5&quot;><div class=&quot;step-dot&quot;></div><span>Gerando relatório preliminar</span></div>
       </div>
     </div>
+
+    <!-- Resultado -->
+    <div class=&quot;result-card&quot; id=&quot;resultCard&quot;>
+      <div class=&quot;result-header&quot;>
+        <div class=&quot;result-icon&quot;>🏷️</div>
+        <div>
+          <div class=&quot;result-produto&quot; id=&quot;resultProduto&quot;>Doce de Leite Orgânico — DiHelena</div>
+          <div class=&quot;result-meta&quot; id=&quot;resultMeta&quot;>Análise gerada em 12s · 28/05/2026 · <span style=&quot;color:var(--v);font-weight:500&quot;>CLT-F0E083</span></div>
+        </div>
+      </div>
+
+      <div style=&quot;font-size:11px;font-weight:500;color:var(--c4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px&quot;>Resultado da análise preliminar</div>
+
+      <div class=&quot;risco-badge risco-alto&quot; id=&quot;riscoBadge&quot;>⚠ RISCO ALTO</div>
+      <div class=&quot;result-subtitle&quot; id=&quot;riscoSub&quot;>3 não conformidades críticas identificadas</div>
+
+      <div class=&quot;alertas&quot; id=&quot;alertasList&quot;>
+        <!-- preenchido via JS -->
+      </div>
+
+      <!-- Itens borrados -->
+      <div class=&quot;blur-preview&quot;>
+        <div class=&quot;blur-content&quot;>
+          <div class=&quot;alerta ok&quot;><span class=&quot;alerta-icon&quot;>✓</span><div><strong>Tabela nutricional</strong><span>Completa com todos os nutrientes e %VD</span></div></div>
+          <div class=&quot;alerta ok&quot;><span class=&quot;alerta-icon&quot;>✓</span><div><strong>Alergênicos</strong><span>CONTÉM LEITE E DERIVADOS — em destaque</span></div></div>
+          <div class=&quot;alerta warn&quot;><span class=&quot;alerta-icon&quot;>!</span><div><strong>Número de registro SIM</strong><span>Fonte pequena — melhorar legibilidade</span></div></div>
+        </div>
+        <div class=&quot;blur-overlay&quot;>+ 5 itens analisados — relatório completo disponível</div>
+      </div>
+
+      <button class=&quot;btn-ver-completo&quot; onclick=&quot;verRelatorio()&quot;>
+        📄 Ver relatório completo — a partir de R$ 19
+      </button>
+
+      <!-- VOUCHER -->
+      <div class=&quot;voucher-wrap&quot; id=&quot;voucherWrap&quot;>
+        <div class=&quot;voucher-divider&quot;>ou</div>
+        <div class=&quot;voucher-row&quot; id=&quot;voucherRow&quot;>
+          <span class=&quot;voucher-label&quot; onclick=&quot;expandirVoucher()&quot;>🎟 Tenho um voucher</span>
+        </div>
+        <div class=&quot;voucher-input-wrap&quot; id=&quot;voucherInputWrap&quot; style=&quot;display:none&quot;>
+          <input class=&quot;voucher-input&quot; id=&quot;voucherInput&quot; type=&quot;text&quot; placeholder=&quot;Digite o código (ex: CLT-XXXXX)&quot; maxlength=&quot;20&quot; oninput=&quot;this.value=this.value.toUpperCase()&quot;>
+          <button class=&quot;voucher-btn&quot; onclick=&quot;aplicarVoucher()&quot; id=&quot;voucherBtn&quot;>Aplicar</button>
+          <div class=&quot;voucher-msg&quot; id=&quot;voucherMsg&quot;></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recomeçar -->
+    <div id=&quot;btnRestart&quot; style=&quot;display:none;margin-bottom:12px&quot;>
+      <button onclick=&quot;reiniciar()&quot; style=&quot;width:100%;padding:12px;border-radius:var(--radius-xs);border:1px solid var(--c5);background:transparent;color:var(--c3);font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif&quot;>
+        Analisar outro rótulo
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ══ PÁGINA: PLANOS ══ -->
+  <div class=&quot;page&quot; id=&quot;pg-planos&quot;>
+    <div class=&quot;section-title&quot;>Comece grátis · Cresça com créditos</div>
+
+    <div class=&quot;planos-grid&quot;>
+
+      <div class=&quot;plano-card&quot;>
+        <div class=&quot;plano-header&quot;>
+          <div><div class=&quot;plano-nome&quot;>Para produtores</div><div class=&quot;plano-titulo&quot;>Essencial</div></div>
+          <div class=&quot;plano-preco&quot;><span class=&quot;plano-moeda&quot;>R$</span><span class=&quot;plano-valor&quot;>29</span><div class=&quot;plano-periodo&quot;>por mês</div></div>
+        </div>
+        <div class=&quot;plano-creditos&quot;>10 análises / mês</div>
+        <div class=&quot;plano-features&quot;>
+          <div class=&quot;plano-feature&quot;>Nota de risco + alertas</div>
+          <div class=&quot;plano-feature&quot;>PDF com código hash</div>
+          <div class=&quot;plano-feature&quot;>Imagem do rótulo marcada</div>
+          <div class=&quot;plano-feature&quot;>Legislação atualizada mensalmente</div>
+        </div>
+        <button class=&quot;btn-plano&quot;>Assinar Essencial</button>
+      </div>
+
+      <div class=&quot;plano-card destaque&quot;>
+        <div class=&quot;plano-badge&quot;>MAIS ESCOLHIDO</div>
+        <div class=&quot;plano-header&quot;>
+          <div><div class=&quot;plano-nome&quot;>Consultores · Fiscais</div><div class=&quot;plano-titulo&quot;>Profissional</div></div>
+          <div class=&quot;plano-preco&quot;><span class=&quot;plano-moeda&quot;>R$</span><span class=&quot;plano-valor&quot;>89</span><div class=&quot;plano-periodo&quot;>por mês</div></div>
+        </div>
+        <div class=&quot;plano-creditos&quot;>50 análises / mês</div>
+        <div class=&quot;plano-features&quot;>
+          <div class=&quot;plano-feature&quot;>Tudo do Essencial</div>
+          <div class=&quot;plano-feature&quot;>Relatório por perfil (produtor · consultor · fiscal)</div>
+          <div class=&quot;plano-feature&quot;>Seção de documentos comprobatórios</div>
+          <div class=&quot;plano-feature&quot;>Gatilho WhatsApp para risco alto</div>
+          <div class=&quot;plano-feature&quot;>Suporte prioritário</div>
+        </div>
+        <button class=&quot;btn-plano primario&quot;>Assinar Profissional</button>
+      </div>
+
+      <div class=&quot;plano-card&quot;>
+        <div class=&quot;plano-header&quot;>
+          <div><div class=&quot;plano-nome&quot;>Municípios · Consórcios</div><div class=&quot;plano-titulo&quot;>Institucional</div></div>
+          <div class=&quot;plano-preco&quot;><span class=&quot;plano-moeda&quot;>R$</span><span class=&quot;plano-valor&quot;>297</span><div class=&quot;plano-periodo&quot;>por mês</div></div>
+        </div>
+        <div class=&quot;plano-creditos&quot;>Multi-usuário sob medida</div>
+        <div class=&quot;plano-features&quot;>
+          <div class=&quot;plano-feature&quot;>Painel admin com controle de limites</div>
+          <div class=&quot;plano-feature&quot;>Relatório com brasão do município</div>
+          <div class=&quot;plano-feature&quot;>Contrato com nota fiscal</div>
+          <div class=&quot;plano-feature&quot;>Onboarding incluído</div>
+        </div>
+        <button class=&quot;btn-plano&quot; onclick=&quot;abrirWpp()&quot;>Falar com comercial</button>
+      </div>
+
+    </div>
+
+    <div class=&quot;section-title&quot;>Créditos avulsos — sem mensalidade</div>
+    <div style=&quot;font-size:13px;color:var(--c3);margin-bottom:12px;font-weight:300&quot;>PIX, boleto ou cartão · Não expiram · <strong style=&quot;color:var(--v)&quot;>1ª análise sempre grátis</strong></div>
+
+    <div class=&quot;creditos-grid&quot;>
+      <div class=&quot;credito-card&quot; onclick=&quot;selecionarCredito(this)&quot;>
+        <div class=&quot;credito-qty&quot;>5</div>
+        <div class=&quot;credito-label&quot;>análises</div>
+        <div class=&quot;credito-preco&quot;>R$ 19</div>
+        <div class=&quot;credito-unit&quot;>R$ 3,80 / análise</div>
+      </div>
+      <div class=&quot;credito-card popular&quot; onclick=&quot;selecionarCredito(this)&quot;>
+        <div class=&quot;credito-qty&quot;>20</div>
+        <div class=&quot;credito-label&quot;>análises</div>
+        <div class=&quot;credito-preco&quot;>R$ 59</div>
+        <div class=&quot;credito-unit&quot;>R$ 2,95 / análise</div>
+      </div>
+      <div class=&quot;credito-card&quot; onclick=&quot;selecionarCredito(this)&quot;>
+        <div class=&quot;credito-qty&quot;>50</div>
+        <div class=&quot;credito-label&quot;>análises</div>
+        <div class=&quot;credito-preco&quot;>R$ 129</div>
+        <div class=&quot;credito-unit&quot;>R$ 2,58 / análise</div>
+      </div>
+      <div class=&quot;credito-card&quot; onclick=&quot;selecionarCredito(this)&quot;>
+        <div class=&quot;credito-qty&quot;>100</div>
+        <div class=&quot;credito-label&quot;>análises</div>
+        <div class=&quot;credito-preco&quot;>R$ 229</div>
+        <div class=&quot;credito-unit&quot;>R$ 2,29 / análise</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PÁGINA: HISTÓRICO ══ -->
+  <div class=&quot;page&quot; id=&quot;pg-historico&quot;>
+    <div class=&quot;section-title&quot;>Suas análises</div>
+    <div class=&quot;historico-list&quot;>
+      <div class=&quot;hist-item&quot;>
+        <div class=&quot;hist-icon warn&quot;>🍯</div>
+        <div class=&quot;hist-info&quot;>
+          <div class=&quot;hist-produto&quot;>Doce de Leite Orgânico — DiHelena</div>
+          <div class=&quot;hist-meta&quot;>28/05/2026 · CLT-F0E083</div>
+        </div>
+        <div class=&quot;hist-badge warn&quot;>Com ressalvas</div>
+      </div>
+      <div class=&quot;hist-item&quot;>
+        <div class=&quot;hist-icon warn&quot;>🥚</div>
+        <div class=&quot;hist-info&quot;>
+          <div class=&quot;hist-produto&quot;>Ovos Tipo Grande — Granja Buba</div>
+          <div class=&quot;hist-meta&quot;>27/05/2026 · CLT-70FA3C</div>
+        </div>
+        <div class=&quot;hist-badge warn&quot;>Com ressalvas</div>
+      </div>
+      <div class=&quot;hist-item&quot; style=&quot;opacity:.45;pointer-events:none&quot;>
+        <div class=&quot;hist-icon&quot; style=&quot;background:var(--c6)&quot;>🔒</div>
+        <div class=&quot;hist-info&quot;>
+          <div class=&quot;hist-produto&quot;>Compre créditos para analisar mais</div>
+          <div class=&quot;hist-meta&quot;>Créditos avulsos a partir de R$ 19</div>
+        </div>
+        <div class=&quot;hist-badge&quot; style=&quot;background:var(--c6);color:var(--c4)&quot;>Bloqueado</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PÁGINA: PERFIL ══ -->
+  <div class=&quot;page&quot; id=&quot;pg-perfil&quot;>
+    <div class=&quot;perfil-card&quot;>
+      <div class=&quot;perfil-header&quot;>
+        <div class=&quot;perfil-avatar&quot;>AB</div>
+        <div>
+          <div class=&quot;perfil-nome&quot;>Andrea Bueno</div>
+          <div style=&quot;display:flex;gap:6px;margin-top:4px;flex-wrap:wrap&quot;>
+            <div class=&quot;perfil-plano&quot;>✓ Essencial</div>
+          </div>
+        </div>
+      </div>
+      <div class=&quot;perfil-stats&quot;>
+        <div class=&quot;stat-item&quot;><div class=&quot;stat-num&quot;>2</div><div class=&quot;stat-label&quot;>Análises</div></div>
+        <div class=&quot;stat-item&quot;><div class=&quot;stat-num&quot;>1</div><div class=&quot;stat-label&quot;>Crédito</div></div>
+        <div class=&quot;stat-item&quot;><div class=&quot;stat-num&quot;>mai/26</div><div class=&quot;stat-label&quot;>Legislação</div></div>
+      </div>
+    </div>
+
+    <div class=&quot;perfil-card&quot;>
+      <div class=&quot;menu-list&quot;>
+        <div class=&quot;menu-item&quot; onclick=&quot;navTo('pg-planos')&quot;>
+          <svg viewBox=&quot;0 0 24 24&quot;><rect x=&quot;2&quot; y=&quot;3&quot; width=&quot;20&quot; height=&quot;14&quot; rx=&quot;2&quot;/><line x1=&quot;8&quot; y1=&quot;21&quot; x2=&quot;16&quot; y2=&quot;21&quot;/><line x1=&quot;12&quot; y1=&quot;17&quot; x2=&quot;12&quot; y2=&quot;21&quot;/></svg>
+          Meus planos e créditos
+          <svg class=&quot;chevron&quot; viewBox=&quot;0 0 24 24&quot;><polyline points=&quot;9 18 15 12 9 6&quot;/></svg>
+        </div>
+        <div class=&quot;menu-item&quot; onclick=&quot;navTo('pg-historico')&quot;>
+          <svg viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/><polyline points=&quot;12 6 12 12 16 14&quot;/></svg>
+          Histórico de análises
+          <svg class=&quot;chevron&quot; viewBox=&quot;0 0 24 24&quot;><polyline points=&quot;9 18 15 12 9 6&quot;/></svg>
+        </div>
+        <div class=&quot;menu-item&quot;>
+          <svg viewBox=&quot;0 0 24 24&quot;><path d=&quot;M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z&quot;/></svg>
+          Legislação vigente
+          <span style=&quot;font-size:11px;color:var(--v);font-weight:500;margin-left:auto&quot;>mai/2026</span>
+        </div>
+        <div class=&quot;menu-item&quot; onclick=&quot;abrirWpp()&quot;>
+          <svg viewBox=&quot;0 0 24 24&quot;><path d=&quot;M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z&quot;/></svg>
+          Falar com especialista
+          <svg class=&quot;chevron&quot; viewBox=&quot;0 0 24 24&quot;><polyline points=&quot;9 18 15 12 9 6&quot;/></svg>
+        </div>
+        <div class=&quot;menu-item&quot;>
+          <svg viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/><path d=&quot;M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14&quot;/></svg>
+          Configurações
+          <svg class=&quot;chevron&quot; viewBox=&quot;0 0 24 24&quot;><polyline points=&quot;9 18 15 12 9 6&quot;/></svg>
+        </div>
+        <div class=&quot;menu-item&quot; onclick=&quot;abrirAdmin()&quot; style=&quot;opacity:.35;font-size:12px;color:var(--c4)&quot;>
+          <svg viewBox=&quot;0 0 24 24&quot;><rect x=&quot;3&quot; y=&quot;11&quot; width=&quot;18&quot; height=&quot;11&quot; rx=&quot;2&quot;/><path d=&quot;M7 11V7a5 5 0 0110 0v4&quot;/></svg>
+          Painel admin
+          <svg class=&quot;chevron&quot; viewBox=&quot;0 0 24 24&quot;><polyline points=&quot;9 18 15 12 9 6&quot;/></svg>
+        </div>
+        <div class=&quot;menu-item danger&quot;>
+          <svg viewBox=&quot;0 0 24 24&quot;><path d=&quot;M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4&quot;/><polyline points=&quot;16 17 21 12 16 7&quot;/><line x1=&quot;21&quot; y1=&quot;12&quot; x2=&quot;9&quot; y2=&quot;12&quot;/></svg>
+          Sair da conta
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class=&quot;bottom-nav&quot;>
+    <button class=&quot;nav-item active&quot; id=&quot;nav-analisar&quot; onclick=&quot;navTo('pg-analisar')&quot;>
+      <svg viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;8&quot;/><line x1=&quot;21&quot; y1=&quot;21&quot; x2=&quot;16.65&quot; y2=&quot;16.65&quot;/></svg>
+      Analisar
+    </button>
+    <button class=&quot;nav-item&quot; id=&quot;nav-historico&quot; onclick=&quot;navTo('pg-historico')&quot;>
+      <svg viewBox=&quot;0 0 24 24&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/><polyline points=&quot;12 6 12 12 16 14&quot;/></svg>
+      Histórico
+    </button>
+    <button class=&quot;nav-item&quot; id=&quot;nav-planos&quot; onclick=&quot;navTo('pg-planos')&quot;>
+      <svg viewBox=&quot;0 0 24 24&quot;><line x1=&quot;12&quot; y1=&quot;1&quot; x2=&quot;12&quot; y2=&quot;23&quot;/><path d=&quot;M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6&quot;/></svg>
+      Planos
+    </button>
+    <button class=&quot;nav-item&quot; id=&quot;nav-perfil&quot; onclick=&quot;navTo('pg-perfil')&quot;>
+      <svg viewBox=&quot;0 0 24 24&quot;><path d=&quot;M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2&quot;/><circle cx=&quot;12&quot; cy=&quot;7&quot; r=&quot;4&quot;/></svg>
+      Perfil
+    </button>
+  </nav>
+
+</div>
+
+<!-- MODAL LOGIN -->
+<div class=&quot;modal-overlay&quot; id=&quot;modalLogin&quot; onclick=&quot;fecharModal(event)&quot;>
+  <div class=&quot;modal&quot;>
+    <div class=&quot;modal-handle&quot;></div>
+    <h2>Entrar na Cooltivando</h2>
+    <p>Acesse suas análises, créditos e histórico de rótulos.</p>
+    <div class=&quot;form-group&quot;>
+      <label class=&quot;form-label&quot;>E-mail</label>
+      <input class=&quot;form-input&quot; type=&quot;email&quot; placeholder=&quot;seu@email.com&quot; autocomplete=&quot;email&quot;>
+    </div>
+    <div class=&quot;form-group&quot;>
+      <label class=&quot;form-label&quot;>Senha</label>
+      <input class=&quot;form-input&quot; type=&quot;password&quot; placeholder=&quot;••••••••&quot; autocomplete=&quot;current-password&quot;>
+    </div>
+    <button class=&quot;btn-login&quot; onclick=&quot;fazerLogin()&quot;>Entrar</button>
+    <div class=&quot;modal-divider&quot;>ou</div>
+    <button class=&quot;btn-social&quot;>
+      <svg width=&quot;18&quot; height=&quot;18&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot;><path d=&quot;M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z&quot; fill=&quot;#4285F4&quot;/><path d=&quot;M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z&quot; fill=&quot;#34A853&quot;/><path d=&quot;M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z&quot; fill=&quot;#FBBC05&quot;/><path d=&quot;M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z&quot; fill=&quot;#EA4335&quot;/></svg>
+      Continuar com Google
+    </button>
+    <div class=&quot;modal-footer&quot;>
+      Não tem conta? <a href=&quot;#&quot; onclick=&quot;showCadastro()&quot;>Criar conta grátis</a>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class=&quot;admin-overlay&quot; id=&quot;adminOverlay&quot;>
+  <div class=&quot;admin-box&quot;>
+    <div class=&quot;admin-header&quot;>
+      <div class=&quot;admin-title&quot;>Painel Admin — Vouchers</div>
+      <button class=&quot;admin-close&quot; onclick=&quot;fecharAdmin()&quot;>&#x2715;</button>
+    </div>
+
+    <!-- LOGIN ADMIN -->
+    <div id=&quot;adminLoginWrap&quot; class=&quot;admin-login-wrap&quot;>
+      <div class=&quot;admin-login-titulo&quot;>Acesso restrito</div>
+      <div class=&quot;admin-login-sub&quot;>Digite a senha de administrador para gerar vouchers.</div>
+      <input class=&quot;admin-input&quot; id=&quot;adminSenhaInput&quot; type=&quot;password&quot; placeholder=&quot;Senha admin&quot; onkeydown=&quot;if(event.key==='Enter')verificarSenhaAdmin()&quot;>
+      <button class=&quot;admin-btn-gerar&quot; onclick=&quot;verificarSenhaAdmin()&quot;>Entrar</button>
+      <div class=&quot;voucher-msg err&quot; id=&quot;adminSenhaMsg&quot;></div>
+    </div>
+
+    <!-- PAINEL GERAR -->
+    <div id=&quot;adminPainelWrap&quot; class=&quot;admin-body&quot; style=&quot;display:none&quot;>
+      <div class=&quot;admin-section&quot;>Criar lote de vouchers</div>
+
+      <div class=&quot;admin-field&quot;>
+        <label class=&quot;admin-label&quot;>Destinatário</label>
+        <input class=&quot;admin-input&quot; id=&quot;adminDestinatario&quot; type=&quot;text&quot; placeholder=&quot;Ex: Município de Pién, Assoc. Agroec. Campo Tenente&quot;>
+      </div>
+
+      <div class=&quot;admin-row&quot;>
+        <div class=&quot;admin-field&quot;>
+          <label class=&quot;admin-label&quot;>Quantidade</label>
+          <input class=&quot;admin-input&quot; id=&quot;adminQtd&quot; type=&quot;number&quot; min=&quot;1&quot; max=&quot;100&quot; value=&quot;5&quot; placeholder=&quot;5&quot;>
+        </div>
+        <div class=&quot;admin-field&quot;>
+          <label class=&quot;admin-label&quot;>Validade</label>
+          <input class=&quot;admin-input&quot; id=&quot;adminValidade&quot; type=&quot;date&quot;>
+        </div>
+      </div>
+
+      <button class=&quot;admin-btn-gerar&quot; id=&quot;adminBtnGerar&quot; onclick=&quot;gerarVouchers()&quot;>Gerar vouchers</button>
+
+      <div class=&quot;admin-resultado&quot; id=&quot;adminResultado&quot;>
+        <div class=&quot;admin-resultado-titulo&quot; id=&quot;adminResultadoTitulo&quot;></div>
+        <div class=&quot;admin-voucher-lista&quot; id=&quot;adminVoucherLista&quot;></div>
+        <button class=&quot;admin-copiar-todos&quot; onclick=&quot;copiarTodos()&quot;>Copiar todos os códigos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WPP FLOAT -->
+<a class=&quot;wpp-float&quot; id=&quot;wppFloat&quot; href=&quot;https://wa.me/5541999999999?text=Olá!%20Quero%20ajuda%20com%20meu%20rótulo%20na%20Cooltivando.&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; style=&quot;text-decoration:none&quot;>
+  <svg viewBox=&quot;0 0 24 24&quot;><path d=&quot;M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z&quot;/><path d=&quot;M11.998 2C6.477 2 2 6.477 2 12c0 1.821.487 3.53 1.338 5.014L2 22l5.134-1.322A9.952 9.952 0 0012 22c5.523 0 10-4.477 10-10S17.521 2 11.998 2z&quot;/></svg>
+</a>
+
+<!-- TOAST -->
+<div class=&quot;toast&quot; id=&quot;toast&quot;></div>
 <script>
 function abrirModalAnalisador() {
   document.getElementById('modal-analisador').classList.add('aberto');
