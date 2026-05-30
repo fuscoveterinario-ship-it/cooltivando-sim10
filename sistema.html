@@ -2434,10 +2434,11 @@ function entrarSistema() {
 }
 
 window.addEventListener('load', function() {
+  // Sempre abrir direto no login
+  var landing = document.getElementById('landing');
   var ls = document.getElementById('ls');
-  if (ls) ls.style.display = 'none';
-  // Auto-abrir login se URL tiver #login
-  if (window.location.hash === '#login') { setTimeout(entrarSistema, 100); }
+  if (landing) landing.style.display = 'none';
+  if (ls) ls.style.display = 'flex';
 });
 
 function renderCredenciais() { /* removido - banco de dados ativo */ }
