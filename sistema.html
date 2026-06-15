@@ -1387,116 +1387,6 @@ async function abrirModalAgro() {
   sm('m-agro');
 }
 
-async function salvarAgroindustria() {
-  var produtor = document.querySelector('#m-agro select').value;
-  var nome = document.querySelectorAll('#m-agro input')[0].value.trim();
-  var simNum = document.querySelectorAll('#m-agro input')[1].value.trim();
-  var simTipo = document.querySelectorAll('#m-agro select')[1].value;
-  var cadpro = document.querySelectorAll('#m-agro input')[2].value.trim();
-  var tipo = document.querySelectorAll('#m-agro input')[3].value.trim();
-  var munNome = document.querySelectorAll('#m-agro select')[2].value;
-
-  if (!nome || !produtor || !munNome) { 
-    alert('Preencha os campos obrigatorios!'); 
-    return; 
-  }
-
-  try {
-    var munData = await supaGet('municipios', 'nome=eq.' + encodeURIComponent(munNome) + '&select=id');
-    var munId = munData && munData.length > 0 ? munData[0].id : null;
-
-    // Buscar ID do produtor pelo nome
-    var prodData = await supaGet('produtores', 'nome=eq.' + encodeURIComponent(produtor) + '&select=id');
-    var prodId = prodData && prodData.length > 0 ? prodData[0].id : null;
-
-    var result = await supaInsert('agroindustrias', {
-      nome: nome,
-      num_sim: simNum ? simNum + ' - ' + simTipo : null,
-      cadpro: cadpro || null,
-      tipo_produto: tipo || null,
-      municipio_id: munId,
-      produtor_id: prodId
-    });
-
-    if (result && result.length > 0) {
-      hm('m-agro');
-      alert('Agroindustria "' + nome + '" cadastrada com sucesso!');
-      // Atualizar tabela
-      var tbody = document.querySelector('#pg-agroindustrias .tbl tbody');
-      if (tbody) {
-        var tr = document.createElement('tr');
-        tr.innerHTML = '<td><b>'+nome+'</b></td><td>'+produtor+'</td><td>'+(cadpro||'-')+'</td><td>'+(tipo||'-')+'</td><td>'+munNome+'</td><td><span class="bdg bgy">0</span></td><td><button class="btn bo bsm">Abrir empresa</button></td>';
-        tbody.appendChild(tr);
-      }
-    } else {
-      alert('Erro ao salvar. Tente novamente.');
-    }
-  } catch(e) {
-    console.error('Erro:', e);
-    alert('Erro: ' + e.message);
-  }
-}
-
-// ===SALVAR CHECKLIST ITEM===
-function salvarChecklistItem() {
-  hm('m-clcfg');
-  alert('Item salvo com sucesso!');
-}
-ck="hm('m-logs')">Fechar</button>
-// ===CARREGAR AGROINDUSTRIAS DO BANCO===
-async function carregarAgroindustrias() {
-  try {
-    var agros = await supaGet('agroindustrias', 'select=*&order=nome');
-    if (!agros) return;
-
-    var tbody = document.querySelector('#pg-agroindustrias .tbl tbody');
-    if (!tbody) return;
-
-    // Limpar dados estaticos e mostrar do banco
-    if (agros.length > 0) {
-      tbody.innerHTML = '';
-      agros.forEach(function(a, i) {
-        var tr = document.createElement('tr');
-        tr.setAttribute('data-municipio', a.municipio_nome || '');
-        tr.setAttribute('data-produtor', a.produtor_nome || '');
-        tr.innerHTML =
-          '<td><b>' + a.nome + '</b><br>' +
-          '<div style="display:flex;align-items:center;gap:4px;margin-top:4px">' +
-          '<span class="bdg ' + (a.num_sim ? 'bgr' : 'bgy') + '" style="font-size:9px">' + (a.num_sim || 'Sem numero SIM') + '</span>' +
-          '</div></td>' +
-          '<td>' + (a.produtor_nome || '-') + '</td>' +
-          '<td>' + (a.cadpro || '-') + '</td>' +
-          '<td>' + (a.tipo_produto || '-') + '</td>' +
-          '<td>' + (a.municipio_nome || '-') + '</td>' +
-          '<td><span class="bdg bgy">0</span></td>' +
-          '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(\'' + a.nome + '\',\'' + (a.produtor_nome||'') + '\',\'' + (a.municipio_nome||'') + '\',\'' + (a.num_sim||'') + '\')">Abrir empresa</button></td>';
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Atualizar select de produtor no modal de agro
-    var produtores = await supaGet('produtores', 'select=nome&order=nome');
-    if (produtores && produtores.length > 0) {
-      var selProd = document.querySelector('#m-agro select');
-      if (selProd) {
-        var val = selProd.value;
-        while (selProd.options.length > 1) selProd.remove(1);
-        produtores.forEach(function(p) {
-          var opt = document.createElement('option');
-          opt.value = p.nome;
-          opt.textContent = p.nome;
-          selProd.appendChild(opt);
-        });
-        selProd.value = val;
-      }
-    }
-  } catch(e) {
-    console.log('Erro ao carregar agroindustrias:', e);
-  }
-}
-
-
-</div>
 // ===TIPOS DE USUARIO===
 var TIPOS_USUARIO = [
   {id:'fiscal', nome:'Fiscal', desc:'Realiza visitas e aprova documentos', icon:'🕵️', cor:'#f4a261',
@@ -1980,23 +1870,25 @@ var aiUsers = [
 // ===CARREGAR AGROINDUSTRIAS DO BANCO===
 async function carregarAgroindustrias() {
   try {
-    var agros = await supaGet('agroindustrias', 'select=*&order=nome');
+    var agros = await supaGet('agroindustrias', 'select=*,municipios(nome),produtores(nome)&order=nome');
     if (!agros) return;
     var tbody = document.querySelector('#pg-agroindustrias .tbl tbody');
     if (!tbody) return;
     if (agros.length > 0) {
       tbody.innerHTML = '';
       agros.forEach(function(a) {
+        var munNome = (a.municipios && a.municipios.nome) ? a.municipios.nome : '-';
+        var prodNome = (a.produtores && a.produtores.nome) ? a.produtores.nome : '-';
         var tr = document.createElement('tr');
-        tr.setAttribute('data-municipio', a.municipio_nome || '');
-        tr.setAttribute('data-produtor', a.produtor_nome || '');
+        tr.setAttribute('data-municipio', munNome === '-' ? '' : munNome);
+        tr.setAttribute('data-produtor', prodNome === '-' ? '' : prodNome);
         tr.innerHTML =
           '<td><b>' + a.nome + '</b><br>' +
           '<span class="bdg ' + (a.num_sim ? 'bgr' : 'bgy') + '" style="font-size:9px">' + (a.num_sim || 'Sem numero SIM') + '</span></td>' +
-          '<td>' + (a.produtor_nome || '-') + '</td>' +
+          '<td>' + prodNome + '</td>' +
           '<td>' + (a.cadpro || '-') + '</td>' +
-          '<td>' + (a.tipo_produto || '-') + '</td>' +
-          '<td>' + (a.municipio_nome || '-') + '</td>' +
+          '<td>' + (a.tipo || '-') + '</td>' +
+          '<td>' + munNome + '</td>' +
           '<td><span class="bdg bgy">0</span></td>' +
           '<td><button class="btn bo bsm">Abrir empresa</button></td>';
         tbody.appendChild(tr);
@@ -2216,7 +2108,7 @@ async function salvarAgroindustria() {
       nome: nome,
       num_sim: simNum ? simNum + ' - ' + simTipo : null,
       cadpro: cadpro || null,
-      tipo_produto: tipo || null,
+      tipo: tipo || null,
       municipio_id: munId,
       produtor_id: prodId
     });
@@ -2673,6 +2565,7 @@ function carregarApp() {
   carregarMunicipioUsuario();
   carregarStatsSeloArte();
   carregarUsuarios();
+  carregarDocsBase();
 }
 
 async function carregarDadosBanco() {
@@ -2878,7 +2771,34 @@ async function salvarUsuario() {
   }
 }
 
-
+// ===SALVAR PRODUTOR SELO ARTE===
+async function salvarProdutorSeloArte() {
+  var nome = document.getElementById('sa-prod-nome').value;
+  if (!nome) { alert('Selecione o produtor!'); return; }
+  var produto = document.getElementById('sa-prod-produto').value;
+  var rt = document.getElementById('sa-prod-rt').value;
+  var statusSel = document.getElementById('sa-prod-status').value;
+  // Normalizar status para o formato usado nas estatisticas
+  var statusVal = (statusSel === 'Apto') ? 'apto' : 'em_processo';
+  try {
+    await supaInsert('produtores_selo_arte', {
+      produtor_nome: nome,
+      produto: produto,
+      rt_responsavel: rt,
+      status: statusVal,
+      municipio_id: usr.municipio_id || null,
+      municipio_nome: usr.municipio_nome || '',
+      criado_por: (usr.n || '') + ' (' + (usr.p || '') + ')',
+      criado_em: new Date().toISOString()
+    });
+    hm('m-novo-selo-arte');
+    carregarStatsSeloArte();
+    alert('Produtor adicionado ao Selo Arte com sucesso!');
+  } catch(e) {
+    console.error('Erro ao salvar produtor Selo Arte:', e);
+    alert('Erro ao salvar no banco. Verifique a conexao.');
+  }
+}
 
 // ===NAVEGACAO===
 function navPg(id, el) {
@@ -2967,25 +2887,56 @@ function editDoc(i) {
   sm('m-dcfg');
 }
 
-function salvarDoc() {
+async function salvarDoc() {
   var nome = document.getElementById('dcfg-nome').value.trim();
   if (!nome) { alert('Informe o nome!'); return; }
   var desc = document.getElementById('dcfg-desc').value.trim();
   var obrig = document.getElementById('dcfg-obrig').value === 'Sim';
   var val = document.getElementById('dcfg-val').value === 's';
   var prazo = val ? document.getElementById('dcfg-prazo-sel').value : '--';
+  var alerta = val ? '30 dias' : '--';
   var idx = parseInt(document.getElementById('dcfg-idx').value);
-  if (idx >= 0) {
-    docsBase[idx] = {id:docsBase[idx].id, nome:nome, desc:desc, obrig:obrig, val:val, prazo:prazo, alerta:val?'30 dias':'--'};
-  } else {
-    var newId = docsBase.length > 0 ? Math.max.apply(null,docsBase.map(function(d){return d.id;})) + 1 : 1;
-    docsBase.push({id:newId,nome:nome,desc:desc,obrig:obrig,val:val,prazo:prazo,alerta:val?'30 dias':'--'});
+  try {
+    if (idx >= 0 && docsBase[idx] && docsBase[idx].dbId) {
+      await supaUpdate('docs_exigidos_produtor', docsBase[idx].dbId, {
+        nome: nome, descricao: desc, obrig: obrig, val: val, prazo: prazo, alerta: alerta
+      });
+      docsBase[idx] = {id:docsBase[idx].id, dbId:docsBase[idx].dbId, nome:nome, desc:desc, obrig:obrig, val:val, prazo:prazo, alerta:alerta};
+    } else {
+      var rec = await supaInsert('docs_exigidos_produtor', {
+        nome: nome, descricao: desc, obrig: obrig, val: val, prazo: prazo, alerta: alerta,
+        municipio_nome: usr.municipio_nome || '', criado_por: (usr.n || '') + ' (' + (usr.p || '') + ')',
+        criado_em: new Date().toISOString()
+      });
+      var dbId = (rec && rec[0]) ? rec[0].id : null;
+      var newId = docsBase.length > 0 ? Math.max.apply(null,docsBase.map(function(d){return d.id;})) + 1 : 1;
+      docsBase.push({id:newId, dbId:dbId, nome:nome, desc:desc, obrig:obrig, val:val, prazo:prazo, alerta:alerta});
+    }
+  } catch(e) {
+    console.log('Erro ao salvar documento:', e);
+    alert('Erro ao salvar no banco. Verifique a conexao.');
+    return;
   }
   document.getElementById('dcfg-idx').value = -1;
   document.getElementById('dcfg-nome').value = '';
   document.getElementById('dcfg-desc').value = '';
   renderDocsTbl();
   hm('m-dcfg');
+}
+
+// ===CARREGAR DOCS EXIGIDOS DO BANCO===
+async function carregarDocsBase() {
+  try {
+    var q = 'select=*&order=criado_em';
+    if (usr && usr.municipio_nome) q += '&municipio_nome=eq.' + encodeURIComponent(usr.municipio_nome);
+    var docs = await supaGet('docs_exigidos_produtor', q);
+    if (docs && docs.length > 0) {
+      docsBase = docs.map(function(d, i) {
+        return {id:i+1, dbId:d.id, nome:d.nome, desc:d.descricao || '', obrig:!!d.obrig, val:!!d.val, prazo:d.prazo || '--', alerta:d.alerta || '--'};
+      });
+      renderDocsTbl();
+    }
+  } catch(e) { console.log('Erro ao carregar docs exigidos:', e); }
 }
 
 // ===PROCESSO DOCUMENTOS===
@@ -3217,18 +3168,31 @@ function renderJornadaDocs(selecionados) {
     lista.appendChild(row);
   });
 }
-function salvarJornada() {
+async function salvarJornada() {
   var nome=document.getElementById('j-nome').value.trim();
   if (!nome){alert('Informe o nome!');return;}
   var desc=document.getElementById('j-desc').value.trim();
   var checked=document.querySelectorAll('#j-docs-lista input:checked');
   var total=0,comVal=0,docsHTML='';
+  var docsSel=[];
   checked.forEach(function(cb,idx){
     var docId=parseInt(cb.getAttribute('data-id'));
     var doc=docsBase.find(function(d){return d.id===docId;});
     if(!doc)return;total++;if(doc.val)comVal++;
+    docsSel.push({id:doc.id, nome:doc.nome, obrig:doc.obrig, val:doc.val, prazo:doc.prazo});
     docsHTML+='<div class="jdrow"><div class="jdnum">'+(idx+1)+'</div><div class="jdi"><div class="jdn">'+doc.nome+'</div><div class="jdd">'+doc.desc+'</div></div><div class="jdtg"><span class="bdg '+(doc.obrig?'bgr':'bgy')+'" style="font-size:9px">'+(doc.obrig?'Obrigatorio':'Opcional')+'</span>'+(doc.val?'<span class="bdg byw" style="font-size:9px">'+doc.prazo+'</span>':'<span class="bdg bgy" style="font-size:9px">Sem validade</span>')+'</div></div>';
   });
+  try {
+    await supaInsert('jornadas_produtor', {
+      nome: nome, descricao: desc, documentos: docsSel, total_docs: total,
+      municipio_nome: usr.municipio_nome || '', criado_por: (usr.n || '') + ' (' + (usr.p || '') + ')',
+      criado_em: new Date().toISOString()
+    });
+  } catch(e) {
+    console.error('Erro ao salvar jornada:', e);
+    alert('Erro ao salvar no banco. Verifique a conexao.');
+    return;
+  }
   var card=document.createElement('div');card.className='jcard';
   card.innerHTML='<div class="jhead" onclick="togJ(this)"><div class="jico">'+jornadaIco+'</div><div class="jnfo"><div class="jnom">'+nome+'</div><div class="jdsc">'+(desc||'Sem descricao')+'</div></div><div class="jmet"><span class="bdg bgr" style="font-size:10px">'+total+' docs</span>'+(comVal>0?'<span class="bdg byw" style="font-size:10px">'+comVal+' com validade</span>':'')+'<span class="bdg bgr" style="font-size:10px">Ativo</span></div><button class="btn bo bsm" style="margin-left:10px" onclick="event.stopPropagation()">Editar</button><span class="jarr open">&#9658;</span></div><div class="jbody open">'+(docsHTML||'<div style="padding:20px;text-align:center;color:var(--k5)">Nenhum documento selecionado</div>')+'</div>';
   document.getElementById('jornadas-lista').appendChild(card);
@@ -3387,21 +3351,35 @@ function renderChecklistItens(selecionados) {
   });
 }
 
-function salvarJornadaFiscal() {
+async function salvarJornadaFiscal() {
   var nome = document.getElementById('jf-nome').value.trim();
   if (!nome){alert('Informe o nome da jornada!');return;}
   var desc = document.getElementById('jf-desc').value.trim();
   var checked = document.querySelectorAll('#jf-itens-lista input:checked');
   var total=0, docsHTML='';
+  var itensSel=[];
   checked.forEach(function(cb, idx){
     var itemId = parseInt(cb.getAttribute('data-id'));
     var item = checklistBase.find(function(x){return x.id===itemId;});
     if (!item) return;
     total++;
+    itensSel.push({id:item.id, nome:item.nome, cat:item.cat, obrig:item.obrig});
     docsHTML += '<div class="jdrow"><div class="jdnum">'+(idx+1)+'</div>'+
       '<div class="jdi"><div class="jdn">'+item.nome+'</div><div class="jdd">Categoria: '+item.cat+'</div></div>'+
       '<div class="jdtg"><span class="bdg '+(item.obrig?'bgr':'bgy')+'" style="font-size:9px">'+(item.obrig?'Obrigatorio':'Opcional')+'</span></div></div>';
   });
+
+  try {
+    await supaInsert('jornadas_fiscal', {
+      nome: nome, descricao: desc, itens: itensSel, total_itens: total,
+      municipio_nome: usr.municipio_nome || '', criado_por: (usr.n || '') + ' (' + (usr.p || '') + ')',
+      criado_em: new Date().toISOString()
+    });
+  } catch(e) {
+    console.error('Erro ao salvar jornada fiscal:', e);
+    alert('Erro ao salvar no banco. Verifique a conexao.');
+    return;
+  }
 
   var card = document.createElement('div');
   card.className = 'jcard';
