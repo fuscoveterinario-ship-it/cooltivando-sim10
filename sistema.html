@@ -1838,7 +1838,7 @@ async function carregarAgroindustrias() {
           '<td>' + (a.tipo || '-') + '</td>' +
           '<td>' + munNome + '</td>' +
           '<td><span class="bdg bgy">0</span></td>' +
-          '<td><button class="btn bo bsm">Abrir empresa</button></td>';
+          '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify(prodNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim || 'Sem numero SIM').replace(/"/g,'&quot;') + ')">Abrir empresa</button></td>';
         tbody.appendChild(tr);
       });
     }
@@ -2749,6 +2749,21 @@ async function salvarProdutorSeloArte() {
 }
 
 // ===NAVEGACAO===
+// ===ABRIR EMPRESA (pagina de detalhe da agroindustria)===
+function abrirEmpresaComDados(nome, produtor, municipio, numSim) {
+  var elNome = document.getElementById('emp-nome');
+  var elBadge = document.getElementById('empresa-sim-badge');
+  var elSub = document.getElementById('emp-sub');
+  if (elNome) elNome.textContent = nome || '-';
+  if (elBadge) {
+    elBadge.textContent = numSim || 'Sem numero SIM';
+    elBadge.className = 'bdg ' + (numSim && numSim !== 'Sem numero SIM' ? 'bgr' : 'bgy');
+    elBadge.style.fontSize = '11px';
+  }
+  if (elSub) elSub.textContent = 'Produtor: ' + (produtor || '-') + ' | Municipio: ' + (municipio || '-');
+  navPg('empresa', null);
+}
+
 function navPg(id, el) {
   document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('on');});
