@@ -1095,7 +1095,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
   <div><label class="fl">E-mail <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-email" type="email" placeholder="email@exemplo.com" required></div>
   <div><label class="fl">Telefone <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-tel" placeholder="(00) 00000-0000" maxlength="15" oninput="mTel(this)" required></div>
   <div><label class="fl">CADPRO <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-cadpro" placeholder="Numero do cadastro rural" required></div>
-  <div><label class="fl">Municipio <span style="color:var(--rd)">*</span></label><select class="fi" id="prod-mun" required><option value="">Selecione...</option><option>Pien</option><option>Campo do Tenente</option><option>Araucaria</option></select></div>
+  <div><label class="fl">Municipio <span style="color:var(--rd)">*</span></label><select class="fi" id="prod-mun" required><option value="">Selecione...</option></select></div>
   <div><label class="fl">Senha <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-senha" type="password" placeholder="Minimo 8 caracteres" required></div>
   <div><label class="fl">Confirmar senha <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-senha2" type="password" placeholder="Repita a senha" required></div>
   <div style="grid-column:1/-1;border-top:1px solid var(--k3);padding-top:14px;margin-top:2px">
@@ -1125,7 +1125,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
   </div>
   <div><label class="fl">CNPJ / CADPRO <span style="color:var(--rd)">*</span></label><input class="fi" placeholder="CNPJ ou numero CADPRO"></div>
   <div><label class="fl">Tipo de produto <span style="color:var(--rd)">*</span></label><input class="fi" placeholder="Ex: Avicultura, Laticinios..."></div>
-  <div><label class="fl">Municipio <span style="color:var(--rd)">*</span></label><select class="fi"><option value="">Selecione...</option><option>Pien</option><option>Campo do Tenente</option><option>Araucaria</option></select></div>
+  <div><label class="fl">Municipio <span style="color:var(--rd)">*</span></label><select class="fi" id="agro-sel-municipio"><option value="">Selecione...</option></select></div>
 </div><div class="fact"><button class="btn bo" onclick="hm('m-agro')">Cancelar</button><button class="btn bg" onclick="salvarAgroindustria()">Salvar</button></div></div></div>
 
 <div class="mo" id="m-addproc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Adicionar Processo de Legalizacao</h3><button class="mc" onclick="hm('m-addproc')">x</button></div><div style="padding:16px 20px 4px"><p style="font-size:12px;color:var(--k5);margin-bottom:14px">Selecione a certificacao que sera aplicada a esta empresa:</p><div id="cert-lista"><div class="cert-opt sel" onclick="selCert(this)"><div class="con">FASE 1. REGISTRO DE ESTABELECIMENTO</div><div class="cod">Sem descricao</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO SELO ARTE</div><div class="cod">Produtos SIM/POA artesanais</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO DO SIM/POA</div><div class="cod">Fase 2: Metodologia da jornada</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO PRE-REQUISITOS OVOS</div><div class="cod">Fase 1: Metodologia da jornada</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO PRE-REQUISITOS LEITE</div><div class="cod">Fase 1: Metodologia da jornada</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO PRE-REQUISITOS MEL</div><div class="cod">Fase 1: Metodologia da jornada</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">LEGALIZACAO DE ESTABELECIMENTO</div><div class="cod">Sem descricao</div></div></div></div><div class="fact"><button class="btn bo" onclick="hm('m-addproc')">Cancelar</button><button class="btn bg" onclick="addProc()">Salvar</button></div></div></div>
@@ -1162,7 +1162,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       <div><label class="fl">CPF <span style="color:var(--rd)">*</span></label><input class="fi" id="usr-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mCPF(this)"></div>
       <div><label class="fl">E-mail <span style="color:var(--rd)">*</span></label><input class="fi" id="usr-email" type="email" placeholder="email@exemplo.com"></div>
       <div><label class="fl">Telefone <span style="color:var(--rd)">*</span></label><input class="fi" id="usr-tel" placeholder="(00) 00000-0000" maxlength="15" oninput="mTel(this)"></div>
-      <div><label class="fl">Municipio <span style="color:var(--rd)">*</span></label><select class="fi" id="usr-mun"><option value="">Selecione...</option><option>Pien</option><option>Campo do Tenente</option><option>Araucaria</option></select></div>
+      <div><label class="fl">Municipio <span style="color:var(--rd)">*</span></label><select class="fi" id="usr-mun"><option value="">Selecione...</option></select></div>
       <div><label class="fl">Status</label><select class="fi" id="usr-status"><option>Ativo</option><option>Inativo</option></select></div>
 
     </div>
@@ -1384,6 +1384,21 @@ async function abrirModalAgro() {
         });
       }
     } catch(e) { console.log('Erro ao carregar produtores:', e); }
+  }
+  var selMun = document.getElementById('agro-sel-municipio');
+  if (selMun) {
+    selMun.innerHTML = '<option value="">Selecione...</option>';
+    try {
+      var muns = await supaGet('municipios', 'select=id,nome&order=nome');
+      if (muns && muns.length > 0) {
+        muns.forEach(function(m) {
+          var opt = document.createElement('option');
+          opt.value = m.nome;
+          opt.textContent = m.nome;
+          selMun.appendChild(opt);
+        });
+      }
+    } catch(e) { console.log('Erro ao carregar municipios:', e); }
   }
   sm('m-agro');
 }
@@ -2037,7 +2052,8 @@ async function salvarAgroindustria() {
   var simTipo = selects[1].value;
   var cadpro = inputs[2].value.trim();
   var tipo = inputs[3].value.trim();
-  var munNome = selects[2].value;
+  var munSelEl = document.getElementById('agro-sel-municipio');
+  var munNome = munSelEl ? munSelEl.value : (selects[2] ? selects[2].value : '');
 
   if (!nome || !produtor || !munNome) {
     alert('Preencha os campos obrigatorios!');
