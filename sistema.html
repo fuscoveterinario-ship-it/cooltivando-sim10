@@ -534,7 +534,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
         <div class="tab-c on" id="tab-proc">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <h3 style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800">Processos de Legalizacao</h3>
-            <button class="btn bg" id="btn-addproc" onclick="sm('m-addproc')">Adicionar +</button>
+            <button class="btn bg" id="btn-addproc" onclick="sm('m-addproc')" style="display:none">Adicionar +</button>
           </div>
           <div class="cd" style="margin-bottom:16px;padding:16px 20px">
             <b style="font-size:12px;color:var(--k5);text-transform:uppercase;letter-spacing:.5px">Informacoes da Empresa:</b>
@@ -1060,6 +1060,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 </div><div class="fact"><button class="btn bo" onclick="hm('m-agro')">Cancelar</button><button class="btn bg" onclick="salvarAgroindustria()">Salvar</button></div></div></div>
 
 <div class="mo" id="m-addproc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Adicionar Processo de Legalizacao</h3><button class="mc" onclick="hm('m-addproc')">x</button></div><div style="padding:16px 20px 4px"><p style="font-size:12px;color:var(--k5);margin-bottom:14px">Selecione a certificacao que sera aplicada a esta empresa:</p><div id="cert-lista"><div class="cert-opt sel" onclick="selCert(this)"><div class="con">FASE 1. REGISTRO DE ESTABELECIMENTO</div><div class="cod">Sem descricao</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO SELO ARTE</div><div class="cod">Produtos SIM/POA artesanais</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO DO SIM/POA</div><div class="cod">Fase 2: Metodologia da jornada</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO PRE-REQUISITOS OVOS</div><div class="cod">Fase 1: Metodologia da jornada</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO PRE-REQUISITOS LEITE</div><div class="cod">Fase 1: Metodologia da jornada</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">CERTIFICACAO PRE-REQUISITOS MEL</div><div class="cod">Fase 1: Metodologia da jornada</div></div><div class="cert-opt" onclick="selCert(this)"><div class="con">LEGALIZACAO DE ESTABELECIMENTO</div><div class="cod">Sem descricao</div></div></div></div><div class="fact"><button class="btn bo" onclick="hm('m-addproc')">Cancelar</button><button class="btn bg" onclick="addProc()">Salvar</button></div></div></div>
+<div class="mo" id="m-anexar" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Anexar Documento</h3><button class="mc" onclick="hm('m-anexar')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Documento <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-tipo" onchange="toggleValidadeAnexar()"><option value="">Selecione o documento...</option></select></div><div class="fm1"><label class="fl">Arquivo PDF <span style="color:var(--rd)">*</span></label><input class="fi" type="file" id="anexar-file" accept="application/pdf"></div><div class="fm1" id="anexar-validade-box" style="display:none"><label class="fl">Data de validade <span style="color:var(--rd)">*</span></label><input class="fi" type="date" id="anexar-validade"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-anexar')">Cancelar</button><button class="btn bg" id="btn-anexar-salvar" onclick="anexarDocumentoEmpresa()">Anexar documento</button></div></div></div>
 
 <div class="mo" id="m-dcfg" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Documento Exigido</h3><button class="mc" onclick="hm('m-dcfg')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Nome do documento</label><input class="fi" id="dcfg-nome" placeholder="Ex: Licenca Sanitaria"></div><div class="fm1"><label class="fl">Descricao</label><textarea class="fi" id="dcfg-desc" rows="2" placeholder="O que o produtor precisa enviar..."></textarea></div><div><label class="fl">Obrigatorio?</label><select class="fi" id="dcfg-obrig"><option>Sim</option><option>Nao (opcional)</option></select></div><div><label class="fl">Tem validade?</label><select class="fi" id="dcfg-val" onchange="tvld()"><option value="n">Nao</option><option value="s">Sim</option></select></div><div id="dcfg-prazo" style="display:none"><label class="fl">Prazo</label><select class="fi" id="dcfg-prazo-sel"><option>30 dias</option><option>6 meses</option><option>1 ano</option><option>2 anos</option></select></div><div id="dcfg-alerta" style="display:none"><label class="fl">Alerta antecipado</label><select class="fi"><option>30 dias antes</option><option>60 dias antes</option></select></div></div><input type="hidden" id="dcfg-idx" value="-1"><div class="fact"><button class="btn bo" onclick="hm('m-dcfg')">Cancelar</button><button class="btn bg" onclick="salvarDoc()">Salvar documento</button></div></div></div>
 
@@ -1788,7 +1789,7 @@ async function carregarAgroindustrias() {
           '<td>' + (a.tipo || '-') + '</td>' +
           '<td>' + munNome + '</td>' +
           '<td><span class="bdg bgy">0</span></td>' +
-          '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify(prodNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim || 'Sem numero SIM').replace(/"/g,'&quot;') + ')">Abrir empresa</button></td>';
+          '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify(prodNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim || 'Sem numero SIM').replace(/"/g,'&quot;') + ',' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ')">Abrir empresa</button></td>';
         tbody.appendChild(tr);
       });
     }
@@ -2735,7 +2736,177 @@ async function salvarProdutorSeloArte() {
 
 // ===NAVEGACAO===
 // ===ABRIR EMPRESA (pagina de detalhe da agroindustria)===
-function abrirEmpresaComDados(nome, produtor, municipio, numSim) {
+var empresaAtual = null;
+
+// ===DOCUMENTOS DA EMPRESA (Fase B)===
+function ehPerfil() {
+  var p = (usr && usr.p) ? usr.p : '';
+  return {
+    admin: p === 'Admin Sistema',
+    fiscal: p === 'Fiscal' || p === 'Gerente Selo Arte',
+    produtor: p === 'Produtor'
+  };
+}
+
+async function carregarDocumentosEmpresa() {
+  var cont = document.getElementById('proc-lista');
+  if (!cont || !empresaAtual) return;
+  try {
+    var docs = await supaGet('documentos_empresa', 'select=*&agroindustria_id=eq.' + empresaAtual.id + '&order=criado_em.desc');
+    var perm = ehPerfil();
+    // Botao Anexar: admin, fiscal e produtor podem
+    var btnAnexar = (perm.admin || perm.fiscal || perm.produtor)
+      ? '<div style="margin-bottom:14px"><button class="btn bg bsm" onclick="abrirModalAnexar()">+ Anexar documento</button></div>'
+      : '';
+    if (!docs || docs.length === 0) {
+      cont.innerHTML = btnAnexar + '<div style="text-align:center;color:var(--k5);padding:24px;font-size:13px">Nenhum documento anexado ainda.</div>';
+      return;
+    }
+    var html = btnAnexar + '<div style="display:flex;flex-direction:column;gap:8px">';
+    docs.forEach(function(d) {
+      var stBadge = d.status === 'aprovado' ? '<span class="bdg bgr">Aprovado</span>'
+        : (d.status === 'reprovado' ? '<span class="bdg" style="background:#fee;color:var(--rd)">Reprovado</span>'
+        : '<span class="bdg byw">Enviado</span>');
+      var venc = '';
+      if (d.tem_validade && d.data_validade) {
+        var dt = new Date(d.data_validade + 'T00:00:00');
+        var hoje = new Date(); hoje.setHours(0,0,0,0);
+        var dias = Math.ceil((dt - hoje) / 86400000);
+        var cor = dias < 0 ? 'var(--rd)' : (dias <= 30 ? '#b45309' : 'var(--k5)');
+        var txt = dias < 0 ? ('Vencido ha ' + Math.abs(dias) + ' dias') : ('Vence em ' + dias + ' dias');
+        venc = '<div style="font-size:11px;color:' + cor + ';margin-top:2px">' + txt + ' (' + dt.toLocaleDateString('pt-BR') + ')</div>';
+      }
+      var perm = ehPerfil();
+      var acoes = '';
+      if (d.arquivo_url) acoes += '<button class="btn bo bsm" onclick="window.open(\'' + d.arquivo_url + '\',\'_blank\')">Baixar PDF</button> ';
+      // Aprovar/Reprovar: so fiscal
+      if (perm.fiscal && d.status !== 'aprovado') acoes += '<button class="btn bg bsm" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'aprovado\')">Aprovar</button> ';
+      if (perm.fiscal && d.status !== 'reprovado') acoes += '<button class="btn bo bsm" style="color:var(--rd);border-color:var(--rd)" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'reprovado\')">Reprovar</button> ';
+      // Excluir: so fiscal
+      if (perm.fiscal) acoes += '<button class="btn bo bsm" style="color:var(--rd);border-color:var(--rd)" onclick="excluirDocEmpresa(\'' + d.id + '\')">Excluir</button>';
+      var rastro = d.avaliado_por ? ('<div style="font-size:11px;color:var(--k5);margin-top:4px">' + (d.status === 'aprovado' ? 'Aprovado' : 'Reprovado') + ' por: ' + d.avaliado_por + '</div>') : '';
+      html += '<div style="background:var(--g0);border:1px solid var(--g2);border-radius:8px;padding:12px 14px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">' +
+        '<div><div style="font-weight:700">' + d.doc_tipo + '</div>' +
+        (d.arquivo_nome ? '<div style="font-size:12px;color:var(--k5)">' + d.arquivo_nome + '</div>' : '') +
+        venc + rastro + '</div>' +
+        '<div style="text-align:right">' + stBadge + '</div></div>' +
+        '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' + acoes + '</div></div>';
+    });
+    html += '</div>';
+    cont.innerHTML = html;
+  } catch(e) { console.log('Erro ao carregar documentos da empresa:', e); }
+}
+
+async function abrirModalAnexar() {
+  var sel = document.getElementById('anexar-tipo');
+  if (sel) {
+    sel.innerHTML = '<option value="">Selecione o documento...</option>';
+    if (docsBase && docsBase.length > 0) {
+      docsBase.forEach(function(d) {
+        var opt = document.createElement('option');
+        opt.value = d.nome;
+        opt.setAttribute('data-val', d.val ? '1' : '0');
+        opt.textContent = d.nome + (d.val ? ' (tem validade)' : '');
+        sel.appendChild(opt);
+      });
+    }
+  }
+  var f = document.getElementById('anexar-file'); if (f) f.value = '';
+  var dv = document.getElementById('anexar-validade'); if (dv) dv.value = '';
+  toggleValidadeAnexar();
+  sm('m-anexar');
+}
+
+function toggleValidadeAnexar() {
+  var sel = document.getElementById('anexar-tipo');
+  var box = document.getElementById('anexar-validade-box');
+  if (!sel || !box) return;
+  var opt = sel.options[sel.selectedIndex];
+  var temVal = opt && opt.getAttribute('data-val') === '1';
+  box.style.display = temVal ? 'block' : 'none';
+}
+
+async function anexarDocumentoEmpresa() {
+  if (!empresaAtual || !empresaAtual.id) { alert('Empresa nao identificada.'); return; }
+  var tipo = document.getElementById('anexar-tipo').value;
+  if (!tipo) { alert('Selecione o documento!'); return; }
+  var fileInput = document.getElementById('anexar-file');
+  var file = fileInput.files[0];
+  if (!file) { alert('Selecione o arquivo PDF!'); return; }
+  if (file.type !== 'application/pdf') { alert('O arquivo deve ser PDF!'); return; }
+  var opt = document.getElementById('anexar-tipo').options[document.getElementById('anexar-tipo').selectedIndex];
+  var temVal = opt && opt.getAttribute('data-val') === '1';
+  var dataVal = temVal ? document.getElementById('anexar-validade').value : null;
+  if (temVal && !dataVal) { alert('Informe a data de validade!'); return; }
+
+  var btn = document.getElementById('btn-anexar-salvar');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+  try {
+    var munSlug = (empresaAtual.municipio || 'geral').replace(/\s+/g, '_').toLowerCase();
+    var ts = Date.now();
+    var nomeArquivo = tipo.replace(/\s+/g, '_') + '_' + ts + '.pdf';
+    var caminho = 'empresas/' + munSlug + '/' + (empresaAtual.id || 'sem_id') + '/' + nomeArquivo;
+    var up = await fetch(SUPA_URL + '/storage/v1/object/sim-docs/' + caminho, {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/pdf', 'x-upsert': 'true' },
+      body: file
+    });
+    if (!up.ok) { var t = await up.text(); throw new Error('Storage: ' + t); }
+    var urlArquivo = SUPA_URL + '/storage/v1/object/public/sim-docs/' + caminho;
+    await supaInsert('documentos_empresa', {
+      agroindustria_id: empresaAtual.id,
+      agroindustria_nome: empresaAtual.nome,
+      doc_tipo: tipo,
+      tem_validade: temVal,
+      data_validade: dataVal,
+      arquivo_nome: file.name,
+      arquivo_caminho: caminho,
+      arquivo_url: urlArquivo,
+      status: 'enviado',
+      municipio_nome: empresaAtual.municipio || '',
+      criado_por: (usr.n || '') + ' (' + (usr.p || '') + ')',
+      criado_em: new Date().toISOString()
+    });
+    hm('m-anexar');
+    carregarDocumentosEmpresa();
+    carregarDashboard();
+  } catch(e) {
+    console.log('Erro ao anexar documento:', e);
+    alert('Erro ao enviar o documento. Verifique a conexao.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Anexar documento'; }
+  }
+}
+
+async function avaliarDocEmpresa(id, novoStatus) {
+  var perm = ehPerfil();
+  if (!perm.fiscal) { alert('Apenas o fiscal pode aprovar ou reprovar.'); return; }
+  var label = novoStatus === 'aprovado' ? 'APROVAR' : 'REPROVAR';
+  if (!confirm('Confirma ' + label + ' este documento?')) return;
+  try {
+    await supaUpdate('documentos_empresa', id, {
+      status: novoStatus,
+      avaliado_por: (usr.n || '') + ' (' + (usr.p || '') + ')',
+      avaliado_em: new Date().toISOString()
+    });
+    carregarDocumentosEmpresa();
+  } catch(e) { console.log('Erro ao avaliar:', e); alert('Erro ao salvar avaliacao.'); }
+}
+
+async function excluirDocEmpresa(id) {
+  var perm = ehPerfil();
+  if (!perm.fiscal) { alert('Apenas o fiscal pode excluir documentos.'); return; }
+  if (!confirm('Excluir este documento? Esta acao nao pode ser desfeita.')) return;
+  try {
+    await supaDelete('documentos_empresa', id);
+    carregarDocumentosEmpresa();
+    carregarDashboard();
+  } catch(e) { console.log('Erro ao excluir:', e); alert('Erro ao excluir.'); }
+}
+
+function abrirEmpresaComDados(nome, produtor, municipio, numSim, agroId) {
+  empresaAtual = { id: agroId || null, nome: nome, produtor: produtor, municipio: municipio, numSim: numSim };
   var elNome = document.getElementById('emp-nome');
   var elBadge = document.getElementById('empresa-sim-badge');
   var elSub = document.getElementById('emp-sub');
@@ -2747,6 +2918,7 @@ function abrirEmpresaComDados(nome, produtor, municipio, numSim) {
   }
   if (elSub) elSub.textContent = 'Produtor: ' + (produtor || '-') + ' | Municipio: ' + (municipio || '-');
   navPg('empresa', null);
+  carregarDocumentosEmpresa();
 }
 
 function navPg(id, el) {
@@ -2813,7 +2985,7 @@ function renderDocsTbl() {
       '<td><span class="bdg '+(doc.val?'byw':'bgy')+'">'+(doc.val?'Sim':'Nao')+'</span></td>'+
       '<td>'+(doc.val?doc.prazo:'--')+'</td>'+
       '<td>'+(doc.val?doc.alerta:'--')+'</td>'+
-      '<td><button class="btn bo bsm" onclick="editDoc('+i+')">Editar</button></td>';
+      '<td><button class="btn bo bsm" onclick="editDoc('+i+')">Editar</button> <button class="btn bo bsm" style="color:var(--rd);border-color:var(--rd)" onclick="removerDoc('+i+')">Excluir</button></td>';
     tb.appendChild(tr);
   });
 }
@@ -2822,6 +2994,22 @@ function tvld() {
   var v = document.getElementById('dcfg-val').value === 's';
   document.getElementById('dcfg-prazo').style.display = v ? 'block' : 'none';
   document.getElementById('dcfg-alerta').style.display = v ? 'block' : 'none';
+}
+
+async function removerDoc(i) {
+  var d = docsBase[i];
+  if (!d) return;
+  if (!confirm('Excluir o documento "' + d.nome + '" do catalogo? Esta acao nao pode ser desfeita.')) return;
+  try {
+    if (d.dbId) {
+      await supaDelete('docs_exigidos_produtor', d.dbId);
+    }
+    docsBase.splice(i, 1);
+    renderDocsTbl();
+  } catch(e) {
+    console.log('Erro ao remover documento:', e);
+    alert('Erro ao remover do banco. Verifique a conexao.');
+  }
 }
 
 function editDoc(i) {
@@ -2878,9 +3066,9 @@ async function carregarDocsBase() {
     var q = 'select=*&order=criado_em';
     if (usr && usr.municipio_nome) q += '&municipio_nome=eq.' + encodeURIComponent(usr.municipio_nome);
     var docs = await supaGet('docs_exigidos_produtor', q);
-    if (docs && docs.length > 0) {
+    if (docs) {
       docsBase = docs.map(function(d, i) {
-        return {id:i+1, dbId:d.id, nome:d.nome, desc:d.descricao || '', obrig:!!d.obrig, val:!!d.val, prazo:d.prazo || '--', alerta:d.alerta || '--'};
+        return {id:i+1, dbId:d.id, nome:d.nome, desc:d.descricao || '', obrig:!!d.obrig, val:!!d.val, prazo:d.prazo || '--', alerta:d.alerta || '--', dias_validade:d.dias_validade || null};
       });
       renderDocsTbl();
     }
@@ -2893,18 +3081,32 @@ async function carregarDashboard() {
     // Contagens reais
     var produtores = await supaGet('produtores', 'select=id') || [];
     var agros = await supaGet('agroindustrias', 'select=id,nome,num_sim,produtores(nome),municipios(nome)&order=created_at.desc') || [];
-    var docsEnviados = await supaGet('documentos_enviados', 'select=id') || [];
+    var docsEmpresa = await supaGet('documentos_empresa', 'select=*&order=criado_em.desc') || [];
+
+    // Calcular vencimentos
+    var hoje = new Date(); hoje.setHours(0,0,0,0);
+    var vencendo = [];
+    var aprovados = 0;
+    docsEmpresa.forEach(function(d) {
+      if (d.status === 'aprovado') aprovados++;
+      if (d.tem_validade && d.data_validade) {
+        var dt = new Date(d.data_validade + 'T00:00:00');
+        var dias = Math.ceil((dt - hoje) / 86400000);
+        if (dias <= 30) vencendo.push({ doc: d, dias: dias, dt: dt });
+      }
+    });
+    vencendo.sort(function(a,b){ return a.dias - b.dias; });
 
     var elProd = document.getElementById('dash-produtores');
     var elAnd = document.getElementById('dash-andamento');
     var elApr = document.getElementById('dash-aprovadas');
     var elVenc = document.getElementById('dash-vencendo');
     if (elProd) elProd.textContent = produtores.length;
-    if (elAnd) elAnd.textContent = agros.length; // agroindustrias em acompanhamento
-    if (elApr) elApr.textContent = '0'; // sera ligado ao modulo de processos
-    if (elVenc) elVenc.textContent = '0'; // sera ligado a vencimentos reais
+    if (elAnd) elAnd.textContent = agros.length;
+    if (elApr) elApr.textContent = aprovados;
+    if (elVenc) elVenc.textContent = vencendo.length;
 
-    // Lista "Legalizacoes recentes" -> mostra agroindustrias reais
+    // Lista "Legalizacoes recentes" -> agroindustrias reais
     var tbody = document.getElementById('dash-legalizacoes');
     if (tbody) {
       if (agros.length === 0) {
@@ -2920,10 +3122,21 @@ async function carregarDashboard() {
       }
     }
 
-    // Alertas de vencimento -> vazio por enquanto (sera ligado a docs com validade)
+    // Alertas de vencimento -> documentos reais vencendo
     var alertas = document.getElementById('dash-alertas');
     if (alertas) {
-      alertas.innerHTML = '<div style="text-align:center;color:var(--k5);padding:18px;font-size:13px">Nenhum alerta de vencimento</div>';
+      if (vencendo.length === 0) {
+        alertas.innerHTML = '<div style="text-align:center;color:var(--k5);padding:18px;font-size:13px">Nenhum alerta de vencimento</div>';
+      } else {
+        var ah = '';
+        vencendo.slice(0, 8).forEach(function(v) {
+          var venc = v.dias < 0;
+          var cor = venc ? 'var(--rd)' : '#b45309';
+          var txt = venc ? ('Vencido ha ' + Math.abs(v.dias) + ' dias') : (v.dias === 0 ? 'Vence hoje' : 'Vence em ' + v.dias + ' dias');
+          ah += '<div class="ai2"><div class="adt ' + (venc ? 'adr' : 'adyw') + '"></div><div class="ain"><div class="ain-n">' + v.doc.doc_tipo + '</div><div class="ain-e">' + (v.doc.agroindustria_nome || '') + ' - <span style="color:' + cor + '">' + txt + '</span></div></div></div>';
+        });
+        alertas.innerHTML = ah;
+      }
     }
   } catch(e) { console.log('Erro ao carregar dashboard:', e); }
 }
