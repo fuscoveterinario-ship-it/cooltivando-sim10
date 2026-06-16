@@ -444,28 +444,20 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       <div class="pg on" id="pg-dashboard">
         <div class="wb"><div><h2 id="wm">Bem-vindo, Cooltivando!</h2><p>Sistema de Inspecao Municipal - SIM &nbsp;|&nbsp; <span id="wd"></span></p></div><div class="wbi">🌱</div></div>
         <div class="sg">
-          <div class="sc gr"><div class="sl">Produtores</div><div class="sv">24</div><div class="ss">cadastrados</div></div>
-          <div class="sc yw"><div class="sl">Em andamento</div><div class="sv">7</div><div class="ss">legalizacoes pendentes</div></div>
-          <div class="sc gr"><div class="sl">Aprovadas</div><div class="sv">31</div><div class="ss">este ano</div></div>
-          <div class="sc rd"><div class="sl">Docs vencendo</div><div class="sv">3</div><div class="ss">proximos 30 dias</div></div>
+          <div class="sc gr"><div class="sl">Produtores</div><div class="sv" id="dash-produtores">0</div><div class="ss">cadastrados</div></div>
+          <div class="sc yw"><div class="sl">Em andamento</div><div class="sv" id="dash-andamento">0</div><div class="ss">legalizacoes pendentes</div></div>
+          <div class="sc gr"><div class="sl">Aprovadas</div><div class="sv" id="dash-aprovadas">0</div><div class="ss">este ano</div></div>
+          <div class="sc rd"><div class="sl">Docs vencendo</div><div class="sv" id="dash-vencendo">0</div><div class="ss">proximos 30 dias</div></div>
         </div>
         <div class="g2">
           <div class="cd">
             <div class="cdh"><span class="cdt">Legalizacoes recentes</span><button class="btn bo bsm" onclick="navPg('legalizacoes',null)">Ver todas</button></div>
-            <table class="tbl"><thead><tr><th>Empresa</th><th>Processo</th><th>Status</th><th>Data</th></tr></thead><tbody>
-              <tr data-municipio="Pien" data-produtor="Jorge Buba" data-empresa="Granja Albunio"><td><b>Granja Albunio</b></td><td>Legalizacao SIM</td><td><span class="bdg bgr">Aprovado</span></td><td>18/03/2026</td></tr>
-              <tr data-municipio="Campo do Tenente" data-produtor="Maria Santos" data-empresa="Mery Embutidos"><td><b>Mery Embutidos</b></td><td>Certificacao SIM/POA</td><td><span class="bdg byw">Em analise</span></td><td>10/05/2026</td></tr>
-              <tr data-municipio="Campo do Tenente" data-produtor="Maria Santos" data-empresa="Tateto Alimentos"><td><b>Tateto Alimentos</b></td><td>Legalizacao SIM</td><td><span class="bdg byw">Docs pendentes</span></td><td>09/05/2026</td></tr>
-              <tr data-municipio="Pien" data-produtor="Joao Oliveira" data-empresa="Halabura"><td><b>Halabura</b></td><td>Legalizacao SIM</td><td><span class="bdg bgr">Aprovado</span></td><td>01/05/2026</td></tr>
+            <table class="tbl"><thead><tr><th>Empresa</th><th>Processo</th><th>Status</th><th>Data</th></tr></thead><tbody id="dash-legalizacoes">
             </tbody></table>
           </div>
           <div class="cd">
             <div class="cdh"><span class="cdt">Alertas de vencimento</span></div>
-            <div class="al">
-              <div class="ai2" data-municipio="Pien" data-produtor="Jorge Buba" data-empresa="Granja Albunio"><div class="adt adr"></div><div class="ain"><div class="ain-n">Licenca Sanitaria</div><div class="ain-e">Granja Albunio</div></div><div class="adi">Hoje</div></div>
-              <div class="ai2" data-municipio="Campo do Tenente" data-produtor="Maria Santos"><div class="adt adr"></div><div class="ain"><div class="ain-n">Laudo de Agua</div><div class="ain-e">Mery Embutidos</div></div><div class="adi">5 dias</div></div>
-              <div class="ai2" data-municipio="Campo do Tenente" data-produtor="Maria Santos"><div class="adt adyw"></div><div class="ain"><div class="ain-n">Alvara</div><div class="ain-e">Tateto Alimentos</div></div><div class="adi">18 dias</div></div>
-              <div class="ai2" data-municipio="Pien" data-produtor="Joao Oliveira" data-empresa="Halabura"><div class="adt adyw"></div><div class="ain"><div class="ain-n">Resp. Tecnico</div><div class="ain-e">Halabura</div></div><div class="adi">25 dias</div></div>
+            <div class="al" id="dash-alertas">
             </div>
           </div>
         </div>
@@ -517,11 +509,8 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       <!-- LEGALIZACOES -->
       <div class="pg" id="pg-legalizacoes">
         <div class="ph2"><h2>Processos de Legalizacao</h2></div>
-        <div class="cd"><table class="tbl"><thead><tr><th>Empresa</th><th>Municipio</th><th>Processo</th><th>Status</th><th>Ultima alteracao</th><th></th></tr></thead><tbody>
-          <tr data-municipio="Pien" data-produtor="Jorge Buba" data-empresa="Granja Albunio"><td><b>Granja Albunio</b></td><td>Pien</td><td>Legalizacao SIM</td><td><span class="bdg bgr">Aprovado</span></td><td>18/03/2026 09:01</td><td><button class="btn bo bsm" onclick="navPg('processo',null)">Ver processo</button></td></tr>
-          <tr data-municipio="Campo do Tenente" data-produtor="Maria Santos" data-empresa="Mery Embutidos"><td><b>Mery Embutidos</b></td><td>Campo do Tenente</td><td>Certificacao SIM/POA</td><td><span class="bdg byw">Em analise</span></td><td>10/05/2026 14:22</td><td><button class="btn bo bsm" onclick="navPg('processo',null)">Ver processo</button></td></tr>
-          <tr data-municipio="Campo do Tenente" data-produtor="Maria Santos" data-empresa="Tateto Alimentos"><td><b>Tateto Alimentos</b></td><td>Campo do Tenente</td><td>Legalizacao SIM</td><td><span class="bdg byw">Docs pendentes</span></td><td>09/05/2026 11:15</td><td><button class="btn bo bsm" onclick="navPg('processo',null)">Ver processo</button></td></tr>
-          <tr data-municipio="Pien" data-produtor="Joao Oliveira" data-empresa="Halabura"><td><b>Halabura</b></td><td>Pien</td><td>Certif. Pre-Requisitos</td><td><span class="bdg bgr">Aprovado</span></td><td>01/05/2026 16:40</td><td><button class="btn bo bsm">Ver processo</button></td></tr>
+        <div class="cd"><table class="tbl"><thead><tr><th>Empresa</th><th>Municipio</th><th>Processo</th><th>Status</th><th>Ultima alteracao</th><th></th></tr></thead><tbody id="legalizacoes-tbody">
+          <tr><td colspan="6" style="text-align:center;color:var(--k5);padding:18px">Nenhum processo de legalizacao ainda</td></tr>
         </tbody></table></div>
       </div>
 
@@ -569,63 +558,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
               <span style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;min-width:80px;text-align:center">Opcoes</span>
             </div>
             <div id="proc-lista">
-
-              <!-- Processo 1 -->
-              <div class="proc-row" id="proc-row-0">
-                <div class="proc-nm">LEGALIZACAO DE ESTABELECIMENTO</div>
-                <div style="min-width:100px;text-align:center"><span class="bdg bgr">Aprovado</span></div>
-                <div style="min-width:180px;padding:0 16px;font-size:12px;color:var(--k5)">18/03/2025, 09:01</div>
-                <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end">
-                  <button class="btn bo bsm" onclick="baixarPDF('LEGALIZACAO DE ESTABELECIMENTO')" title="Baixar PDF editavel" style="display:flex;align-items:center;gap:4px">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    PDF
-                  </button>
-                  <button class="btn bg bsm" onclick="abrirAssinar('LEGALIZACAO DE ESTABELECIMENTO')" title="Assinar digitalmente" style="display:flex;align-items:center;gap:4px">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Assinar
-                  </button>
-                  <button class="ico-btn" onclick="navPg('processo',null)" title="Ver documentos">&#128065;</button>
-                  <button class="ico-btn" style="color:var(--g5)" title="Ativar/Desativar">&#9211;</button>
-                </div>
-              </div>
-
-              <!-- Processo 2 -->
-              <div class="proc-row" id="proc-row-1">
-                <div class="proc-nm">CERTIFICACAO DO SIM/POA</div>
-                <div style="min-width:100px;text-align:center"><span class="bdg bgr">Aprovado</span></div>
-                <div style="min-width:180px;padding:0 16px;font-size:12px;color:var(--k5)">08/07/2025, 13:23</div>
-                <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end">
-                  <button class="btn bo bsm" onclick="baixarPDF('CERTIFICACAO DO SIM/POA')" style="display:flex;align-items:center;gap:4px">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    PDF
-                  </button>
-                  <button class="btn bg bsm" onclick="abrirAssinar('CERTIFICACAO DO SIM/POA')" style="display:flex;align-items:center;gap:4px">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Assinar
-                  </button>
-                  <button class="ico-btn" onclick="navPg('processo',null)">&#128065;</button>
-                  <button class="ico-btn" style="color:var(--g5)">&#9211;</button>
-                </div>
-              </div>
-
-              <!-- Processo 3 -->
-              <div class="proc-row" id="proc-row-2">
-                <div class="proc-nm">CERTIFICACAO PRE-REQUISITOS OVOS</div>
-                <div style="min-width:100px;text-align:center"><span class="bdg bgr">Aprovado</span></div>
-                <div style="min-width:180px;padding:0 16px;font-size:12px;color:var(--k5)">Nao ha registros</div>
-                <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end">
-                  <button class="btn bo bsm" onclick="baixarPDF('CERTIFICACAO PRE-REQUISITOS OVOS')" style="display:flex;align-items:center;gap:4px">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    PDF
-                  </button>
-                  <button class="btn bg bsm" onclick="abrirAssinar('CERTIFICACAO PRE-REQUISITOS OVOS')" style="display:flex;align-items:center;gap:4px">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Assinar
-                  </button>
-                  <button class="ico-btn" onclick="navPg('processo',null)">&#128065;</button>
-                  <button class="ico-btn" style="color:var(--g5)">&#9211;</button>
-                </div>
-              </div>
+              <div style="text-align:center;color:var(--k5);padding:24px;font-size:13px">Nenhum processo cadastrado. Use "Adicionar +" para criar.</div>
 
               <!-- Assinaturas do processo -->
               <div id="assinaturas-lista" style="display:none"></div>
@@ -1837,6 +1770,10 @@ async function carregarAgroindustrias() {
     if (!agros) return;
     var tbody = document.querySelector('#pg-agroindustrias .tbl tbody');
     if (!tbody) return;
+    tbody.innerHTML = '';
+    if (agros.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--k5);padding:18px">Nenhuma agroindustria cadastrada</td></tr>';
+    }
     if (agros.length > 0) {
       tbody.innerHTML = '';
       agros.forEach(function(a) {
@@ -2530,6 +2467,7 @@ function carregarApp() {
   carregarStatsSeloArte();
   carregarUsuarios();
   carregarDocsBase();
+  carregarDashboard();
 }
 
 async function carregarDadosBanco() {
@@ -2916,6 +2854,47 @@ async function carregarDocsBase() {
       renderDocsTbl();
     }
   } catch(e) { console.log('Erro ao carregar docs exigidos:', e); }
+}
+
+// ===CARREGAR DASHBOARD (numeros e listas reais do banco)===
+async function carregarDashboard() {
+  try {
+    // Contagens reais
+    var produtores = await supaGet('produtores', 'select=id') || [];
+    var agros = await supaGet('agroindustrias', 'select=id,nome,num_sim,produtores(nome),municipios(nome)&order=created_at.desc') || [];
+    var docsEnviados = await supaGet('documentos_enviados', 'select=id') || [];
+
+    var elProd = document.getElementById('dash-produtores');
+    var elAnd = document.getElementById('dash-andamento');
+    var elApr = document.getElementById('dash-aprovadas');
+    var elVenc = document.getElementById('dash-vencendo');
+    if (elProd) elProd.textContent = produtores.length;
+    if (elAnd) elAnd.textContent = agros.length; // agroindustrias em acompanhamento
+    if (elApr) elApr.textContent = '0'; // sera ligado ao modulo de processos
+    if (elVenc) elVenc.textContent = '0'; // sera ligado a vencimentos reais
+
+    // Lista "Legalizacoes recentes" -> mostra agroindustrias reais
+    var tbody = document.getElementById('dash-legalizacoes');
+    if (tbody) {
+      if (agros.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--k5);padding:18px">Nenhum registro ainda</td></tr>';
+      } else {
+        tbody.innerHTML = '';
+        agros.slice(0, 6).forEach(function(a) {
+          var prod = (a.produtores && a.produtores.nome) ? a.produtores.nome : '-';
+          var tr = document.createElement('tr');
+          tr.innerHTML = '<td><b>' + a.nome + '</b></td><td>' + (a.num_sim || 'Sem numero SIM') + '</td><td><span class="bdg bgy">Cadastrada</span></td><td>' + prod + '</td>';
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    // Alertas de vencimento -> vazio por enquanto (sera ligado a docs com validade)
+    var alertas = document.getElementById('dash-alertas');
+    if (alertas) {
+      alertas.innerHTML = '<div style="text-align:center;color:var(--k5);padding:18px;font-size:13px">Nenhum alerta de vencimento</div>';
+    }
+  } catch(e) { console.log('Erro ao carregar dashboard:', e); }
 }
 
 // ===PROCESSO DOCUMENTOS===
