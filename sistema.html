@@ -475,9 +475,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       <!-- PRODUTORES -->
       <div class="pg" id="pg-produtores">
         <div class="ph2"><h2>Produtores</h2><div class="act"><button id="btn-novo-prod" class="btn bg" onclick="sm('m-prod')">+ Novo produtor</button></div></div>
-        <div class="cd"><table class="tbl"><thead><tr><th>Nome</th><th>CPF</th><th>Municipio</th><th>Agroindustrias</th><th>Status</th><th></th></tr></thead><tbody>
-
-
+        <div class="cd"><table class="tbl"><thead><tr><th>Nome</th><th>CPF</th><th>Municipio</th><th>Agroindustrias</th><th>Status</th><th></th></tr></thead><tbody id="produtores-tbody">
         </tbody></table></div>
       </div>
 
@@ -1810,6 +1808,34 @@ async function carregarAgroindustrias() {
   } catch(e) { console.log('Erro agroindustrias:', e); }
 }
 
+// ===CARREGAR PRODUTORES (lista real do banco)===
+async function carregarProdutores() {
+  try {
+    var prods = await supaGet('produtores', 'select=*,municipios(nome)&order=nome');
+    if (!prods) return;
+    var tbody = document.getElementById('produtores-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (prods.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--k5);padding:18px">Nenhum produtor cadastrado</td></tr>';
+      return;
+    }
+    prods.forEach(function(p) {
+      var munNome = (p.municipios && p.municipios.nome) ? p.municipios.nome : (p.cidade || '-');
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-municipio', munNome === '-' ? '' : munNome);
+      tr.setAttribute('data-produtor', p.nome || '');
+      tr.innerHTML = '<td><b>' + (p.nome || '-') + '</b></td>' +
+        '<td>' + (p.cpf || '-') + '</td>' +
+        '<td>' + munNome + '</td>' +
+        '<td><span class="bdg bgy">0</span></td>' +
+        '<td><span class="bdg bgr">Ativo</span></td>' +
+        '<td></td>';
+      tbody.appendChild(tr);
+    });
+  } catch(e) { console.log('Erro ao carregar produtores:', e); }
+}
+
 // ===FILTRO POR PERFIL E PRODUTOR===
 function aplicarFiltroProdutor() {
   if (!usr || !usr.p) { setTimeout(aplicarFiltroProdutor, 200); return; }
@@ -2463,6 +2489,7 @@ function carregarApp() {
   carregarDadosBanco();
   carregarMunicipios();
   carregarAgroindustrias();
+  carregarProdutores();
   carregarMunicipioUsuario();
   carregarStatsSeloArte();
   carregarUsuarios();
@@ -2598,6 +2625,10 @@ async function salvarProdutor() {
     document.getElementById('mrf').textContent = document.getElementById('prod-nome').value;
     document.getElementById('mrd').textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
     sm('m-rastro');
+
+    // Atualizar lista de produtores e numeros do painel
+    carregarProdutores();
+    carregarDashboard();
 
     // Limpar form
     ['prod-nome','prod-cpf','prod-email','prod-tel','prod-cadpro',
