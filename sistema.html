@@ -539,7 +539,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
           </div>
           <div class="cd" style="margin-bottom:16px;padding:16px 20px">
             <b style="font-size:12px;color:var(--k5);text-transform:uppercase;letter-spacing:.5px">Informacoes da Empresa:</b>
-            <button class="btn bo bsm" style="float:right">Editar Empresa</button>
+            <button class="btn bo bsm" style="float:right" onclick="abrirEditarEmpresa()">Editar Empresa</button>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px">
               <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">CADPRO</label><span style="font-size:13px;font-weight:600" id="emp-cadpro">95022798-20</span></div>
               <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">Telefone</label><span style="font-size:13px;font-weight:600" id="emp-tel">(41) 98843-5052</span></div>
@@ -1047,21 +1047,26 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
 <div class="mo" id="m-agro" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Nova Agroindustria</h3><button class="mc" onclick="hm('m-agro')">x</button></div><div class="fm">
   <div class="fm1"><label class="fl">Produtor <span style="color:var(--rd)">*</span></label><select class="fi" id="agro-sel-produtor"><option value="">Selecione...</option></select></div>
-  <div><label class="fl">Nome da agroindústria <span style="color:var(--rd)">*</span></label><input class="fi" placeholder="Ex: Granja Albunio"></div>
+  <div><label class="fl">Nome da agroindústria <span style="color:var(--rd)">*</span></label><input class="fi" id="agro-nome" placeholder="Ex: Granja Albunio"></div>
   <div><label class="fl">Numero SIM <span style="color:var(--rd)">*</span></label>
     <div style="display:flex;align-items:center;gap:6px">
-      <input class="fi" placeholder="001" style="width:80px;flex-shrink:0">
+      <input class="fi" id="agro-simnum" placeholder="001" style="width:80px;flex-shrink:0">
       <span style="font-size:13px;color:var(--k5);font-weight:600">-</span>
-      <select class="fi"><option>SIM</option><option>SIM/POA</option><option>SIM/POA/ARTE</option><option>SIE</option></select>
+      <select class="fi" id="agro-simtipo"><option>SIM</option><option>SIM/POA</option><option>SIM/POA/ARTE</option><option>SIE</option></select>
     </div>
   </div>
-  <div><label class="fl">CNPJ / CADPRO <span style="color:var(--rd)">*</span></label><input class="fi" placeholder="CNPJ ou numero CADPRO"></div>
-  <div><label class="fl">Tipo de produto <span style="color:var(--rd)">*</span></label><input class="fi" placeholder="Ex: Avicultura, Laticinios..."></div>
+  <div><label class="fl">CNPJ / CADPRO <span style="color:var(--rd)">*</span></label><input class="fi" id="agro-cadpro" placeholder="CNPJ ou numero CADPRO"></div>
+  <div><label class="fl">Tipo de produto <span style="color:var(--rd)">*</span></label><input class="fi" id="agro-tipo" placeholder="Ex: Avicultura, Laticinios..."></div>
   <div><label class="fl">Municipio <span style="color:var(--rd)">*</span></label><select class="fi" id="agro-sel-municipio"><option value="">Selecione...</option></select></div>
+  <div><label class="fl">Telefone</label><input class="fi" id="agro-tel" placeholder="(00) 00000-0000"></div>
+  <div><label class="fl">CEP</label><input class="fi" id="agro-cep" placeholder="00000-000"></div>
+  <div><label class="fl">Endereco</label><input class="fi" id="agro-end" placeholder="Rua, numero"></div>
+  <div><label class="fl">Bairro</label><input class="fi" id="agro-bairro" placeholder="Bairro"></div>
 </div><div class="fact"><button class="btn bo" onclick="hm('m-agro')">Cancelar</button><button class="btn bg" onclick="salvarAgroindustria()">Salvar</button></div></div></div>
 
 <div class="mo" id="m-addproc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Adicionar Jornada de Legalizacao</h3><button class="mc" onclick="hm('m-addproc')">x</button></div><div style="padding:16px 20px 4px"><p style="font-size:12px;color:var(--k5);margin-bottom:14px">Selecione a Jornada de Legalizacao que sera aplicada a esta empresa:</p><div id="cert-lista"><div style="text-align:center;color:var(--k5);padding:20px;font-size:13px">Carregando jornadas...</div></div></div><div class="fact"><button class="btn bo" onclick="hm('m-addproc')">Cancelar</button><button class="btn bg" onclick="aplicarJornadaEmpresa()">Aplicar jornada</button></div></div></div>
 <div class="mo" id="m-anexar" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Anexar Documento</h3><button class="mc" onclick="hm('m-anexar')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Jornada de Legalizacao <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-jornada" onchange="carregarDocsDaJornada()"><option value="">Selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Documento <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-tipo" onchange="toggleValidadeAnexar()"><option value="">Primeiro selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Arquivo PDF <span style="color:var(--rd)">*</span></label><input class="fi" type="file" id="anexar-file" accept="application/pdf"></div><div class="fm1" id="anexar-validade-box" style="display:none"><label class="fl">Data de validade <span style="color:var(--rd)">*</span></label><input class="fi" type="date" id="anexar-validade"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-anexar')">Cancelar</button><button class="btn bg" id="btn-anexar-salvar" onclick="anexarDocumentoEmpresa()">Anexar documento</button></div></div></div>
+<div class="mo" id="m-editemp" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Editar Empresa</h3><button class="mc" onclick="hm('m-editemp')">x</button></div><div class="fm"><div class="fm1"><label class="fl">CADPRO</label><input class="fi" id="edit-cadpro" type="text"></div><div class="fm1"><label class="fl">Telefone</label><input class="fi" id="edit-tel" type="text" placeholder="(00) 00000-0000"></div><div class="fm1"><label class="fl">CEP</label><input class="fi" id="edit-cep" type="text" placeholder="00000-000"></div><div class="fm1"><label class="fl">Endereco</label><input class="fi" id="edit-end" type="text"></div><div class="fm1"><label class="fl">Bairro</label><input class="fi" id="edit-bairro" type="text"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-editemp')">Cancelar</button><button class="btn bg" id="btn-editemp-salvar" onclick="salvarEditarEmpresa()">Salvar alteracoes</button></div></div></div>
 
 <div class="mo" id="m-dcfg" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Documento Exigido</h3><button class="mc" onclick="hm('m-dcfg')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Nome do documento</label><input class="fi" id="dcfg-nome" placeholder="Ex: Licenca Sanitaria"></div><div class="fm1"><label class="fl">Descricao</label><textarea class="fi" id="dcfg-desc" rows="2" placeholder="O que o produtor precisa enviar..."></textarea></div><div><label class="fl">Obrigatorio?</label><select class="fi" id="dcfg-obrig"><option>Sim</option><option>Nao (opcional)</option></select></div><div><label class="fl">Tem validade?</label><select class="fi" id="dcfg-val" onchange="tvld()"><option value="n">Nao</option><option value="s">Sim</option></select></div><div id="dcfg-prazo" style="display:none"><label class="fl">Prazo</label><select class="fi" id="dcfg-prazo-sel"><option>30 dias</option><option>6 meses</option><option>1 ano</option><option>2 anos</option></select></div><div id="dcfg-alerta" style="display:none"><label class="fl">Alerta antecipado</label><select class="fi"><option>30 dias antes</option><option>60 dias antes</option></select></div></div><input type="hidden" id="dcfg-idx" value="-1"><div class="fact"><button class="btn bo" onclick="hm('m-dcfg')">Cancelar</button><button class="btn bg" onclick="salvarDoc()">Salvar documento</button></div></div></div>
 
@@ -2014,16 +2019,18 @@ async function carregarMunicipios() {
 
 
 async function salvarAgroindustria() {
-  var selects = document.querySelectorAll('#m-agro select');
-  var inputs = document.querySelectorAll('#m-agro input');
-  var produtor = selects[0].value;
-  var nome = inputs[0].value.trim();
-  var simNum = inputs[1].value.trim();
-  var simTipo = selects[1].value;
-  var cadpro = inputs[2].value.trim();
-  var tipo = inputs[3].value.trim();
-  var munSelEl = document.getElementById('agro-sel-municipio');
-  var munNome = munSelEl ? munSelEl.value : (selects[2] ? selects[2].value : '');
+  var g = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var produtor = g('agro-sel-produtor');
+  var nome = g('agro-nome');
+  var simNum = g('agro-simnum');
+  var simTipo = g('agro-simtipo');
+  var cadpro = g('agro-cadpro');
+  var tipo = g('agro-tipo');
+  var munNome = g('agro-sel-municipio');
+  var telefone = g('agro-tel');
+  var cep = g('agro-cep');
+  var endereco = g('agro-end');
+  var bairro = g('agro-bairro');
 
   if (!nome || !produtor || !munNome) {
     alert('Preencha os campos obrigatorios!');
@@ -2044,7 +2051,11 @@ async function salvarAgroindustria() {
       cadpro: cadpro || null,
       tipo: tipo || null,
       municipio_id: munId,
-      produtor_id: prodId
+      produtor_id: prodId,
+      telefone: telefone || null,
+      cep: cep || null,
+      endereco: endereco || null,
+      bairro: bairro || null
     });
 
     if (result && result.length > 0) {
@@ -3187,6 +3198,44 @@ async function excluirDocEmpresa(id) {
     recarregarManterJornada();
     carregarDashboard();
   } catch(e) { console.log('Erro ao excluir:', e); alert('Erro ao excluir.'); }
+}
+
+async function abrirEditarEmpresa() {
+  if (!empresaAtual || !empresaAtual.id) { alert('Empresa nao identificada.'); return; }
+  try {
+    var rows = await supaGet('agroindustrias', 'select=cadpro,telefone,cep,endereco,bairro&id=eq.' + empresaAtual.id);
+    var a = (rows && rows.length > 0) ? rows[0] : {};
+    var set = function(id, v){ var el = document.getElementById(id); if (el) el.value = v || ''; };
+    set('edit-cadpro', a.cadpro);
+    set('edit-tel', a.telefone);
+    set('edit-cep', a.cep);
+    set('edit-end', a.endereco);
+    set('edit-bairro', a.bairro);
+    sm('m-editemp');
+  } catch(e) { console.log('Erro ao abrir editar empresa:', e); alert('Erro ao carregar dados da empresa.'); }
+}
+
+async function salvarEditarEmpresa() {
+  if (!empresaAtual || !empresaAtual.id) { alert('Empresa nao identificada.'); return; }
+  var btn = document.getElementById('btn-editemp-salvar');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+  try {
+    var get = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    await supaUpdate('agroindustrias', empresaAtual.id, {
+      cadpro: get('edit-cadpro'),
+      telefone: get('edit-tel'),
+      cep: get('edit-cep'),
+      endereco: get('edit-end'),
+      bairro: get('edit-bairro')
+    });
+    hm('m-editemp');
+    preencherInfoEmpresa(empresaAtual.id, empresaAtual.municipio);
+  } catch(e) {
+    console.log('Erro ao salvar empresa:', e);
+    alert('Erro ao salvar as alteracoes.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar alteracoes'; }
+  }
 }
 
 async function preencherInfoEmpresa(agroId, municipioFallback) {
