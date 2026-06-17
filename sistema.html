@@ -541,12 +541,12 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
             <b style="font-size:12px;color:var(--k5);text-transform:uppercase;letter-spacing:.5px">Informacoes da Empresa:</b>
             <button class="btn bo bsm" style="float:right">Editar Empresa</button>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px">
-              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">CADPRO</label><span style="font-size:13px;font-weight:600" id="emp-cadpro" id="emp-cadpro">95022798-20</span></div>
-              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">Telefone</label><span style="font-size:13px;font-weight:600" id="emp-tel" id="emp-tel">(41) 98843-5052</span></div>
-              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">CEP</label><span style="font-size:13px;font-weight:600" id="emp-cep" id="emp-cep">83860-000</span></div>
+              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">CADPRO</label><span style="font-size:13px;font-weight:600" id="emp-cadpro">95022798-20</span></div>
+              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">Telefone</label><span style="font-size:13px;font-weight:600" id="emp-tel">(41) 98843-5052</span></div>
+              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">CEP</label><span style="font-size:13px;font-weight:600" id="emp-cep">83860-000</span></div>
               <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">Municipio</label><span style="font-size:13px;font-weight:600" id="emp-mun">Pien</span></div>
-              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">Endereco</label><span style="font-size:13px;font-weight:600" id="emp-end" id="emp-end">Estrada Principal</span></div>
-              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">Bairro</label><span style="font-size:13px;font-weight:600" id="emp-bairro" id="emp-bairro">Lageados dos Martins</span></div>
+              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">Endereco</label><span style="font-size:13px;font-weight:600" id="emp-end">Estrada Principal</span></div>
+              <div><label style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;display:block;margin-bottom:2px">Bairro</label><span style="font-size:13px;font-weight:600" id="emp-bairro">Lageados dos Martins</span></div>
             </div>
           </div>
           <div class="cd">
@@ -2939,13 +2939,10 @@ function renderJornadaAberta() {
   var cont = document.getElementById('proc-lista');
   if (!cont) return;
   var perm = ehPerfil();
-  var btnAnexar = (perm.admin || perm.fiscal || perm.produtor)
-    ? '<button class="btn bg bsm" onclick="abrirModalAnexar()">+ Anexar documento</button>'
-    : '';
   cont.innerHTML = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">' +
     '<button class="btn bo bsm" onclick="voltarListaJornadas()">&#8592; Voltar</button>' +
     '<h3 style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800;margin:0">' + jornadaAbertaNome + '</h3>' +
-    '<div style="margin-left:auto">' + btnAnexar + '</div></div>' +
+    '</div>' +
     '<div id="jl-carrossel"></div><div id="jl-area"></div>';
   renderCarrossel();
   renderAreaDoc();
@@ -3192,6 +3189,25 @@ async function excluirDocEmpresa(id) {
   } catch(e) { console.log('Erro ao excluir:', e); alert('Erro ao excluir.'); }
 }
 
+async function preencherInfoEmpresa(agroId, municipioFallback) {
+  function setTxt(id, val) { var el = document.getElementById(id); if (el) el.textContent = (val && String(val).trim()) ? val : '-'; }
+  // Preenche com fallback enquanto busca
+  setTxt('emp-mun', municipioFallback || '-');
+  if (!agroId) return;
+  try {
+    var rows = await supaGet('agroindustrias', 'select=cadpro,telefone,cep,endereco,bairro,municipios(nome)&id=eq.' + agroId);
+    if (rows && rows.length > 0) {
+      var a = rows[0];
+      setTxt('emp-cadpro', a.cadpro);
+      setTxt('emp-tel', a.telefone);
+      setTxt('emp-cep', a.cep);
+      setTxt('emp-end', a.endereco);
+      setTxt('emp-bairro', a.bairro);
+      setTxt('emp-mun', (a.municipios && a.municipios.nome) ? a.municipios.nome : municipioFallback);
+    }
+  } catch(e) { console.log('Erro ao preencher info empresa:', e); }
+}
+
 function abrirEmpresaComDados(nome, produtor, municipio, numSim, agroId) {
   empresaAtual = { id: agroId || null, nome: nome, produtor: produtor, municipio: municipio, numSim: numSim };
   var elNome = document.getElementById('emp-nome');
@@ -3204,6 +3220,8 @@ function abrirEmpresaComDados(nome, produtor, municipio, numSim, agroId) {
     elBadge.style.fontSize = '11px';
   }
   if (elSub) elSub.textContent = 'Produtor: ' + (produtor || '-') + ' | Municipio: ' + (municipio || '-');
+  // Preencher Informacoes da Empresa com dados reais do banco
+  preencherInfoEmpresa(agroId, municipio);
   // Banner de municipio (so para fiscal/produtor, nao admin)
   var banner = document.getElementById('emp-banner-mun');
   if (banner) {
