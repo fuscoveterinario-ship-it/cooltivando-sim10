@@ -1060,7 +1060,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 </div><div class="fact"><button class="btn bo" onclick="hm('m-agro')">Cancelar</button><button class="btn bg" onclick="salvarAgroindustria()">Salvar</button></div></div></div>
 
 <div class="mo" id="m-addproc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Adicionar Jornada de Legalizacao</h3><button class="mc" onclick="hm('m-addproc')">x</button></div><div style="padding:16px 20px 4px"><p style="font-size:12px;color:var(--k5);margin-bottom:14px">Selecione a Jornada de Legalizacao que sera aplicada a esta empresa:</p><div id="cert-lista"><div style="text-align:center;color:var(--k5);padding:20px;font-size:13px">Carregando jornadas...</div></div></div><div class="fact"><button class="btn bo" onclick="hm('m-addproc')">Cancelar</button><button class="btn bg" onclick="aplicarJornadaEmpresa()">Aplicar jornada</button></div></div></div>
-<div class="mo" id="m-anexar" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Anexar Documento</h3><button class="mc" onclick="hm('m-anexar')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Documento <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-tipo" onchange="toggleValidadeAnexar()"><option value="">Selecione o documento...</option></select></div><div class="fm1"><label class="fl">Arquivo PDF <span style="color:var(--rd)">*</span></label><input class="fi" type="file" id="anexar-file" accept="application/pdf"></div><div class="fm1" id="anexar-validade-box" style="display:none"><label class="fl">Data de validade <span style="color:var(--rd)">*</span></label><input class="fi" type="date" id="anexar-validade"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-anexar')">Cancelar</button><button class="btn bg" id="btn-anexar-salvar" onclick="anexarDocumentoEmpresa()">Anexar documento</button></div></div></div>
+<div class="mo" id="m-anexar" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Anexar Documento</h3><button class="mc" onclick="hm('m-anexar')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Jornada de Legalizacao <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-jornada" onchange="carregarDocsDaJornada()"><option value="">Selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Documento <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-tipo" onchange="toggleValidadeAnexar()"><option value="">Primeiro selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Arquivo PDF <span style="color:var(--rd)">*</span></label><input class="fi" type="file" id="anexar-file" accept="application/pdf"></div><div class="fm1" id="anexar-validade-box" style="display:none"><label class="fl">Data de validade <span style="color:var(--rd)">*</span></label><input class="fi" type="date" id="anexar-validade"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-anexar')">Cancelar</button><button class="btn bg" id="btn-anexar-salvar" onclick="anexarDocumentoEmpresa()">Anexar documento</button></div></div></div>
 
 <div class="mo" id="m-dcfg" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Documento Exigido</h3><button class="mc" onclick="hm('m-dcfg')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Nome do documento</label><input class="fi" id="dcfg-nome" placeholder="Ex: Licenca Sanitaria"></div><div class="fm1"><label class="fl">Descricao</label><textarea class="fi" id="dcfg-desc" rows="2" placeholder="O que o produtor precisa enviar..."></textarea></div><div><label class="fl">Obrigatorio?</label><select class="fi" id="dcfg-obrig"><option>Sim</option><option>Nao (opcional)</option></select></div><div><label class="fl">Tem validade?</label><select class="fi" id="dcfg-val" onchange="tvld()"><option value="n">Nao</option><option value="s">Sim</option></select></div><div id="dcfg-prazo" style="display:none"><label class="fl">Prazo</label><select class="fi" id="dcfg-prazo-sel"><option>30 dias</option><option>6 meses</option><option>1 ano</option><option>2 anos</option></select></div><div id="dcfg-alerta" style="display:none"><label class="fl">Alerta antecipado</label><select class="fi"><option>30 dias antes</option><option>60 dias antes</option></select></div></div><input type="hidden" id="dcfg-idx" value="-1"><div class="fact"><button class="btn bo" onclick="hm('m-dcfg')">Cancelar</button><button class="btn bg" onclick="salvarDoc()">Salvar documento</button></div></div></div>
 
@@ -2883,24 +2883,50 @@ async function carregarDocumentosEmpresa() {
   } catch(e) { console.log('Erro ao carregar documentos da empresa:', e); }
 }
 
+var jornadasCache = [];
 async function abrirModalAnexar() {
-  var sel = document.getElementById('anexar-tipo');
-  if (sel) {
-    sel.innerHTML = '<option value="">Selecione o documento...</option>';
-    if (docsBase && docsBase.length > 0) {
-      docsBase.forEach(function(d) {
-        var opt = document.createElement('option');
-        opt.value = d.nome;
-        opt.setAttribute('data-val', d.val ? '1' : '0');
-        opt.textContent = d.nome + (d.val ? ' (tem validade)' : '');
-        sel.appendChild(opt);
-      });
-    }
-  }
+  // Limpar campos
+  var selTipo = document.getElementById('anexar-tipo');
+  if (selTipo) selTipo.innerHTML = '<option value="">Primeiro selecione a jornada...</option>';
   var f = document.getElementById('anexar-file'); if (f) f.value = '';
   var dv = document.getElementById('anexar-validade'); if (dv) dv.value = '';
   toggleValidadeAnexar();
+  // Popular jornadas do banco
+  var selJ = document.getElementById('anexar-jornada');
+  if (selJ) {
+    selJ.innerHTML = '<option value="">Carregando jornadas...</option>';
+    try {
+      jornadasCache = await supaGet('jornadas_produtor', 'select=*&order=criado_em.desc') || [];
+      selJ.innerHTML = '<option value="">Selecione a jornada...</option>';
+      jornadasCache.forEach(function(j, idx) {
+        var opt = document.createElement('option');
+        opt.value = idx;
+        var ndocs = (j.documentos && j.documentos.length) ? j.documentos.length : (j.total_docs || 0);
+        opt.textContent = j.nome + ' (' + ndocs + ' docs)';
+        selJ.appendChild(opt);
+      });
+      if (jornadasCache.length === 0) selJ.innerHTML = '<option value="">Nenhuma jornada criada ainda</option>';
+    } catch(e) { console.log('Erro ao carregar jornadas:', e); selJ.innerHTML = '<option value="">Erro ao carregar</option>'; }
+  }
   sm('m-anexar');
+}
+
+function carregarDocsDaJornada() {
+  var selJ = document.getElementById('anexar-jornada');
+  var selTipo = document.getElementById('anexar-tipo');
+  if (!selJ || !selTipo) return;
+  var idx = selJ.value;
+  selTipo.innerHTML = '<option value="">Selecione o documento...</option>';
+  if (idx === '' || !jornadasCache[idx]) { toggleValidadeAnexar(); return; }
+  var docs = jornadasCache[idx].documentos || [];
+  docs.forEach(function(d) {
+    var opt = document.createElement('option');
+    opt.value = d.nome;
+    opt.setAttribute('data-val', d.val ? '1' : '0');
+    opt.textContent = d.nome + (d.val ? ' (tem validade)' : '');
+    selTipo.appendChild(opt);
+  });
+  toggleValidadeAnexar();
 }
 
 function toggleValidadeAnexar() {
