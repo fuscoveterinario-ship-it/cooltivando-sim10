@@ -514,6 +514,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
       <!-- EMPRESA COM ABAS -->
       <div class="pg" id="pg-empresa">
+        <div id="emp-banner-mun" style="display:none;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:var(--r);padding:12px 18px;margin-bottom:14px;font-size:13px;color:#065f46">&#127968; Voce esta visualizando apenas dados do municipio de <b id="emp-banner-mun-nome"></b>.</div>
         <div style="background:var(--white);border-radius:var(--r);padding:16px 22px;margin-bottom:0;box-shadow:var(--sh);display:flex;align-items:center;justify-content:space-between">
           <div style="display:flex;align-items:center;gap:10px">
             <button onclick="navPg('agroindustrias',null)" style="background:none;border:none;color:var(--k5);cursor:pointer;font-size:20px">&#8592;</button>
@@ -2830,57 +2831,132 @@ function ehPerfil() {
   };
 }
 
+var docsEmpresaCache = [];
+var docSelecionadoIdx = 0;
+
 async function carregarDocumentosEmpresa() {
   var cont = document.getElementById('proc-lista');
   if (!cont || !empresaAtual) return;
-  // Botao "Jornada de Legalizacao" (Adicionar): so fiscal
   var btnAddProc = document.getElementById('btn-addproc');
   if (btnAddProc) btnAddProc.style.display = ehPerfil().fiscal ? '' : 'none';
   try {
-    var docs = await supaGet('documentos_empresa', 'select=*&agroindustria_id=eq.' + empresaAtual.id + '&order=criado_em.desc');
+    var docs = await supaGet('documentos_empresa', 'select=*&agroindustria_id=eq.' + empresaAtual.id + '&order=criado_em');
+    docsEmpresaCache = docs || [];
     var perm = ehPerfil();
-    // Botao Anexar: admin, fiscal e produtor podem
     var btnAnexar = (perm.admin || perm.fiscal || perm.produtor)
       ? '<div style="margin-bottom:14px"><button class="btn bg bsm" onclick="abrirModalAnexar()">+ Anexar documento</button></div>'
       : '';
-    if (!docs || docs.length === 0) {
+    if (docsEmpresaCache.length === 0) {
       cont.innerHTML = btnAnexar + '<div style="text-align:center;color:var(--k5);padding:24px;font-size:13px">Nenhum documento anexado ainda.</div>';
       return;
     }
-    var html = btnAnexar + '<div style="display:flex;flex-direction:column;gap:8px">';
-    docs.forEach(function(d) {
-      var stBadge = d.status === 'aprovado' ? '<span class="bdg bgr">Aprovado</span>'
-        : (d.status === 'reprovado' ? '<span class="bdg" style="background:#fee;color:var(--rd)">Reprovado</span>'
-        : '<span class="bdg byw">Enviado</span>');
-      var venc = '';
-      if (d.tem_validade && d.data_validade) {
-        var dt = new Date(d.data_validade + 'T00:00:00');
-        var hoje = new Date(); hoje.setHours(0,0,0,0);
-        var dias = Math.ceil((dt - hoje) / 86400000);
-        var cor = dias < 0 ? 'var(--rd)' : (dias <= 30 ? '#b45309' : 'var(--k5)');
-        var txt = dias < 0 ? ('Vencido ha ' + Math.abs(dias) + ' dias') : ('Vence em ' + dias + ' dias');
-        venc = '<div style="font-size:11px;color:' + cor + ';margin-top:2px">' + txt + ' (' + dt.toLocaleDateString('pt-BR') + ')</div>';
-      }
-      var perm = ehPerfil();
-      var acoes = '';
-      if (d.arquivo_url) acoes += '<button class="btn bo bsm" onclick="window.open(\'' + d.arquivo_url + '\',\'_blank\')">Baixar PDF</button> ';
-      // Aprovar/Reprovar: so fiscal
-      if (perm.fiscal && d.status !== 'aprovado') acoes += '<button class="btn bg bsm" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'aprovado\')">Aprovar</button> ';
-      if (perm.fiscal && d.status !== 'reprovado') acoes += '<button class="btn bo bsm" style="color:var(--rd);border-color:var(--rd)" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'reprovado\')">Reprovar</button> ';
-      // Excluir: so fiscal
-      if (perm.fiscal) acoes += '<button class="btn bo bsm" style="color:var(--rd);border-color:var(--rd)" onclick="excluirDocEmpresa(\'' + d.id + '\')">Excluir</button>';
-      var rastro = d.avaliado_por ? ('<div style="font-size:11px;color:var(--k5);margin-top:4px">' + (d.status === 'aprovado' ? 'Aprovado' : 'Reprovado') + ' por: ' + d.avaliado_por + '</div>') : '';
-      html += '<div style="background:var(--g0);border:1px solid var(--g2);border-radius:8px;padding:12px 14px">' +
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">' +
-        '<div><div style="font-weight:700">' + d.doc_tipo + '</div>' +
-        (d.arquivo_nome ? '<div style="font-size:12px;color:var(--k5)">' + d.arquivo_nome + '</div>' : '') +
-        venc + rastro + '</div>' +
-        '<div style="text-align:right">' + stBadge + '</div></div>' +
-        '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' + acoes + '</div></div>';
-    });
-    html += '</div>';
-    cont.innerHTML = html;
+    if (docSelecionadoIdx >= docsEmpresaCache.length) docSelecionadoIdx = 0;
+    cont.innerHTML = btnAnexar + '<div id="jl-carrossel"></div><div id="jl-area"></div>';
+    renderCarrossel();
+    renderAreaDoc();
   } catch(e) { console.log('Erro ao carregar documentos da empresa:', e); }
+}
+
+function renderCarrossel() {
+  var el = document.getElementById('jl-carrossel');
+  if (!el) return;
+  var h = '<div style="display:flex;gap:12px;overflow-x:auto;padding:4px 0 14px">';
+  docsEmpresaCache.forEach(function(d, i) {
+    var sel = (i === docSelecionadoIdx);
+    var corBorda = sel ? 'var(--g6)' : 'var(--g2)';
+    var stIcon = d.status === 'aprovado' ? '&#9989; ' : (d.status === 'reprovado' ? '&#10060; ' : '');
+    h += '<div onclick="selecionarDoc(' + i + ')" style="min-width:200px;max-width:200px;cursor:pointer;border:2px solid ' + corBorda + ';border-radius:10px;padding:14px;background:' + (sel ? '#f0fdf4' : 'var(--white)') + '">' +
+      '<div style="font-weight:700;font-size:13px;color:var(--g7)">' + stIcon + d.doc_tipo + '</div>' +
+      (d.arquivo_nome ? '<div style="font-size:11px;color:var(--k5);margin-top:6px">&#128206; ' + d.arquivo_nome + '</div>' : '<div style="font-size:11px;color:var(--k5);margin-top:6px">Sem arquivo</div>') +
+      '</div>';
+  });
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function selecionarDoc(i) {
+  docSelecionadoIdx = i;
+  renderCarrossel();
+  renderAreaDoc();
+}
+
+function renderAreaDoc() {
+  var el = document.getElementById('jl-area');
+  if (!el) return;
+  var d = docsEmpresaCache[docSelecionadoIdx];
+  if (!d) { el.innerHTML = ''; return; }
+  var perm = ehPerfil();
+  var stBadge = d.status === 'aprovado' ? '<span class="bdg bgr">Documento Aprovado</span>'
+    : (d.status === 'reprovado' ? '<span class="bdg" style="background:#fee;color:var(--rd)">Documento Reprovado</span>'
+    : '<span class="bdg byw">Aguardando avaliacao</span>');
+  // botoes avaliacao - so fiscal
+  var btnsAval = '';
+  if (perm.fiscal) {
+    btnsAval = '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">' +
+      '<span style="font-size:11px;color:var(--k5);text-transform:uppercase">Status Etapa</span>' +
+      '<button class="btn bg" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'aprovado\')">Aprovar</button>' +
+      '<button class="btn bo" style="color:var(--rd);border-color:var(--rd)" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'reprovado\')">Reprovar</button>' +
+      '</div>';
+  }
+  // validade
+  var vencHtml = '';
+  if (d.tem_validade && d.data_validade) {
+    var dt = new Date(d.data_validade + 'T00:00:00');
+    var hoje = new Date(); hoje.setHours(0,0,0,0);
+    var dias = Math.ceil((dt - hoje) / 86400000);
+    var cor = dias < 0 ? 'var(--rd)' : (dias <= 30 ? '#b45309' : 'var(--k5)');
+    var txt = dias < 0 ? ('Vencido ha ' + Math.abs(dias) + ' dias') : ('Vence em ' + dias + ' dias');
+    vencHtml = '<div style="font-size:12px;color:' + cor + ';margin-top:4px">Validade: ' + dt.toLocaleDateString('pt-BR') + ' (' + txt + ')</div>';
+  }
+  // upload (admin/fiscal/produtor)
+  var uploadHtml = '';
+  if (perm.admin || perm.fiscal || perm.produtor) {
+    uploadHtml = '<div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
+      '<input type="file" id="doc-upload-file" accept="application/pdf" class="fi" style="max-width:340px">' +
+      '<button class="btn bg" onclick="enviarPdfDocSelecionado(\'' + d.id + '\')">Enviar</button>' +
+      '<span style="font-size:11px;color:var(--k5)">Limite: 1 arquivo PDF</span></div>';
+  }
+  // rastreabilidade
+  var rastro = d.avaliado_por ? ('<div style="font-size:11px;color:var(--k5);margin-top:6px">' + (d.status === 'aprovado' ? 'Aprovado' : 'Reprovado') + ' por: ' + d.avaliado_por + (d.avaliado_em ? ' em ' + new Date(d.avaliado_em).toLocaleString('pt-BR') : '') + '</div>') : '';
+  // visualizador PDF
+  var viewer = '';
+  if (d.arquivo_url) {
+    viewer = '<div style="margin-top:18px"><div style="font-size:12px;color:var(--k5);margin-bottom:6px">&#128206; ' + (d.arquivo_nome || 'documento.pdf') + '</div>' +
+      '<iframe src="' + d.arquivo_url + '" style="width:100%;height:520px;border:1px solid var(--g2);border-radius:8px"></iframe></div>';
+  } else {
+    viewer = '<div style="margin-top:18px;text-align:center;color:var(--k5);padding:30px;background:var(--g0);border-radius:8px;font-size:13px">Nenhum arquivo PDF enviado para este documento ainda.</div>';
+  }
+  el.innerHTML = '<div class="cd" style="padding:20px 22px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">' +
+    '<div><h3 style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800">' + d.doc_tipo + '</h3>' +
+    '<div style="font-size:13px;color:var(--k5)">' + (d.doc_descricao || '') + '</div>' +
+    '<div style="margin-top:8px">' + stBadge + '</div>' + vencHtml + rastro + '</div>' +
+    btnsAval + '</div>' +
+    uploadHtml + viewer + '</div>';
+}
+
+async function enviarPdfDocSelecionado(docId) {
+  var fileInput = document.getElementById('doc-upload-file');
+  var file = fileInput ? fileInput.files[0] : null;
+  if (!file) { alert('Selecione o arquivo PDF!'); return; }
+  if (file.type !== 'application/pdf') { alert('O arquivo deve ser PDF!'); return; }
+  try {
+    var munSlug = (empresaAtual.municipio || 'geral').replace(/\s+/g, '_').toLowerCase();
+    var ts = Date.now();
+    var nomeArquivo = 'doc_' + ts + '.pdf';
+    var caminho = 'empresas/' + munSlug + '/' + empresaAtual.id + '/' + nomeArquivo;
+    var up = await fetch(SUPA_URL + '/storage/v1/object/sim-docs/' + caminho, {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/pdf', 'x-upsert': 'true' },
+      body: file
+    });
+    if (!up.ok) { var t = await up.text(); throw new Error('Storage: ' + t); }
+    var urlArquivo = SUPA_URL + '/storage/v1/object/public/sim-docs/' + caminho;
+    await supaUpdate('documentos_empresa', docId, {
+      arquivo_nome: file.name, arquivo_caminho: caminho, arquivo_url: urlArquivo, status: 'enviado'
+    });
+    carregarDocumentosEmpresa();
+  } catch(e) { console.log('Erro ao enviar PDF:', e); alert('Erro ao enviar o arquivo.'); }
 }
 
 var jornadasCache = [];
@@ -3032,6 +3108,17 @@ function abrirEmpresaComDados(nome, produtor, municipio, numSim, agroId) {
     elBadge.style.fontSize = '11px';
   }
   if (elSub) elSub.textContent = 'Produtor: ' + (produtor || '-') + ' | Municipio: ' + (municipio || '-');
+  // Banner de municipio (so para fiscal/produtor, nao admin)
+  var banner = document.getElementById('emp-banner-mun');
+  if (banner) {
+    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_nome) {
+      var bn = document.getElementById('emp-banner-mun-nome');
+      if (bn) bn.textContent = usr.municipio_nome;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
   navPg('empresa', null);
   carregarDocumentosEmpresa();
 }
