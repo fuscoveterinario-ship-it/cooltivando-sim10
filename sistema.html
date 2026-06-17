@@ -2803,12 +2803,16 @@ async function aplicarJornadaEmpresa() {
       await supaInsert('documentos_empresa', {
         agroindustria_id: empresaAtual.id,
         agroindustria_nome: empresaAtual.nome,
+        jornada_id: jornada.id,
+        jornada_nome: jornada.nome,
         doc_tipo: d.nome,
+        doc_descricao: d.desc || '',
         tem_validade: !!d.val,
         data_validade: null,
         status: 'enviado',
+        ativo: true,
         municipio_nome: empresaAtual.municipio || '',
-        criado_por: (usr.n || '') + ' (' + (usr.p || '') + ') - Jornada: ' + jornada.nome,
+        criado_por: (usr.n || '') + ' (' + (usr.p || '')+ ')',
         criado_em: new Date().toISOString()
       });
     }
@@ -2834,6 +2838,8 @@ function ehPerfil() {
 var docsEmpresaCache = [];
 var docSelecionadoIdx = 0;
 
+var jornadaAbertaNome = null;
+
 async function carregarDocumentosEmpresa() {
   var cont = document.getElementById('proc-lista');
   if (!cont || !empresaAtual) return;
@@ -2842,26 +2848,116 @@ async function carregarDocumentosEmpresa() {
   try {
     var docs = await supaGet('documentos_empresa', 'select=*&agroindustria_id=eq.' + empresaAtual.id + '&order=criado_em');
     docsEmpresaCache = docs || [];
-    var perm = ehPerfil();
-    var btnAnexar = (perm.admin || perm.fiscal || perm.produtor)
-      ? '<div style="margin-bottom:14px"><button class="btn bg bsm" onclick="abrirModalAnexar()">+ Anexar documento</button></div>'
-      : '';
-    if (docsEmpresaCache.length === 0) {
-      cont.innerHTML = btnAnexar + '<div style="text-align:center;color:var(--k5);padding:24px;font-size:13px">Nenhum documento anexado ainda.</div>';
-      return;
-    }
-    if (docSelecionadoIdx >= docsEmpresaCache.length) docSelecionadoIdx = 0;
-    cont.innerHTML = btnAnexar + '<div id="jl-carrossel"></div><div id="jl-area"></div>';
-    renderCarrossel();
-    renderAreaDoc();
+    jornadaAbertaNome = null;
+    renderListaJornadas();
   } catch(e) { console.log('Erro ao carregar documentos da empresa:', e); }
+}
+
+async function recarregarManterJornada() {
+  if (!empresaAtual) return;
+  var jaberta = jornadaAbertaNome;
+  var idxSel = docSelecionadoIdx;
+  try {
+    var docs = await supaGet('documentos_empresa', 'select=*&agroindustria_id=eq.' + empresaAtual.id + '&order=criado_em');
+    docsEmpresaCache = docs || [];
+    if (jaberta) {
+      jornadaAbertaNome = jaberta;
+      docSelecionadoIdx = idxSel;
+      renderJornadaAberta();
+    } else {
+      renderListaJornadas();
+    }
+  } catch(e) { console.log('Erro ao recarregar:', e); }
+}
+
+// NIVEL 1: lista de jornadas da empresa
+function renderListaJornadas() {
+  var cont = document.getElementById('proc-lista');
+  if (!cont) return;
+  var perm = ehPerfil();
+  // Agrupar documentos por jornada_nome
+  var grupos = {};
+  docsEmpresaCache.forEach(function(d) {
+    var jn = d.jornada_nome || 'Documentos avulsos';
+    if (!grupos[jn]) grupos[jn] = [];
+    grupos[jn].push(d);
+  });
+  var nomes = Object.keys(grupos);
+  if (nomes.length === 0) {
+    cont.innerHTML = '<div style="text-align:center;color:var(--k5);padding:24px;font-size:13px">Nenhuma Jornada de Legalizacao aplicada ainda.' + (perm.fiscal ? ' Use o botao "+ Jornada de Legalizacao" acima.' : '') + '</div>';
+    return;
+  }
+  var h = '<div>';
+  // cabecalho da "tabela"
+  h += '<div style="display:grid;grid-template-columns:1fr 120px 180px 90px;gap:10px;padding:10px 18px;font-size:11px;color:var(--k5);text-transform:uppercase;border-bottom:1px solid var(--g2);font-weight:700">' +
+    '<div>Jornada</div><div>Status</div><div>Ultima alteracao</div><div style="text-align:right">Entrar</div></div>';
+  nomes.forEach(function(jn) {
+    var ds = grupos[jn];
+    var total = ds.length;
+    var aprov = ds.filter(function(x){return x.status==='aprovado';}).length;
+    var reprov = ds.filter(function(x){return x.status==='reprovado';}).length;
+    // status agregado
+    var stBadge;
+    if (aprov === total) stBadge = '<span class="bdg bgr">Aprovado</span>';
+    else if (reprov > 0) stBadge = '<span class="bdg" style="background:#fee;color:var(--rd)">Pendencia</span>';
+    else stBadge = '<span class="bdg byw">Em andamento</span>';
+    // ultima alteracao = maior avaliado_em/criado_em do grupo
+    var ult = 0;
+    ds.forEach(function(x){ var t = new Date(x.avaliado_em || x.criado_em || 0).getTime(); if (t>ult) ult=t; });
+    var ultTxt = ult ? new Date(ult).toLocaleString('pt-BR') : '-';
+    h += '<div style="display:grid;grid-template-columns:1fr 120px 180px 90px;gap:10px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--g2)">' +
+      '<div><div style="font-weight:700;text-transform:uppercase;font-size:13px">' + jn + '</div>' +
+      '<div style="font-size:11px;color:var(--k5)">' + total + ' documento(s) &middot; ' + aprov + ' aprovado(s)</div></div>' +
+      '<div>' + stBadge + '</div>' +
+      '<div style="font-size:12px;color:var(--k5)">' + ultTxt + '</div>' +
+      '<div style="text-align:right"><button class="btn bg bsm" title="Entrar na jornada" onclick="abrirJornada(' + JSON.stringify(jn).replace(/"/g,'&quot;') + ')">&#128194; Entrar</button></div>' +
+      '</div>';
+  });
+  h += '</div>';
+  cont.innerHTML = h;
+}
+
+// NIVEL 2: carrossel dos documentos de UMA jornada
+function abrirJornada(nomeJornada) {
+  jornadaAbertaNome = nomeJornada;
+  docSelecionadoIdx = 0;
+  renderJornadaAberta();
+}
+
+function voltarListaJornadas() {
+  jornadaAbertaNome = null;
+  renderListaJornadas();
+}
+
+function docsDaJornadaAberta() {
+  return docsEmpresaCache.filter(function(d) {
+    return (d.jornada_nome || 'Documentos avulsos') === jornadaAbertaNome;
+  });
+}
+
+function renderJornadaAberta() {
+  var cont = document.getElementById('proc-lista');
+  if (!cont) return;
+  var perm = ehPerfil();
+  var btnAnexar = (perm.admin || perm.fiscal || perm.produtor)
+    ? '<button class="btn bg bsm" onclick="abrirModalAnexar()">+ Anexar documento</button>'
+    : '';
+  cont.innerHTML = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">' +
+    '<button class="btn bo bsm" onclick="voltarListaJornadas()">&#8592; Voltar</button>' +
+    '<h3 style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800;margin:0">' + jornadaAbertaNome + '</h3>' +
+    '<div style="margin-left:auto">' + btnAnexar + '</div></div>' +
+    '<div id="jl-carrossel"></div><div id="jl-area"></div>';
+  renderCarrossel();
+  renderAreaDoc();
 }
 
 function renderCarrossel() {
   var el = document.getElementById('jl-carrossel');
   if (!el) return;
+  var docsJ = docsDaJornadaAberta();
+  if (docSelecionadoIdx >= docsJ.length) docSelecionadoIdx = 0;
   var h = '<div style="display:flex;gap:12px;overflow-x:auto;padding:4px 0 14px">';
-  docsEmpresaCache.forEach(function(d, i) {
+  docsJ.forEach(function(d, i) {
     var sel = (i === docSelecionadoIdx);
     var corBorda = sel ? 'var(--g6)' : 'var(--g2)';
     var stIcon = d.status === 'aprovado' ? '&#9989; ' : (d.status === 'reprovado' ? '&#10060; ' : '');
@@ -2883,7 +2979,7 @@ function selecionarDoc(i) {
 function renderAreaDoc() {
   var el = document.getElementById('jl-area');
   if (!el) return;
-  var d = docsEmpresaCache[docSelecionadoIdx];
+  var d = docsDaJornadaAberta()[docSelecionadoIdx];
   if (!d) { el.innerHTML = ''; return; }
   var perm = ehPerfil();
   var stBadge = d.status === 'aprovado' ? '<span class="bdg bgr">Documento Aprovado</span>'
@@ -2955,7 +3051,7 @@ async function enviarPdfDocSelecionado(docId) {
     await supaUpdate('documentos_empresa', docId, {
       arquivo_nome: file.name, arquivo_caminho: caminho, arquivo_url: urlArquivo, status: 'enviado'
     });
-    carregarDocumentosEmpresa();
+    recarregarManterJornada();
   } catch(e) { console.log('Erro ao enviar PDF:', e); alert('Erro ao enviar o arquivo.'); }
 }
 
@@ -3081,7 +3177,7 @@ async function avaliarDocEmpresa(id, novoStatus) {
       avaliado_por: (usr.n || '') + ' (' + (usr.p || '') + ')',
       avaliado_em: new Date().toISOString()
     });
-    carregarDocumentosEmpresa();
+    recarregarManterJornada();
   } catch(e) { console.log('Erro ao avaliar:', e); alert('Erro ao salvar avaliacao.'); }
 }
 
@@ -3091,7 +3187,7 @@ async function excluirDocEmpresa(id) {
   if (!confirm('Excluir este documento? Esta acao nao pode ser desfeita.')) return;
   try {
     await supaDelete('documentos_empresa', id);
-    carregarDocumentosEmpresa();
+    recarregarManterJornada();
     carregarDashboard();
   } catch(e) { console.log('Erro ao excluir:', e); alert('Erro ao excluir.'); }
 }
