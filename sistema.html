@@ -1769,12 +1769,47 @@ var aiUsers = [
 ];
 
 // ===CARREGAR AGROINDUSTRIAS DO BANCO===
+// Resolve o produtor_id do usuario logado (produtor), com cache.
+var _produtorIdCache = undefined;
+async function obterProdutorIdDoUsuario() {
+  if (_produtorIdCache !== undefined) return _produtorIdCache;
+  _produtorIdCache = null;
+  try {
+    // 1) tentar pelo e-mail do usuario
+    if (usr && usr.email) {
+      var porEmail = await supaGet('produtores', 'select=id&email=eq.' + encodeURIComponent(usr.email));
+      if (porEmail && porEmail.length > 0) { _produtorIdCache = porEmail[0].id; return _produtorIdCache; }
+    }
+    // 2) fallback: pelo nome (campo proprietario do usuario)
+    if (usr && usr.proprietario) {
+      var porNome = await supaGet('produtores', 'select=id&nome=eq.' + encodeURIComponent(usr.proprietario));
+      if (porNome && porNome.length > 0) { _produtorIdCache = porNome[0].id; return _produtorIdCache; }
+    }
+    // 3) fallback: pelo proprio nome do usuario
+    if (usr && usr.n) {
+      var porNome2 = await supaGet('produtores', 'select=id&nome=eq.' + encodeURIComponent(usr.n));
+      if (porNome2 && porNome2.length > 0) { _produtorIdCache = porNome2[0].id; return _produtorIdCache; }
+    }
+  } catch(e) { console.log('Erro ao resolver produtor_id:', e); }
+  return _produtorIdCache;
+}
+
 async function carregarAgroindustrias() {
   try {
     var filtro = 'select=*,municipios(nome),produtores(nome)&order=nome';
     // Fiscal e produtor: so veem empresas do proprio municipio. Admin ve tudo.
     if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
       filtro += '&municipio_id=eq.' + usr.municipio_id;
+    }
+    // Produtor: alem do municipio, so ve as agroindustrias DELE.
+    if (usr && usr.p === 'Produtor') {
+      var meuProdId = await obterProdutorIdDoUsuario();
+      if (meuProdId) {
+        filtro += '&produtor_id=eq.' + meuProdId;
+      } else {
+        // Sem produtor vinculado: nao mostra nada (evita ver de outros)
+        filtro += '&produtor_id=eq.00000000-0000-0000-0000-000000000000';
+      }
     }
     var agros = await supaGet('agroindustrias', filtro);
     if (!agros) return;
@@ -1899,11 +1934,9 @@ function aplicarFiltroProdutor() {
 
   // Fiscal - ver dados do seu municipio
   if (perfil === 'Fiscal') {
-    // Fiscal pode ver stats mas nao pode criar municipios/produtores
+    // Fiscal pode cadastrar produtor e agroindustria (do seu municipio),
+    // mas nao pode criar municipios.
     document.querySelectorAll('.ph2 .btn.bg[onclick*="m-mun"]').forEach(function(btn){
-      btn.style.display = 'none';
-    });
-    document.querySelectorAll('.ph2 .btn.bg[onclick*="m-prod"]').forEach(function(btn){
       btn.style.display = 'none';
     });
   }
@@ -2360,6 +2393,7 @@ async function supaDelete(table, id) {
 
 // ===LOGIN REAL COM SUPABASE===
 async function doLogin() {
+  _produtorIdCache = undefined; // limpar cache de produtor ao trocar de usuario
   var email = document.getElementById('le').value.trim().toLowerCase();
   var senha = document.getElementById('ls2').value.trim();
   var erroEl = document.getElementById('login-erro');
@@ -2407,6 +2441,7 @@ async function doLogin() {
         proprietario: u.proprietario || null,
         empresasRT: u.empresas_rt || null,
         id: u.id,
+        email: u.email || null,
         municipio_id: u.municipio_id || null
       };
 
@@ -2437,6 +2472,7 @@ async function doLogin() {
           proprietario: u2.proprietario || null,
           empresasRT: u2.empresas_rt || null,
           id: u2.id,
+          email: u2.email || null,
           token: data.access_token
         };
         var munNome2 = null;
