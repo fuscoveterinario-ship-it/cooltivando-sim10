@@ -3067,7 +3067,7 @@ function renderJornadaAberta() {
     '<button class="btn bo bsm" onclick="voltarListaJornadas()">&#8592; Voltar</button>' +
     '<h3 style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800;margin:0">' + jornadaAbertaNome + '</h3>' +
     '</div>' +
-    '<div id="jl-carrossel"></div><div id="jl-area"></div>';
+    '<div id="jl-carrossel" style="width:100%;max-width:100%;overflow:hidden"></div><div id="jl-area" style="width:100%;max-width:100%;overflow:hidden"></div>';
   renderCarrossel();
   renderAreaDoc();
 }
@@ -3143,10 +3143,10 @@ function renderAreaDoc() {
   } else {
     viewer = '<div style="margin-top:18px;text-align:center;color:var(--k5);padding:30px;background:var(--g0);border-radius:8px;font-size:13px">Nenhum arquivo PDF enviado para este documento ainda.</div>';
   }
-  el.innerHTML = '<div class="cd" style="padding:20px 22px;max-width:100%;box-sizing:border-box">' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">' +
-    '<div style="flex:1;min-width:240px"><h3 style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800">' + d.doc_tipo + '</h3>' +
-    '<div style="font-size:13px;color:var(--k5)">' + (d.doc_descricao || '') + '</div>' +
+  el.innerHTML = '<div class="cd" style="padding:20px 22px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;width:100%;box-sizing:border-box">' +
+    '<div style="flex:1;min-width:240px;max-width:100%"><h3 style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800;word-break:break-word">' + d.doc_tipo + '</h3>' +
+    '<div style="font-size:13px;color:var(--k5);word-break:break-word">' + (d.doc_descricao || '') + '</div>' +
     '<div style="margin-top:8px">' + stBadge + '</div>' + vencHtml + rastro + '</div>' +
     btnsAval + '</div>' +
     uploadHtml + viewer + '</div>';
