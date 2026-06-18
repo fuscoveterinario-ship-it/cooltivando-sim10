@@ -556,7 +556,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
               <span style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;min-width:180px;padding:0 16px">Ultima alteracao</span>
               <span style="font-size:10px;font-weight:700;color:var(--k5);text-transform:uppercase;min-width:80px;text-align:center">Opcoes</span>
             </div>
-            <div id="proc-lista">
+            <div id="proc-lista" style="max-width:100%;overflow:hidden">
               <div style="text-align:center;color:var(--k5);padding:24px;font-size:13px">Nenhum processo cadastrado. Use "Adicionar +" para criar.</div>
 
               <!-- Assinaturas do processo -->
@@ -3077,7 +3077,7 @@ function renderCarrossel() {
   if (!el) return;
   var docsJ = docsDaJornadaAberta();
   if (docSelecionadoIdx >= docsJ.length) docSelecionadoIdx = 0;
-  var h = '<div style="display:flex;gap:12px;overflow-x:auto;padding:4px 0 14px">';
+  var h = '<div style="display:flex;gap:12px;overflow-x:auto;padding:4px 0 14px;max-width:100%">';
   docsJ.forEach(function(d, i) {
     var sel = (i === docSelecionadoIdx);
     var corBorda = sel ? 'var(--g6)' : 'var(--g2)';
@@ -3143,9 +3143,9 @@ function renderAreaDoc() {
   } else {
     viewer = '<div style="margin-top:18px;text-align:center;color:var(--k5);padding:30px;background:var(--g0);border-radius:8px;font-size:13px">Nenhum arquivo PDF enviado para este documento ainda.</div>';
   }
-  el.innerHTML = '<div class="cd" style="padding:20px 22px">' +
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px">' +
-    '<div><h3 style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800">' + d.doc_tipo + '</h3>' +
+  el.innerHTML = '<div class="cd" style="padding:20px 22px;max-width:100%;box-sizing:border-box">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">' +
+    '<div style="flex:1;min-width:240px"><h3 style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800">' + d.doc_tipo + '</h3>' +
     '<div style="font-size:13px;color:var(--k5)">' + (d.doc_descricao || '') + '</div>' +
     '<div style="margin-top:8px">' + stBadge + '</div>' + vencHtml + rastro + '</div>' +
     btnsAval + '</div>' +
