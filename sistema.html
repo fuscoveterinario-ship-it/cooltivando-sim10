@@ -1794,6 +1794,79 @@ async function obterProdutorIdDoUsuario() {
   return _produtorIdCache;
 }
 
+// Carrega a tela de Legalizacoes (lista de empresas/jornadas do usuario, respeitando escopo)
+async function carregarLegalizacoes() {
+  var tbody = document.getElementById('legalizacoes-tbody');
+  if (!tbody) return;
+  try {
+    // Mesmo escopo de carregarAgroindustrias: municipio (fiscal/produtor) + produtor (produtor)
+    var filtro = 'select=*,municipios(nome),produtores(nome)&order=nome';
+    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      filtro += '&municipio_id=eq.' + usr.municipio_id;
+    }
+    if (usr && usr.p === 'Produtor') {
+      var meuProdId = await obterProdutorIdDoUsuario();
+      filtro += '&produtor_id=eq.' + (meuProdId || '00000000-0000-0000-0000-000000000000');
+    }
+    var agros = await supaGet('agroindustrias', filtro);
+    if (!agros || agros.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--k5);padding:18px">Nenhum processo de legalizacao ainda</td></tr>';
+      return;
+    }
+    // Para cada empresa, buscar os documentos agrupados por jornada
+    var linhas = '';
+    for (var i = 0; i < agros.length; i++) {
+      var a = agros[i];
+      var munNome = (a.municipios && a.municipios.nome) ? a.municipios.nome : '-';
+      var docs = await supaGet('documentos_empresa', 'select=jornada_nome,status,criado_em,avaliado_em&agroindustria_id=eq.' + a.id);
+      // agrupar por jornada
+      var jornadas = {};
+      if (docs && docs.length > 0) {
+        docs.forEach(function(d){
+          var jn = d.jornada_nome || 'Jornada de Legalizacao';
+          if (!jornadas[jn]) jornadas[jn] = { total:0, aprovados:0, ultima:'' };
+          jornadas[jn].total++;
+          if (d.status === 'aprovado') jornadas[jn].aprovados++;
+          var dt = d.avaliado_em || d.criado_em || '';
+          if (dt > jornadas[jn].ultima) jornadas[jn].ultima = dt;
+        });
+      }
+      var nomesJornadas = Object.keys(jornadas);
+      if (nomesJornadas.length === 0) {
+        // empresa sem documentos ainda
+        linhas += '<tr>' +
+          '<td><b>' + a.nome + '</b></td>' +
+          '<td>' + munNome + '</td>' +
+          '<td style="color:var(--k5)">Sem processo</td>' +
+          '<td><span class="bdg bgy">Pendente</span></td>' +
+          '<td>-</td>' +
+          '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify((a.produtores&&a.produtores.nome)||'-').replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim||'Sem numero SIM').replace(/"/g,'&quot;') + ',' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ')">Abrir</button></td>' +
+          '</tr>';
+      } else {
+        nomesJornadas.forEach(function(jn){
+          var j = jornadas[jn];
+          var statusTxt, statusCor;
+          if (j.aprovados === j.total) { statusTxt = 'Aprovado'; statusCor = 'bgr'; }
+          else if (j.aprovados > 0) { statusTxt = 'Em andamento'; statusCor = 'bgy'; }
+          else { statusTxt = 'Pendencia'; statusCor = 'bgy'; }
+          var ultima = j.ultima ? new Date(j.ultima).toLocaleDateString('pt-BR') + ', ' + new Date(j.ultima).toLocaleTimeString('pt-BR') : '-';
+          linhas += '<tr>' +
+            '<td><b>' + a.nome + '</b></td>' +
+            '<td>' + munNome + '</td>' +
+            '<td>' + jn + ' <span style="color:var(--k5);font-size:11px">(' + j.aprovados + '/' + j.total + ')</span></td>' +
+            '<td><span class="bdg ' + statusCor + '">' + statusTxt + '</span></td>' +
+            '<td>' + ultima + '</td>' +
+            '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify((a.produtores&&a.produtores.nome)||'-').replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim||'Sem numero SIM').replace(/"/g,'&quot;') + ',' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ')">Abrir</button></td>' +
+            '</tr>';
+        });
+      }
+    }
+    tbody.innerHTML = linhas || '<tr><td colspan="6" style="text-align:center;color:var(--k5);padding:18px">Nenhum processo de legalizacao ainda</td></tr>';
+  } catch(e) {
+    console.log('Erro ao carregar legalizacoes:', e);
+  }
+}
+
 async function carregarAgroindustrias() {
   try {
     var filtro = 'select=*,municipios(nome),produtores(nome)&order=nome';
@@ -3338,6 +3411,7 @@ function navPg(id, el) {
   if (id === 'cfg-docs') renderDocsTbl();
   if (id === 'ai-painel') renderAIUsers();
   if (id === 'jornada') renderJornadaDocs(null);
+  if (id === 'legalizacoes') carregarLegalizacoes();
   // AI context
   var ctx = aiCtx[id] || aiCtx['dashboard'];
   var lbl = document.getElementById('ai-ctx-lbl');
