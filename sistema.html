@@ -2697,7 +2697,7 @@ async function salvarUsuario() {
     }
 
     var senhaTemp = 'Coooltivando@' + Math.floor(1000 + Math.random() * 9000);
-    await supaInsert('usuarios', {
+    var resultado = await supaInsert('usuarios', {
       nome: nome,
       email: email,
       senha_hash: senhaTemp,
@@ -2706,11 +2706,15 @@ async function salvarUsuario() {
       crmv: crmv,
       num_conselho: numConselho
     });
+    // Verificar se realmente salvou (supaInsert retorna null em caso de falha)
+    if (!resultado || (Array.isArray(resultado) && resultado.length === 0)) {
+      alert('Nao foi possivel cadastrar. Verifique se o e-mail ja esta em uso por outro usuario.');
+      return;
+    }
     alert('Usuario criado! Senha temporaria: ' + senhaTemp + '\nAnote e envie para o usuario.');
     hm('m-usr');
     carregarUsuarios();
 
-    hm('m-usr');
     document.getElementById('mrt').textContent = 'Usuario cadastrado!';
     document.getElementById('mrf').textContent = tipoSelecionado.nome + ' — ' + nome;
     document.getElementById('mrd').textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
