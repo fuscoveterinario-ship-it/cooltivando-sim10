@@ -1931,7 +1931,12 @@ async function carregarAgroindustrias() {
 // ===CARREGAR PRODUTORES (lista real do banco)===
 async function carregarProdutores() {
   try {
-    var prods = await supaGet('produtores', 'select=*,municipios(nome)&order=nome');
+    var query = 'select=*,municipios(nome)&order=nome';
+    // Fiscal so ve produtores do proprio municipio. Admin ve todos.
+    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      query += '&municipio_id=eq.' + usr.municipio_id;
+    }
+    var prods = await supaGet('produtores', query);
     if (!prods) return;
     var tbody = document.getElementById('produtores-tbody');
     if (!tbody) return;
@@ -2270,7 +2275,7 @@ function getMunicipioUsuario() {
 // ===PERFIS===
 var PERFIS = {
   'Admin Sistema': { menu: ['dashboard','municipios','produtores','agroindustrias','legalizacoes','calendario','docs-municipio','selo-arte','cfg-docs','jornada','cfg-cl','jornada-fiscal','usuarios','ai-painel'], podeEditar: true, podeCriar: true, podeAprovar: true, podeCancelarSIM: true, podeConfigurar: true, labelBadge: 'Admin', cor: '#2b6cb0' },
-  'Fiscal': { menu: ['dashboard','agroindustrias','legalizacoes','calendario','docs-municipio','selo-arte'], podeEditar: true, podeCriar: false, podeAprovar: true, podeCancelarSIM: true, podeConfigurar: false, labelBadge: 'Fiscal', cor: '#f4a261' },
+  'Fiscal': { menu: ['dashboard','produtores','agroindustrias','legalizacoes','calendario','docs-municipio','selo-arte'], podeEditar: true, podeCriar: true, podeAprovar: true, podeCancelarSIM: true, podeConfigurar: false, labelBadge: 'Fiscal', cor: '#f4a261' },
   'Produtor': { menu: ['dashboard','legalizacoes','docs-municipio','selo-arte'], podeEditar: false, podeCriar: false, podeAprovar: false, podeCancelarSIM: false, podeConfigurar: false, labelBadge: 'Produtor', cor: '#3a9463' },
   'Resp. Tecnico': { menu: ['dashboard','legalizacoes','docs-municipio','selo-arte'], podeEditar: false, podeCriar: false, podeAprovar: false, podeCancelarSIM: false, podeConfigurar: false, labelBadge: 'RT', cor: '#2d7a50' },
   'Prefeito': { menu: ['dashboard','agroindustrias','legalizacoes','calendario','docs-municipio','selo-arte'], podeEditar: false, podeCriar: false, podeAprovar: false, podeCancelarSIM: false, podeConfigurar: false, labelBadge: 'Prefeito', cor: '#374151' },
@@ -2737,6 +2742,12 @@ async function salvarProdutor() {
       cidade: document.getElementById('prod-cidade').value,
       estado: document.getElementById('prod-estado').value
     });
+
+    // Verificar se o produtor foi realmente salvo
+    if (!prod || (Array.isArray(prod) && prod.length === 0)) {
+      alert('Nao foi possivel cadastrar o produtor. Verifique se o e-mail ou CPF ja estao em uso.');
+      return;
+    }
 
     // Salvar usuario do produtor
     if (prod && prod.length > 0) {
