@@ -474,7 +474,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
       <!-- PRODUTORES -->
       <div class="pg" id="pg-produtores">
-        <div class="ph2"><h2>Produtores</h2><div class="act"><button id="btn-novo-prod" class="btn bg" onclick="sm('m-prod')">+ Novo produtor</button></div></div>
+        <div class="ph2"><h2>Produtores</h2><div class="act"><button id="btn-novo-prod" class="btn bg" onclick="abrirModalProdutor()">+ Novo produtor</button></div></div>
         <div class="cd"><table class="tbl"><thead><tr><th>Nome</th><th>CPF</th><th>Municipio</th><th>Agroindustrias</th><th>Status</th><th></th></tr></thead><tbody id="produtores-tbody">
         </tbody></table></div>
       </div>
@@ -1307,12 +1307,56 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 // ===SALVAR AGROINDUSTRIA===
 
 
+async function abrirModalProdutor() {
+  var selMun = document.getElementById('prod-mun');
+  if (selMun) {
+    if (usr && usr.p === 'Fiscal' && usr.municipio_id) {
+      // Fiscal: travar no municipio dele
+      var nomeMun = '';
+      try {
+        var munF = await supaGet('municipios', 'select=nome&id=eq.' + usr.municipio_id);
+        if (munF && munF.length > 0) nomeMun = munF[0].nome;
+      } catch(e) {}
+      selMun.innerHTML = '<option value="' + nomeMun + '">' + nomeMun + '</option>';
+      selMun.value = nomeMun;
+      selMun.disabled = true;
+    } else {
+      // Admin: todos os municipios, editavel
+      selMun.disabled = false;
+      selMun.innerHTML = '<option value="">Selecione...</option>';
+      try {
+        var muns = await supaGet('municipios', 'select=nome&order=nome');
+        if (muns && muns.length > 0) {
+          muns.forEach(function(m) {
+            var opt = document.createElement('option');
+            opt.value = m.nome; opt.textContent = m.nome;
+            selMun.appendChild(opt);
+          });
+        }
+      } catch(e) {}
+    }
+  }
+  sm('m-prod');
+}
+
 async function abrirModalAgro() {
+  var ehFiscal = (usr && usr.p === 'Fiscal' && usr.municipio_id);
+  var nomeMunFiscal = '';
+  if (ehFiscal) {
+    try {
+      var munF = await supaGet('municipios', 'select=nome&id=eq.' + usr.municipio_id);
+      if (munF && munF.length > 0) nomeMunFiscal = munF[0].nome;
+    } catch(e) {}
+  }
+
   var sel = document.getElementById('agro-sel-produtor');
   if (sel) {
     sel.innerHTML = '<option value="">Selecione...</option>';
     try {
-      var prods = await supaGet('produtores', 'select=id,nome&order=nome');
+      // Fiscal: so produtores do municipio dele. Admin: todos.
+      var qProd = 'select=id,nome&order=nome';
+      if (ehFiscal) qProd += '&municipio_id=eq.' + usr.municipio_id;
+      var prods = await supaGet('produtores', qProd);
       if (prods && prods.length > 0) {
         prods.forEach(function(p) {
           var opt = document.createElement('option');
@@ -1327,14 +1371,24 @@ async function abrirModalAgro() {
   if (selMun) {
     selMun.innerHTML = '<option value="">Selecione...</option>';
     try {
-      var muns = await supaGet('municipios', 'select=id,nome&order=nome');
-      if (muns && muns.length > 0) {
-        muns.forEach(function(m) {
-          var opt = document.createElement('option');
-          opt.value = m.nome;
-          opt.textContent = m.nome;
-          selMun.appendChild(opt);
-        });
+      if (ehFiscal) {
+        // Fiscal: travar no municipio dele
+        var opt = document.createElement('option');
+        opt.value = nomeMunFiscal; opt.textContent = nomeMunFiscal;
+        selMun.appendChild(opt);
+        selMun.value = nomeMunFiscal;
+        selMun.disabled = true;
+      } else {
+        selMun.disabled = false;
+        var muns = await supaGet('municipios', 'select=id,nome&order=nome');
+        if (muns && muns.length > 0) {
+          muns.forEach(function(m) {
+            var o = document.createElement('option');
+            o.value = m.nome;
+            o.textContent = m.nome;
+            selMun.appendChild(o);
+          });
+        }
       }
     } catch(e) { console.log('Erro ao carregar municipios:', e); }
   }
