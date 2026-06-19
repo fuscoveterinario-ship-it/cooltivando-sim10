@@ -532,7 +532,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
           <button class="tab-btn on" onclick="setTab(this,'tab-proc')">Jornada de Legalizacao</button>
           <button class="tab-btn" onclick="setTab(this,'tab-insp')">Inspecao / Fiscalizacao</button>
         </div>
-        <div class="tab-c on" id="tab-proc">
+        <div class="tab-c on" id="tab-proc" style="overflow-x:hidden;max-width:100%">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
             <h3 style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800">Jornada de Legalizacao</h3>
             <button class="btn bg" id="btn-addproc" onclick="abrirModalJornada()" style="display:none">+ Jornada de Legalizacao</button>
@@ -3067,7 +3067,7 @@ function renderJornadaAberta() {
     '<button class="btn bo bsm" onclick="voltarListaJornadas()">&#8592; Voltar</button>' +
     '<h3 style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800;margin:0">' + jornadaAbertaNome + '</h3>' +
     '</div>' +
-    '<div id="jl-carrossel" style="width:100%;max-width:100%;overflow:hidden"></div><div id="jl-area" style="width:100%;max-width:100%;overflow:hidden"></div>';
+    '<div id="jl-carrossel" style="width:0;min-width:100%;max-width:100%;overflow:hidden"></div><div id="jl-area" style="width:0;min-width:100%;max-width:100%;overflow:hidden"></div>';
   renderCarrossel();
   renderAreaDoc();
 }
