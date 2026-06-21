@@ -2574,6 +2574,7 @@ async function doLogin() {
         empresasRT: u.empresas_rt || null,
         id: u.id,
         email: u.email || null,
+        crmv: u.crmv || u.num_conselho || null,
         municipio_id: u.municipio_id || null
       };
 
@@ -2605,6 +2606,7 @@ async function doLogin() {
           empresasRT: u2.empresas_rt || null,
           id: u2.id,
           email: u2.email || null,
+          crmv: u2.crmv || u2.num_conselho || null,
           token: data.access_token
         };
         var munNome2 = null;
@@ -3208,8 +3210,23 @@ function renderAreaDoc() {
   // visualizador PDF
   var viewer = '';
   if (d.arquivo_url) {
+    // Marca d'agua visual de rastreabilidade (Caminho A): aparece sobre o PDF na tela
+    var marcaTela = '';
+    if (d.status === 'aprovado' || d.status === 'reprovado') {
+      var corMarca = d.status === 'aprovado' ? '#16a34a' : '#dc2626';
+      var txtMarca = d.status === 'aprovado' ? 'APROVADO' : 'REPROVADO';
+      var quem = d.avaliado_por || 'Fiscal';
+      var quando = d.avaliado_em ? new Date(d.avaliado_em).toLocaleDateString('pt-BR') : '';
+      marcaTela = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-25deg);pointer-events:none;z-index:5;opacity:0.16;font-family:Nunito,sans-serif;font-weight:900;font-size:64px;color:' + corMarca + ';white-space:nowrap;text-align:center;line-height:1.1">' + txtMarca + '</div>' +
+        '<div style="position:absolute;bottom:12px;left:12px;right:12px;pointer-events:none;z-index:5;background:rgba(255,255,255,0.92);border-left:4px solid ' + corMarca + ';border-radius:6px;padding:8px 12px;font-family:Nunito Sans,sans-serif;font-size:11px;color:#333;box-shadow:0 1px 4px rgba(0,0,0,0.15)">' +
+        '<b style="color:' + corMarca + '">' + txtMarca + ' &middot; RASTREABILIDADE COOLTIVANDO SIM</b><br>' +
+        'Fiscal: ' + quem + (quando ? ' &middot; ' + quando : '') +
+        (d.municipio_nome ? ' &middot; Municipio: ' + d.municipio_nome : '') + '</div>';
+    }
     viewer = '<div style="margin-top:18px"><div style="font-size:12px;color:var(--k5);margin-bottom:6px">&#128206; ' + (d.arquivo_nome || 'documento.pdf') + '</div>' +
-      '<iframe src="' + d.arquivo_url + '" style="width:100%;height:520px;border:1px solid var(--g2);border-radius:8px"></iframe></div>';
+      '<div style="position:relative;width:100%">' +
+      '<iframe src="' + d.arquivo_url + '" style="width:100%;height:520px;border:1px solid var(--g2);border-radius:8px;position:relative;z-index:1"></iframe>' +
+      marcaTela + '</div></div>';
   } else {
     viewer = '<div style="margin-top:18px;text-align:center;color:var(--k5);padding:30px;background:var(--g0);border-radius:8px;font-size:13px">Nenhum arquivo PDF enviado para este documento ainda.</div>';
   }
@@ -3363,11 +3380,38 @@ async function avaliarDocEmpresa(id, novoStatus) {
   var label = novoStatus === 'aprovado' ? 'APROVAR' : 'REPROVAR';
   if (!confirm('Confirma ' + label + ' este documento?')) return;
   try {
+    // Buscar dados do documento (para saber se tem PDF a carimbar)
+    var docInfo = await supaGet('documentos_empresa', 'select=arquivo_caminho,arquivo_nome&id=eq.' + id);
+    var temPdf = docInfo && docInfo.length > 0 && docInfo[0].arquivo_caminho;
+
+    var assinaturaFiscal = (usr.n || '') + (usr.crmv ? ' - ' + usr.crmv : '');
     await supaUpdate('documentos_empresa', id, {
       status: novoStatus,
-      avaliado_por: (usr.n || '') + ' (' + (usr.p || '') + ')',
+      avaliado_por: assinaturaFiscal,
       avaliado_em: new Date().toISOString()
     });
+
+    // Caminho B: carimbar marca d'agua embutida no PDF (sai na impressao)
+    if (temPdf) {
+      try {
+        var resp = await fetch(SUPA_URL + '/functions/v1/carimbar-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+          body: JSON.stringify({
+            documento_id: id,
+            status: novoStatus,
+            avaliado_por: (usr.n || ''),
+            crmv: usr.crmv || usr.num_conselho || '',
+            municipio: usr.municipio_nome || (empresaAtual && empresaAtual.municipio) || ''
+          })
+        });
+        var rj = await resp.json();
+        if (!rj || !rj.ok) { console.log('Carimbo nao aplicado:', rj && rj.erro); }
+      } catch (errCarimbo) {
+        console.log('Erro ao carimbar PDF (a avaliacao foi salva mesmo assim):', errCarimbo);
+      }
+    }
+
     recarregarManterJornada();
   } catch(e) { console.log('Erro ao avaliar:', e); alert('Erro ao salvar avaliacao.'); }
 }
