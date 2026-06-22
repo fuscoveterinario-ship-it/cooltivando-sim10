@@ -1962,7 +1962,9 @@ async function carregarAgroindustrias() {
           '<td>' + (a.tipo || '-') + '</td>' +
           '<td>' + munNome + '</td>' +
           '<td><span class="bdg bgy">0</span></td>' +
-          '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify(prodNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim || 'Sem numero SIM').replace(/"/g,'&quot;') + ',' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ')">Abrir empresa</button></td>';
+          '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify(prodNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim || 'Sem numero SIM').replace(/"/g,'&quot;') + ',' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ')">Abrir empresa</button>' +
+          ((usr && usr.p === 'Admin Sistema') ? ' <button class="btn" style="border:1px solid #dc2626;color:#dc2626;background:var(--white);padding:5px 12px;font-size:12px" onclick="excluirAgroindustria(' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ')">Excluir</button>' : '') +
+          '</td>';
         tbody.appendChild(tr);
       });
     }
@@ -2004,15 +2006,59 @@ async function carregarProdutores() {
       var tr = document.createElement('tr');
       tr.setAttribute('data-municipio', munNome === '-' ? '' : munNome);
       tr.setAttribute('data-produtor', p.nome || '');
+      var btnExcluir = (usr && usr.p === 'Admin Sistema')
+        ? '<button class="btn" style="border:1px solid #dc2626;color:#dc2626;background:var(--white);padding:5px 12px;font-size:12px" onclick="excluirProdutor(\'' + p.id + '\',\'' + (p.nome || '').replace(/'/g, "\\'") + '\')">Excluir</button>'
+        : '';
       tr.innerHTML = '<td><b>' + (p.nome || '-') + '</b></td>' +
         '<td>' + (p.cpf || '-') + '</td>' +
         '<td>' + munNome + '</td>' +
         '<td><span class="bdg bgy">0</span></td>' +
         '<td><span class="bdg bgr">Ativo</span></td>' +
-        '<td></td>';
+        '<td>' + btnExcluir + '</td>';
       tbody.appendChild(tr);
     });
   } catch(e) { console.log('Erro ao carregar produtores:', e); }
+}
+
+// ===EXCLUSAO (somente Admin Sistema)===
+async function excluirAgroindustria(id, nome) {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o administrador pode excluir.'); return; }
+  if (!confirm('Excluir a agroindustria "' + nome + '"?\n\nIsto vai apagar TAMBEM todos os documentos e jornadas dela. Esta acao NAO pode ser desfeita.')) return;
+  try {
+    // 1) Apagar documentos da empresa
+    await supaFetch('/rest/v1/documentos_empresa?agroindustria_id=eq.' + id, { method: 'DELETE' });
+    // 2) Apagar jornadas aplicadas a empresa (se houver tabela de jornadas por empresa)
+    await supaFetch('/rest/v1/jornadas_empresa?agroindustria_id=eq.' + id, { method: 'DELETE' });
+    // 3) Apagar a agroindustria
+    await supaFetch('/rest/v1/agroindustrias?id=eq.' + id, { method: 'DELETE' });
+    alert('Agroindustria "' + nome + '" excluida com sucesso.');
+    await carregarAgroindustrias();
+  } catch(e) {
+    console.log('Erro ao excluir agroindustria:', e);
+    alert('Erro ao excluir. Tente novamente.');
+  }
+}
+
+async function excluirProdutor(id, nome) {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o administrador pode excluir.'); return; }
+  try {
+    // Bloquear se houver agroindustria vinculada
+    var agros = await supaGet('agroindustrias', 'select=id,nome&produtor_id=eq.' + id);
+    if (agros && agros.length > 0) {
+      var nomes = agros.map(function(a){ return a.nome; }).join(', ');
+      alert('Nao e possivel excluir "' + nome + '".\n\nEste produtor tem ' + agros.length + ' agroindustria(s) vinculada(s): ' + nomes + '.\n\nExclua primeiro a(s) agroindustria(s).');
+      return;
+    }
+    if (!confirm('Excluir o produtor "' + nome + '"?\n\nEsta acao NAO pode ser desfeita.')) return;
+    // Apagar tambem o usuario de login do produtor (se existir)
+    await supaFetch('/rest/v1/usuarios?perfil=eq.Produtor&proprietario=eq.' + encodeURIComponent(nome), { method: 'DELETE' });
+    await supaFetch('/rest/v1/produtores?id=eq.' + id, { method: 'DELETE' });
+    alert('Produtor "' + nome + '" excluido com sucesso.');
+    await carregarProdutores();
+  } catch(e) {
+    console.log('Erro ao excluir produtor:', e);
+    alert('Erro ao excluir. Tente novamente.');
+  }
 }
 
 // ===FILTRO POR PERFIL E PRODUTOR===
