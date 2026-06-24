@@ -726,18 +726,16 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
         <div class="ph2"><h2>Calendario</h2><button class="btn bg" id="btn-nova-visita" onclick="sm('m-vis')">+ Agendar visita</button></div>
         <div class="g3">
           <div class="cd">
-            <div class="cdh"><span class="cdt">maio de 2026</span><div style="display:flex;gap:5px"><button class="btn bo bsm">&#8249;</button><button class="btn bo bsm">&#8250;</button></div></div>
+            <div class="cdh"><span class="cdt" id="cal-mes-titulo">Calendario</span><div style="display:flex;gap:5px"><button class="btn bo bsm" onclick="mudarMesCal(-1)">&#8249;</button><button class="btn bo bsm" onclick="mudarMesCal(1)">&#8250;</button></div></div>
             <div style="padding:14px">
               <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px" id="cal-names"></div>
               <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px" id="cal-grid"></div>
             </div>
           </div>
           <div class="cd">
-            <div class="cdh"><span class="cdt">Eventos de maio</span></div>
-            <div class="al">
-              <div class="ai2"><div class="adt" style="background:var(--bl)"></div><div class="ain"><div class="ain-n">Visita - Granja Albunio</div><div class="ain-e">02/05 Joao Silva</div></div></div>
-              <div class="ai2"><div class="adt adr"></div><div class="ain"><div class="ain-n">Licenca Sanitaria vence</div><div class="ain-e">11/05 Granja Albunio</div></div></div>
-              <div class="ai2"><div class="adt" style="background:var(--bl)"></div><div class="ain"><div class="ain-n">Programacao - Docs</div><div class="ain-e">29/05 G E S Acougue</div></div></div>
+            <div class="cdh"><span class="cdt" id="cal-eventos-titulo">Eventos do mes</span></div>
+            <div class="al" id="cal-eventos-lista">
+              <div style="text-align:center;color:var(--k5);padding:18px;font-size:13px">Carregando...</div>
             </div>
           </div>
         </div>
@@ -2717,6 +2715,7 @@ function carregarApp() {
   var wd=document.getElementById('wd'); if(wd)wd.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   document.getElementById('ls').style.display='none';
   document.getElementById('app').classList.add('app-on');
+  calEventosCache = []; calMesRef = new Date();
   buildCal();
   renderDocsTbl();
   renderAIUsers();
@@ -3586,6 +3585,7 @@ function navPg(id, el) {
   if (id === 'ai-painel') renderAIUsers();
   if (id === 'jornada') renderJornadaDocs(null);
   if (id === 'legalizacoes') carregarLegalizacoes();
+  if (id === 'calendario') { calEventosCache = []; calMesRef = new Date(); buildCal(); }
   // AI context
   var ctx = aiCtx[id] || aiCtx['dashboard'];
   var lbl = document.getElementById('ai-ctx-lbl');
@@ -3606,23 +3606,130 @@ function setTab(btn, id) {
 }
 
 // ===CALENDARIO===
-function buildCal() {
+var calMesRef = null; // mes/ano atualmente exibido
+var calEventosCache = []; // eventos carregados do banco
+
+async function carregarEventosCalendario() {
+  calEventosCache = [];
+  try {
+    // Filtro por municipio: fiscal/prefeito/secretario so veem o proprio municipio. Admin ve tudo.
+    var filtroMun = '';
+    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      filtroMun = '&municipio_id=eq.' + usr.municipio_id;
+    }
+    // agroindustrias do escopo (para filtrar documentos e descobrir nomes)
+    var agros = await supaGet('agroindustrias', 'select=id,nome,municipio_id' + filtroMun) || [];
+    var idsAgro = agros.map(function(a){ return a.id; });
+    var nomeAgro = {}; agros.forEach(function(a){ nomeAgro[a.id] = a.nome; });
+
+    // 1) Vencimentos de documentos
+    var docs = await supaGet('documentos_empresa', 'select=doc_tipo,data_validade,tem_validade,agroindustria_id,agroindustria_nome') || [];
+    docs.forEach(function(d) {
+      if (!d.tem_validade || !d.data_validade) return;
+      // se for fiscal, so documentos das agroindustrias do municipio dele
+      if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id && idsAgro.indexOf(d.agroindustria_id) < 0) return;
+      calEventosCache.push({
+        data: d.data_validade,
+        tipo: 'vencimento',
+        titulo: (d.doc_tipo || 'Documento') + ' vence',
+        empresa: d.agroindustria_nome || nomeAgro[d.agroindustria_id] || ''
+      });
+    });
+
+    // 2) Visitas agendadas
+    var visitas = await supaGet('visitas', 'select=*') || [];
+    visitas.forEach(function(v) {
+      var dataV = v.data_visita || v.data || v.data_agendada || null;
+      if (!dataV) return;
+      var agroId = v.agroindustria_id;
+      if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id && agroId && idsAgro.indexOf(agroId) < 0) return;
+      calEventosCache.push({
+        data: (dataV + '').slice(0,10),
+        tipo: 'visita',
+        titulo: 'Visita' + (v.fiscal_nome ? ' - ' + v.fiscal_nome : ''),
+        empresa: v.agroindustria_nome || nomeAgro[agroId] || (v.local || '')
+      });
+    });
+  } catch(e) { console.log('Erro ao carregar eventos do calendario:', e); }
+}
+
+function mudarMesCal(delta) {
+  if (!calMesRef) calMesRef = new Date();
+  calMesRef = new Date(calMesRef.getFullYear(), calMesRef.getMonth() + delta, 1);
+  buildCal();
+}
+
+async function buildCal() {
   var ng = document.getElementById('cal-names');
   var gg = document.getElementById('cal-grid');
   if (!ng || !gg) return;
+  if (!calMesRef) calMesRef = new Date();
+
+  // carregar eventos do banco (uma vez por abertura/refresh)
+  if (calEventosCache.length === 0) { await carregarEventosCalendario(); }
+
+  var meses = ['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var ano = calMesRef.getFullYear(), mes = calMesRef.getMonth();
+  var tituloMes = meses[mes] + ' de ' + ano;
+  var elT = document.getElementById('cal-mes-titulo'); if (elT) elT.textContent = tituloMes.charAt(0).toUpperCase() + tituloMes.slice(1);
+  var elE = document.getElementById('cal-eventos-titulo'); if (elE) elE.textContent = 'Eventos de ' + meses[mes];
+
+  // dias do mes e eventos por dia
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  var ehHojeMes = (hoje.getFullYear() === ano && hoje.getMonth() === mes);
+  var diasNoMes = new Date(ano, mes + 1, 0).getDate();
+  var primeiroDiaSemana = new Date(ano, mes, 1).getDay(); // 0=Dom
+
+  // mapear eventos deste mes por dia
+  var evPorDia = {};
+  var eventosDoMes = [];
+  calEventosCache.forEach(function(ev) {
+    var partes = (ev.data || '').split('-');
+    if (partes.length < 3) return;
+    var evAno = parseInt(partes[0],10), evMes = parseInt(partes[1],10)-1, evDia = parseInt(partes[2],10);
+    if (evAno === ano && evMes === mes) {
+      if (!evPorDia[evDia]) evPorDia[evDia] = [];
+      evPorDia[evDia].push(ev);
+      eventosDoMes.push(Object.assign({ dia: evDia }, ev));
+    }
+  });
+
+  // cabecalho dias da semana
   var days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
   ng.innerHTML = days.map(function(d){return '<div style="text-align:center;font-size:10px;font-weight:700;color:var(--k5);padding:3px">'+d+'</div>';}).join('');
-  var ev=[2,11,29,30], al=[11], hoje=13;
+
+  // grid
   var h = '';
-  for (var i=0;i<3;i++) h+='<div style="text-align:center;font-size:11px;padding:5px;color:var(--k3)">'+i+'</div>';
-  for (var d=1;d<=31;d++) {
-    var isH=d===hoje, hasE=ev.indexOf(d)>=0, isA=al.indexOf(d)>=0;
-    var bg=isH?'var(--g6)':hasE?'var(--bl0)':'transparent';
-    var cl=isH?'#fff':hasE?'var(--bl)':'var(--k7)';
-    var dot=isA?'<div style="width:4px;height:4px;background:var(--rd);border-radius:50%;margin:1px auto 0"></div>':hasE?'<div style="width:4px;height:4px;background:var(--bl);border-radius:50%;margin:1px auto 0"></div>':'';
-    h+='<div style="text-align:center;padding:5px 3px;border-radius:7px;background:'+bg+';color:'+cl+';font-size:12px;font-weight:'+(isH?'800':'400')+';cursor:pointer">'+d+dot+'</div>';
+  for (var i=0;i<primeiroDiaSemana;i++) h+='<div></div>';
+  for (var d=1;d<=diasNoMes;d++) {
+    var isH = ehHojeMes && d === hoje.getDate();
+    var evs = evPorDia[d] || [];
+    var temVenc = evs.some(function(e){return e.tipo==='vencimento';});
+    var temVis = evs.some(function(e){return e.tipo==='visita';});
+    var bg = isH ? 'var(--g6)' : (evs.length ? 'var(--bl0)' : 'transparent');
+    var cl = isH ? '#fff' : (evs.length ? 'var(--bl)' : 'var(--k7)');
+    var dotCor = temVenc ? 'var(--rd)' : (temVis ? 'var(--bl)' : '');
+    var dot = dotCor ? '<div style="width:4px;height:4px;background:'+dotCor+';border-radius:50%;margin:1px auto 0"></div>' : '';
+    h+='<div title="'+(evs.length?evs.length+' evento(s)':'')+'" style="text-align:center;padding:5px 3px;border-radius:7px;background:'+bg+';color:'+cl+';font-size:12px;font-weight:'+(isH?'800':'400')+';cursor:'+(evs.length?'pointer':'default')+'">'+d+dot+'</div>';
   }
   gg.innerHTML = h;
+
+  // lista lateral de eventos do mes
+  var lista = document.getElementById('cal-eventos-lista');
+  if (lista) {
+    if (eventosDoMes.length === 0) {
+      lista.innerHTML = '<div style="text-align:center;color:var(--k5);padding:18px;font-size:13px">Nenhum evento neste mes</div>';
+    } else {
+      eventosDoMes.sort(function(a,b){ return a.dia - b.dia; });
+      lista.innerHTML = eventosDoMes.map(function(ev) {
+        var diaStr = (ev.dia<10?'0':'')+ev.dia + '/' + ((mes+1)<10?'0':'')+(mes+1);
+        var ehVenc = ev.tipo === 'vencimento';
+        var dotCl = ehVenc ? 'adr' : '';
+        var dotStyle = ehVenc ? '' : ' style="background:var(--bl)"';
+        return '<div class="ai2"><div class="adt '+dotCl+'"'+dotStyle+'></div><div class="ain"><div class="ain-n">'+ev.titulo+'</div><div class="ain-e">'+diaStr+(ev.empresa?' '+ev.empresa:'')+'</div></div></div>';
+      }).join('');
+    }
+  }
 }
 
 // ===DOCS BASE===
