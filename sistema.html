@@ -405,6 +405,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
 <!-- APP -->
 <div id="app">
+  <div id="menu-overlay" onclick="toggleMenuMobile()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99"></div>
   <aside class="sb">
     <div class="sbl"><img id="logo-sb" src="" alt="Cooltivando"></div>
     <div class="sbn">
@@ -432,6 +433,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
   <main class="mn">
     <div class="tb">
+      <button id="btn-menu-mobile" onclick="toggleMenuMobile()" aria-label="Abrir menu" style="display:none;background:none;border:none;font-size:24px;cursor:pointer;padding:4px 10px;color:var(--g7);line-height:1">&#9776;</button>
       <div class="tbt" id="tbt">Inicio</div>
       <div class="tba">
         
@@ -2511,7 +2513,7 @@ function entrarSistema() {
 }
 
 window.addEventListener('load', function() {
-  // Sempre abrir direto no login
+  // A pagina de apresentacao e o index.html (raiz). Aqui no sistema.html abrimos direto no login.
   var landing = document.getElementById('landing');
   var ls = document.getElementById('ls');
   if (landing) landing.style.display = 'none';
@@ -3559,6 +3561,17 @@ function abrirEmpresaComDados(nome, produtor, municipio, numSim, agroId) {
   carregarDocumentosEmpresa();
 }
 
+function toggleMenuMobile() {
+  var aberto = document.body.classList.toggle('menu-aberto');
+  var ov = document.getElementById('menu-overlay');
+  if (ov) ov.style.display = aberto ? 'block' : 'none';
+}
+function fecharMenuMobile() {
+  document.body.classList.remove('menu-aberto');
+  var ov = document.getElementById('menu-overlay');
+  if (ov) ov.style.display = 'none';
+}
+
 function navPg(id, el) {
   document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('on');});
@@ -3566,6 +3579,7 @@ function navPg(id, el) {
   if (p) p.classList.add('on');
   if (el) el.classList.add('on');
   document.getElementById('tbt').textContent = TITS[id] || '';
+  fecharMenuMobile();
   // Page-specific init
   if (id === 'processo') { procSel=0; renderProcCards(); renderProcDetalhe(); }
   if (id === 'cfg-docs') renderDocsTbl();
@@ -3717,10 +3731,20 @@ async function carregarDocsBase() {
 // ===CARREGAR DASHBOARD (numeros e listas reais do banco)===
 async function carregarDashboard() {
   try {
+    // Filtro por municipio: fiscal/prefeito/secretario so veem o proprio municipio. Admin ve tudo.
+    var filtroMun = '';
+    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      filtroMun = '&municipio_id=eq.' + usr.municipio_id;
+    }
     // Contagens reais
-    var produtores = await supaGet('produtores', 'select=id') || [];
-    var agros = await supaGet('agroindustrias', 'select=id,nome,num_sim,produtores(nome),municipios(nome)&order=created_at.desc') || [];
+    var produtores = await supaGet('produtores', 'select=id' + filtroMun) || [];
+    var agros = await supaGet('agroindustrias', 'select=id,nome,num_sim,municipio_id,produtores(nome),municipios(nome)&order=created_at.desc' + filtroMun) || [];
+    // Documentos: filtrar pelas agroindustrias do municipio (documentos_empresa nao tem municipio_id direto e confiavel)
+    var idsAgro = agros.map(function(a){ return a.id; });
     var docsEmpresa = await supaGet('documentos_empresa', 'select=*&order=criado_em.desc') || [];
+    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      docsEmpresa = docsEmpresa.filter(function(d){ return idsAgro.indexOf(d.agroindustria_id) >= 0; });
+    }
 
     // Calcular vencimentos
     var hoje = new Date(); hoje.setHours(0,0,0,0);
@@ -4288,6 +4312,23 @@ function baixarPDF(nomeProcesso) { nomeProcesso = nomeProcesso || processoAtual 
     '.sig-sub{font-size:10px;color:#6b7280;text-align:center}' +
     '.digital-stamp{background:#f0faf3;border:2px solid #52b788;border-radius:8px;padding:12px 16px;margin-top:16px;font-size:11px;color:#276344}' +
     '.watermark{color:#e2e8f0;font-size:11px;text-align:center;margin-top:30px}' +
+    '@media (max-width:768px){' +
+      '.sb{transform:translateX(-100%);transition:transform .25s ease;width:82vw;max-width:300px;box-shadow:0 0 30px rgba(0,0,0,.3)}' +
+      'body.menu-aberto .sb{transform:translateX(0)}' +
+      '.mn{margin-left:0!important;width:100%}' +
+      '#btn-menu-mobile{display:block!important}' +
+      '.ct{padding:14px}' +
+      '.tb{padding:0 12px;gap:8px}' +
+      '.tbt{font-size:16px}' +
+      '.tbu .tbun{font-size:12px}.tbu .tbur{font-size:10px}' +
+      '.tbl{display:block;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}' +
+      '.cd,.card,.box{padding:14px!important}' +
+      '.md,.modal,.mc{width:94vw!important;max-width:94vw!important;margin:0 auto}' +
+      '.ph2{flex-direction:column;align-items:flex-start;gap:10px}' +
+      '.ph2 .act{width:100%}' +
+      '.kpis,.dash-cards,.cards-row{flex-direction:column}' +
+      'h1{font-size:22px}h2{font-size:18px}' +
+    '}' +
     '@media print{body{padding:0}button{display:none}}' +
     '</style></head><body>';
 
