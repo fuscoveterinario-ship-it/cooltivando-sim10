@@ -1066,6 +1066,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
 <div class="mo" id="m-addproc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Adicionar Jornada de Legalizacao</h3><button class="mc" onclick="hm('m-addproc')">x</button></div><div style="padding:16px 20px 4px"><p style="font-size:12px;color:var(--k5);margin-bottom:14px">Selecione a Jornada de Legalizacao que sera aplicada a esta empresa:</p><div id="cert-lista"><div style="text-align:center;color:var(--k5);padding:20px;font-size:13px">Carregando jornadas...</div></div></div><div class="fact"><button class="btn bo" onclick="hm('m-addproc')">Cancelar</button><button class="btn bg" onclick="aplicarJornadaEmpresa()">Aplicar jornada</button></div></div></div>
 <div class="mo" id="m-anexar" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Anexar Documento</h3><button class="mc" onclick="hm('m-anexar')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Jornada de Legalizacao <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-jornada" onchange="carregarDocsDaJornada()"><option value="">Selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Documento <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-tipo" onchange="toggleValidadeAnexar()"><option value="">Primeiro selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Arquivo PDF <span style="color:var(--rd)">*</span></label><input class="fi" type="file" id="anexar-file" accept="application/pdf"></div><div class="fm1" id="anexar-validade-box" style="display:none"><label class="fl">Data de validade <span style="color:var(--rd)">*</span></label><input class="fi" type="date" id="anexar-validade"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-anexar')">Cancelar</button><button class="btn bg" id="btn-anexar-salvar" onclick="anexarDocumentoEmpresa()">Anexar documento</button></div></div></div>
+<div class="mo" id="m-editprod" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Editar Produtor</h3><button class="mc" onclick="hm('m-editprod')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Nome</label><input class="fi" id="editprod-nome" type="text"></div><div class="fm1"><label class="fl">CPF</label><input class="fi" id="editprod-cpf" type="text"></div><div class="fm1"><label class="fl">Municipio</label><select class="fi" id="editprod-municipio"></select></div></div><div class="fact"><button class="btn bo" onclick="hm('m-editprod')">Cancelar</button><button class="btn bg" id="btn-editprod-salvar" onclick="salvarEditarProdutor()">Salvar alteracoes</button></div></div></div>
 <div class="mo" id="m-editemp" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Editar Empresa</h3><button class="mc" onclick="hm('m-editemp')">x</button></div><div class="fm"><div class="fm1"><label class="fl">CADPRO</label><input class="fi" id="edit-cadpro" type="text"></div><div class="fm1"><label class="fl">Telefone</label><input class="fi" id="edit-tel" type="text" placeholder="(00) 00000-0000"></div><div class="fm1"><label class="fl">CEP</label><input class="fi" id="edit-cep" type="text" placeholder="00000-000"></div><div class="fm1"><label class="fl">Endereco</label><input class="fi" id="edit-end" type="text"></div><div class="fm1"><label class="fl">Bairro</label><input class="fi" id="edit-bairro" type="text"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-editemp')">Cancelar</button><button class="btn bg" id="btn-editemp-salvar" onclick="salvarEditarEmpresa()">Salvar alteracoes</button></div></div></div>
 
 <div class="mo" id="m-dcfg" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Documento Exigido</h3><button class="mc" onclick="hm('m-dcfg')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Nome do documento</label><input class="fi" id="dcfg-nome" placeholder="Ex: Licenca Sanitaria"></div><div class="fm1"><label class="fl">Descricao</label><textarea class="fi" id="dcfg-desc" rows="2" placeholder="O que o produtor precisa enviar..."></textarea></div><div><label class="fl">Obrigatorio?</label><select class="fi" id="dcfg-obrig"><option>Sim</option><option>Nao (opcional)</option></select></div><div><label class="fl">Tem validade?</label><select class="fi" id="dcfg-val" onchange="tvld()"><option value="n">Nao</option><option value="s">Sim</option></select></div><div id="dcfg-prazo" style="display:none"><label class="fl">Prazo</label><select class="fi" id="dcfg-prazo-sel"><option>30 dias</option><option>6 meses</option><option>1 ano</option><option>2 anos</option></select></div><div id="dcfg-alerta" style="display:none"><label class="fl">Alerta antecipado</label><select class="fi"><option>30 dias antes</option><option>60 dias antes</option></select></div></div><input type="hidden" id="dcfg-idx" value="-1"><div class="fact"><button class="btn bo" onclick="hm('m-dcfg')">Cancelar</button><button class="btn bg" onclick="salvarDoc()">Salvar documento</button></div></div></div>
@@ -1963,6 +1964,7 @@ async function carregarAgroindustrias() {
           '<td>' + munNome + '</td>' +
           '<td><span class="bdg bgy">0</span></td>' +
           '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify(prodNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim || 'Sem numero SIM').replace(/"/g,'&quot;') + ',' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ')">Abrir empresa</button>' +
+          ((usr && usr.p === 'Admin Sistema') ? ' <button class="btn bo bsm" style="margin-left:6px" onclick="abrirEditarEmpresaPorId(' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ')">Editar</button>' : '') +
           ((usr && usr.p === 'Admin Sistema') ? ' <button class="btn" style="border:1px solid #dc2626;color:#dc2626;background:var(--white);padding:5px 12px;font-size:12px" onclick="excluirAgroindustria(' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ')">Excluir</button>' : '') +
           '</td>';
         tbody.appendChild(tr);
@@ -2001,23 +2003,80 @@ async function carregarProdutores() {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--k5);padding:18px">Nenhum produtor cadastrado</td></tr>';
       return;
     }
+    // Contar agroindustrias por produtor (uma busca so)
+    var agrosCount = {};
+    try {
+      var agrosAll = await supaGet('agroindustrias', 'select=produtor_id') || [];
+      agrosAll.forEach(function(a){ if (a.produtor_id) agrosCount[a.produtor_id] = (agrosCount[a.produtor_id]||0) + 1; });
+    } catch(e) {}
     prods.forEach(function(p) {
       var munNome = (p.municipios && p.municipios.nome) ? p.municipios.nome : (p.cidade || '-');
+      var qtdAgro = agrosCount[p.id] || 0;
       var tr = document.createElement('tr');
       tr.setAttribute('data-municipio', munNome === '-' ? '' : munNome);
       tr.setAttribute('data-produtor', p.nome || '');
-      var btnExcluir = (usr && usr.p === 'Admin Sistema')
-        ? '<button class="btn" style="border:1px solid #dc2626;color:#dc2626;background:var(--white);padding:5px 12px;font-size:12px" onclick="excluirProdutor(\'' + p.id + '\',\'' + (p.nome || '').replace(/'/g, "\\'") + '\')">Excluir</button>'
+      var ehAdmin = (usr && usr.p === 'Admin Sistema');
+      var nomeEsc = (p.nome || '').replace(/'/g, "\\'");
+      var btnEditar = ehAdmin
+        ? '<button class="btn bo bsm" style="margin-right:6px" onclick="abrirEditarProdutor(\'' + p.id + '\')">Editar</button>'
+        : '';
+      var btnExcluir = ehAdmin
+        ? '<button class="btn" style="border:1px solid #dc2626;color:#dc2626;background:var(--white);padding:5px 12px;font-size:12px" onclick="excluirProdutor(\'' + p.id + '\',\'' + nomeEsc + '\')">Excluir</button>'
         : '';
       tr.innerHTML = '<td><b>' + (p.nome || '-') + '</b></td>' +
         '<td>' + (p.cpf || '-') + '</td>' +
         '<td>' + munNome + '</td>' +
-        '<td><span class="bdg bgy">0</span></td>' +
+        '<td><span class="bdg bgy">' + qtdAgro + '</span></td>' +
         '<td><span class="bdg bgr">Ativo</span></td>' +
-        '<td>' + btnExcluir + '</td>';
+        '<td>' + btnEditar + btnExcluir + '</td>';
       tbody.appendChild(tr);
     });
   } catch(e) { console.log('Erro ao carregar produtores:', e); }
+}
+
+// ===EDITAR PRODUTOR (somente Admin Sistema)===
+var produtorEditandoId = null;
+async function abrirEditarProdutor(id) {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o administrador pode editar.'); return; }
+  produtorEditandoId = id;
+  try {
+    var rows = await supaGet('produtores', 'select=nome,cpf,municipio_id&id=eq.' + id);
+    var p = (rows && rows.length > 0) ? rows[0] : {};
+    var setV = function(el, v){ var e = document.getElementById(el); if (e) e.value = v || ''; };
+    setV('editprod-nome', p.nome);
+    setV('editprod-cpf', p.cpf);
+    // popular o select de municipios
+    var sel = document.getElementById('editprod-municipio');
+    if (sel) {
+      var muns = await supaGet('municipios', 'select=id,nome&order=nome') || [];
+      sel.innerHTML = '<option value="">- Selecione -</option>' + muns.map(function(m){
+        return '<option value="' + m.id + '"' + (m.id === p.municipio_id ? ' selected' : '') + '>' + m.nome + '</option>';
+      }).join('');
+    }
+    sm('m-editprod');
+  } catch(e) { console.log('Erro ao abrir editar produtor:', e); alert('Erro ao carregar dados do produtor.'); }
+}
+async function salvarEditarProdutor() {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o administrador pode editar.'); return; }
+  if (!produtorEditandoId) { alert('Produtor nao identificado.'); return; }
+  var btn = document.getElementById('btn-editprod-salvar');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+  try {
+    var get = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+    var nome = get('editprod-nome');
+    if (!nome) { alert('O nome e obrigatorio.'); if (btn){btn.disabled=false;btn.textContent='Salvar alteracoes';} return; }
+    var dados = { nome: nome, cpf: get('editprod-cpf') };
+    var munId = get('editprod-municipio');
+    if (munId) dados.municipio_id = munId;
+    await supaUpdate('produtores', produtorEditandoId, dados);
+    hm('m-editprod');
+    await carregarProdutores();
+  } catch(e) {
+    console.log('Erro ao salvar produtor:', e);
+    alert('Erro ao salvar as alteracoes.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar alteracoes'; }
+  }
 }
 
 // ===EXCLUSAO (somente Admin Sistema)===
@@ -3474,6 +3533,13 @@ async function excluirDocEmpresa(id) {
   } catch(e) { console.log('Erro ao excluir:', e); alert('Erro ao excluir.'); }
 }
 
+async function abrirEditarEmpresaPorId(id, municipio) {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o administrador pode editar.'); return; }
+  // define empresaAtual para reusar o modal/salvar existente, e recarrega a lista ao salvar
+  empresaAtual = { id: id, municipio: municipio || '', _origemLista: true };
+  await abrirEditarEmpresa();
+}
+
 async function abrirEditarEmpresa() {
   if (!empresaAtual || !empresaAtual.id) { alert('Empresa nao identificada.'); return; }
   try {
@@ -3503,7 +3569,11 @@ async function salvarEditarEmpresa() {
       bairro: get('edit-bairro')
     });
     hm('m-editemp');
-    preencherInfoEmpresa(empresaAtual.id, empresaAtual.municipio);
+    if (empresaAtual && empresaAtual._origemLista) {
+      await carregarAgroindustrias();
+    } else {
+      preencherInfoEmpresa(empresaAtual.id, empresaAtual.municipio);
+    }
   } catch(e) {
     console.log('Erro ao salvar empresa:', e);
     alert('Erro ao salvar as alteracoes.');
