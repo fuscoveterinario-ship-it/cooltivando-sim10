@@ -1119,6 +1119,40 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
   </div>
 </div>
 
+<!-- EDITAR USUARIO -->
+<div class="mo" id="m-editar-usr" onclick="cm(event,this)">
+  <div class="mb" style="width:520px;max-width:95vw">
+    <div class="mh"><h3>Editar Usuario</h3><button class="mc" onclick="hm('m-editar-usr')">x</button></div>
+    <div class="fm">
+      <div><label class="fl">Nome completo <span style="color:var(--rd)">*</span></label><input class="fi" id="eusr-nome" placeholder="Nome completo"></div>
+      <div><label class="fl">E-mail</label><input class="fi" id="eusr-email" disabled style="background:var(--k1);color:var(--k5)"></div>
+      <div><label class="fl">Perfil <span style="color:var(--rd)">*</span></label>
+        <select class="fi" id="eusr-perfil">
+          <option value="Admin Sistema">Admin Sistema</option>
+          <option value="Fiscal">Fiscal</option>
+          <option value="Produtor">Produtor</option>
+          <option value="Resp. Tecnico">Resp. Tecnico</option>
+          <option value="Prefeito">Prefeito</option>
+          <option value="Secretario">Secretario</option>
+          <option value="Gerente Selo Arte">Gerente Selo Arte</option>
+        </select>
+      </div>
+      <div><label class="fl">Municipio</label><select class="fi" id="eusr-mun"><option value="">Selecione...</option></select></div>
+      <div><label class="fl">Status</label>
+        <select class="fi" id="eusr-status">
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+        </select>
+      </div>
+    </div>
+    <div style="padding:4px 20px 12px;font-size:11px;color:var(--k5)">&#128274; Troca de e-mail ou redefinicao de senha ainda nao disponivel por aqui (sera feita na migracao de seguranca). <span style="color:var(--rd)">*</span> Obrigatorios.</div>
+    <div class="fact">
+      <button class="btn bo" onclick="hm('m-editar-usr')">Cancelar</button>
+      <button class="btn bg" onclick="salvarEdicaoUsuario()">Salvar alteracoes</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL SELECIONAR JORNADA FISCAL -->
 <div class="mo" id="m-sel-jornada-fiscal" onclick="cm(event,this)">
   <div class="mb" style="width:600px;max-width:95vw">
@@ -1662,6 +1696,15 @@ async function carregarUsuarios() {
     var tbody = document.querySelector('#pg-usuarios .tbl tbody');
     if (!tbody) return;
 
+    // Buscar nomes dos municipios para exibir na tabela
+    var munIds = users.map(function(u){ return u.municipio_id; }).filter(function(id){ return !!id; });
+    var munMap = {};
+    if (munIds.length > 0) {
+      var idsUnicos = munIds.filter(function(id, i){ return munIds.indexOf(id) === i; });
+      var muns = await supaGet('municipios', 'id=in.(' + idsUnicos.join(',') + ')&select=id,nome');
+      if (muns) muns.forEach(function(m){ munMap[m.id] = m.nome; });
+    }
+
     tbody.innerHTML = '';
     users.forEach(function(u) {
       if (!u.nome || !u.email) return; // pular vazios
@@ -1675,7 +1718,7 @@ async function carregarUsuarios() {
         '<td><b>' + u.nome + '</b></td>' +
         '<td>' + u.email + '</td>' +
         '<td><span class="bdg ' + cor + '">' + u.perfil + '</span></td>' +
-        '<td>' + (u.municipio_nome || '-') + '</td>' +
+        '<td>' + (munMap[u.municipio_id] || '-') + '</td>' +
         '<td><span class="bdg ' + (u.ativo ? 'bgr' : 'bgy') + '">' + (u.ativo ? 'Ativo' : 'Inativo') + '</span></td>' +
         '<td><button class="btn bo bsm" onclick="editarUsuario(\'' + u.id + '\')">Editar</button></td>';
       tbody.appendChild(tr);
@@ -1683,8 +1726,81 @@ async function carregarUsuarios() {
   } catch(e) { console.log('Erro carregar usuarios:', e); }
 }
 
-function editarUsuario(id) {
-  alert('Editar usuario: ' + id + ' (em desenvolvimento)');
+// ===EDITAR USUARIO===
+var usrEditandoId = null;
+
+async function editarUsuario(id) {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o administrador pode editar usuarios.'); return; }
+  try {
+    var res = await supaGet('usuarios', 'id=eq.' + id + '&select=*');
+    if (!res || res.length === 0) { alert('Usuario nao encontrado.'); return; }
+    var u = res[0];
+    usrEditandoId = id;
+
+    document.getElementById('eusr-nome').value = u.nome || '';
+    document.getElementById('eusr-email').value = u.email || '';
+    document.getElementById('eusr-perfil').value = u.perfil || 'Fiscal';
+    document.getElementById('eusr-status').value = (u.ativo === false) ? 'inativo' : 'ativo';
+
+    // Popular select de municipio (se ainda nao populado)
+    var sel = document.getElementById('eusr-mun');
+    if (sel.options.length <= 1) {
+      var muns = await supaGet('municipios', 'select=*&order=nome');
+      if (muns) {
+        muns.forEach(function(m) {
+          var opt = document.createElement('option');
+          opt.value = m.id;
+          opt.textContent = m.nome;
+          sel.appendChild(opt);
+        });
+      }
+    }
+    sel.value = u.municipio_id || '';
+
+    sm('m-editar-usr');
+  } catch(e) {
+    console.log('Erro ao abrir edicao de usuario:', e);
+    alert('Erro ao carregar dados do usuario.');
+  }
+}
+
+async function salvarEdicaoUsuario() {
+  if (!usrEditandoId) return;
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o administrador pode editar usuarios.'); return; }
+
+  var nome = document.getElementById('eusr-nome').value.trim();
+  var perfil = document.getElementById('eusr-perfil').value;
+  var municipioId = document.getElementById('eusr-mun').value || null;
+  var ativo = document.getElementById('eusr-status').value === 'ativo';
+
+  if (!nome) { alert('Informe o nome.'); return; }
+
+  try {
+    var res = await supaFetch('/rest/v1/usuarios?id=eq.' + usrEditandoId, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        nome: nome,
+        perfil: perfil,
+        municipio_id: municipioId,
+        ativo: ativo
+      })
+    });
+
+    if (!res) { alert('Erro ao salvar as alteracoes. Tente novamente.'); return; }
+
+    alert('Usuario "' + nome + '" atualizado com sucesso!');
+    hm('m-editar-usr');
+    usrEditandoId = null;
+    carregarUsuarios();
+
+    // Rastreabilidade
+    var mrt = document.getElementById('mrt'); if (mrt) mrt.textContent = 'Usuario editado!';
+    var mrf = document.getElementById('mrf'); if (mrf) mrf.textContent = (usr.n + ' (' + usr.p + ')') + ' — ' + nome;
+    var mrd = document.getElementById('mrd'); if (mrd) mrd.textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}) + ' - ' + new Date().toLocaleTimeString('pt-BR');
+  } catch(e) {
+    console.log('Erro ao salvar edicao de usuario:', e);
+    alert('Erro ao salvar. Tente novamente.');
+  }
 }
 
 // ===CARREGAR STATS SELO ARTE===
