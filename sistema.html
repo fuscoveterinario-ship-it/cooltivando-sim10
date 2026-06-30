@@ -668,14 +668,20 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
     <!-- Banner municipio -->
     <div id="docs-mun-banner" style="background:var(--g0);border:1px solid var(--g2);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:13px;color:var(--g7);display:flex;align-items:center;gap:8px">
       <span style="font-size:18px">&#127968;</span>
-      <span>Documentos de referencia do municipio: <b id="docs-mun-nome">Pien</b></span>
+      <span id="docs-mun-banner-texto">Documentos de referencia do municipio: <b id="docs-mun-nome">Pien</b></span>
     </div>
 
-    <!-- Adicionar documento (so fiscal ve) -->
+    <!-- Adicionar documento (somente Fiscal e Admin Sistema veem esta area) -->
     <div id="docs-mun-add-area" style="background:var(--white);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);margin-bottom:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div style="font-family:Nunito,sans-serif;font-size:14px;font-weight:800">Adicionar documento de referencia</div>
         <span style="font-size:11px;color:var(--k5)">Visivel para todos os produtores do municipio</span>
+      </div>
+      <div id="doc-ref-mun-area" style="margin-bottom:12px;display:none">
+        <label class="fl">Municipio <span style="color:var(--rd)">*</span></label>
+        <select class="fi" id="doc-ref-mun" onchange="carregarDocsReferencia()">
+          <option value="">Selecione...</option>
+        </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div>
@@ -1741,6 +1747,147 @@ async function carregarMunicipioUsuario() {
   } catch(e) { console.log('Erro municipio usuario:', e); }
 }
 
+// ===DOCUMENTOS DE REFERENCIA DO MUNICIPIO===
+// Regra: Fiscal so inclui para o proprio municipio. Admin Sistema inclui para
+// qualquer municipio (salvando no que estiver selecionado). Demais perfis so veem e baixam.
+function podeIncluirDocRef() {
+  return !!usr && (usr.p === 'Admin Sistema' || usr.p === 'Fiscal');
+}
+
+function municipioSelecionadoDocRef() {
+  // Fiscal: sempre o proprio municipio (nao pode escolher outro)
+  if (usr && usr.p === 'Fiscal') return usr.municipio_nome || null;
+  // Admin: usa o que estiver selecionado no dropdown
+  var sel = document.getElementById('doc-ref-mun');
+  return sel && sel.value ? sel.value : null;
+}
+
+function configurarAreaDocRef() {
+  var addArea = document.getElementById('docs-mun-add-area');
+  var munArea = document.getElementById('doc-ref-mun-area');
+  if (!usr) return;
+
+  if (!podeIncluirDocRef()) {
+    // Produtor, RT, Prefeito, Secretario: sem area de inclusao (ja tratado em aplicarFiltroProdutor)
+    return;
+  }
+  if (addArea) addArea.style.display = '';
+
+  if (usr.p === 'Admin Sistema') {
+    // Admin escolhe o municipio livremente
+    if (munArea) munArea.style.display = '';
+    var banner = document.getElementById('docs-mun-banner-texto');
+    var sel = document.getElementById('doc-ref-mun');
+    if (sel && !sel.value && sel.options.length > 1) {
+      sel.selectedIndex = 1; // pre-seleciona o primeiro municipio da lista
+    }
+    if (banner) banner.innerHTML = 'Documentos de referencia do municipio: <b id="docs-mun-nome">' + (sel && sel.value ? sel.value : 'selecione acima') + '</b>';
+  } else if (usr.p === 'Fiscal') {
+    // Fiscal: municipio fixo, sem selecao
+    if (munArea) munArea.style.display = 'none';
+  }
+}
+
+async function adicionarDocRef() {
+  if (!podeIncluirDocRef()) {
+    alert('Apenas Fiscal (do proprio municipio) e Admin Sistema podem incluir documentos de referencia.');
+    return;
+  }
+  var titulo = document.getElementById('doc-ref-titulo').value.trim();
+  var categoria = document.getElementById('doc-ref-cat').value;
+  var link = document.getElementById('doc-ref-link').value.trim();
+  var descricao = document.getElementById('doc-ref-desc').value.trim();
+  var ia = document.getElementById('doc-ref-ia').checked;
+
+  if (!titulo) { alert('Informe o titulo do documento.'); return; }
+
+  var munNome = municipioSelecionadoDocRef();
+  if (!munNome) { alert('Selecione o municipio.'); return; }
+
+  try {
+    var munData = await supaGet('municipios', 'nome=eq.' + encodeURIComponent(munNome) + '&select=id');
+    if (!munData || munData.length === 0) { alert('Municipio nao encontrado.'); return; }
+    var municipioId = munData[0].id;
+
+    var registro = {
+      titulo: titulo,
+      categoria: categoria,
+      link: link || null,
+      descricao: descricao || null,
+      ia_visivel: ia,
+      municipio_id: municipioId,
+      criado_por: usr.n + ' (' + usr.p + ')',
+      criado_em: new Date().toISOString()
+    };
+
+    var res = await supaFetch('/rest/v1/docs_referencia', {
+      method: 'POST',
+      body: JSON.stringify(registro)
+    });
+
+    if (!res) { alert('Erro ao salvar o documento. Tente novamente.'); return; }
+
+    // Limpar formulario
+    document.getElementById('doc-ref-titulo').value = '';
+    document.getElementById('doc-ref-link').value = '';
+    document.getElementById('doc-ref-desc').value = '';
+    document.getElementById('doc-ref-ia').checked = true;
+
+    alert('Documento "' + titulo + '" adicionado com sucesso!');
+    carregarDocsReferencia();
+  } catch(e) {
+    console.log('Erro ao adicionar doc referencia:', e);
+    alert('Erro ao salvar. Tente novamente.');
+  }
+}
+
+async function carregarDocsReferencia() {
+  var lista = document.getElementById('docs-ref-lista');
+  if (!lista || !usr) return;
+
+  // Determinar de qual municipio mostrar os documentos
+  var munNome = null;
+  if (usr.p === 'Admin Sistema') {
+    munNome = municipioSelecionadoDocRef();
+  } else {
+    munNome = usr.municipio_nome || null;
+  }
+
+  if (!munNome) {
+    lista.innerHTML = '<p style="font-size:12px;color:var(--k5)">Selecione um municipio para ver os documentos.</p>';
+    return;
+  }
+
+  try {
+    var munData = await supaGet('municipios', 'nome=eq.' + encodeURIComponent(munNome) + '&select=id');
+    if (!munData || munData.length === 0) {
+      lista.innerHTML = '<p style="font-size:12px;color:var(--k5)">Municipio nao encontrado.</p>';
+      return;
+    }
+    var docs = await supaGet('docs_referencia', 'municipio_id=eq.' + munData[0].id + '&select=*&order=criado_em.desc');
+
+    if (!docs || docs.length === 0) {
+      lista.innerHTML = '<p style="font-size:12px;color:var(--k5)">Nenhum documento de referencia cadastrado para ' + munNome + ' ainda.</p>';
+      return;
+    }
+
+    lista.innerHTML = docs.map(function(d) {
+      var linkHtml = d.link ? '<a href="' + d.link + '" target="_blank" rel="noopener" class="btn bo bsm">Baixar / abrir link</a>' : '<span style="font-size:11px;color:var(--k5)">Sem link</span>';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f4f4f4">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:13px;font-weight:700">' + d.titulo + ' <span class="bdg bgy" style="font-size:10px">' + (d.categoria||'Outro') + '</span></div>' +
+          (d.descricao ? '<div style="font-size:12px;color:var(--k5);margin-top:2px">' + d.descricao + '</div>' : '') +
+          '<div style="font-size:10px;color:var(--k5);margin-top:4px">Incluido por ' + (d.criado_por||'-') + (d.criado_em ? ' em ' + new Date(d.criado_em).toLocaleDateString('pt-BR') : '') + '</div>' +
+        '</div>' +
+        '<div style="margin-left:12px">' + linkHtml + '</div>' +
+      '</div>';
+    }).join('');
+  } catch(e) {
+    console.log('Erro ao carregar docs referencia:', e);
+    lista.innerHTML = '<p style="font-size:12px;color:var(--k5)">Erro ao carregar documentos.</p>';
+  }
+}
+
 // ===TIPOS DE USUARIO===
 var TIPOS_USUARIO = [
   {id:'fiscal', nome:'Fiscal', desc:'Realiza visitas e aprova documentos', icon:'\uD83D\uDD75\uFE0F', cor:'#f4a261', campos:[{id:'matricula', label:'Matricula funcional', placeholder:'Ex: 12345'}]},
@@ -2276,6 +2423,10 @@ async function carregarMunicipios() {
         sel.appendChild(opt);
       });
     }
+
+    // Agora que os selects de municipio estao populados, configurar a area de Docs de Referencia
+    configurarAreaDocRef();
+    carregarDocsReferencia();
 
   } catch(e) {
     console.log('Erro ao carregar municipios:', e);
@@ -3656,6 +3807,7 @@ function navPg(id, el) {
   if (id === 'jornada') renderJornadaDocs(null);
   if (id === 'legalizacoes') carregarLegalizacoes();
   if (id === 'calendario') { calEventosCache = []; calMesRef = new Date(); buildCal(); }
+  if (id === 'docs-municipio') { configurarAreaDocRef(); carregarDocsReferencia(); }
   // AI context
   var ctx = aiCtx[id] || aiCtx['dashboard'];
   var lbl = document.getElementById('ai-ctx-lbl');
