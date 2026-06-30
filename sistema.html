@@ -1742,20 +1742,15 @@ async function editarUsuario(id) {
     document.getElementById('eusr-perfil').value = u.perfil || 'Fiscal';
     document.getElementById('eusr-status').value = (u.ativo === false) ? 'inativo' : 'ativo';
 
-    // Popular select de municipio (se ainda nao populado)
+    // O select #eusr-mun e populado automaticamente (com valor = nome do municipio)
+    // pela funcao generica carregarMunicipios() ao detectar "mun" no id.
     var sel = document.getElementById('eusr-mun');
-    if (sel.options.length <= 1) {
-      var muns = await supaGet('municipios', 'select=*&order=nome');
-      if (muns) {
-        muns.forEach(function(m) {
-          var opt = document.createElement('option');
-          opt.value = m.id;
-          opt.textContent = m.nome;
-          sel.appendChild(opt);
-        });
-      }
+    var munNome = '';
+    if (u.municipio_id) {
+      var munRes = await supaGet('municipios', 'id=eq.' + u.municipio_id + '&select=nome');
+      if (munRes && munRes.length > 0) munNome = munRes[0].nome;
     }
-    sel.value = u.municipio_id || '';
+    sel.value = munNome;
 
     sm('m-editar-usr');
   } catch(e) {
@@ -1770,12 +1765,18 @@ async function salvarEdicaoUsuario() {
 
   var nome = document.getElementById('eusr-nome').value.trim();
   var perfil = document.getElementById('eusr-perfil').value;
-  var municipioId = document.getElementById('eusr-mun').value || null;
+  var munNome = document.getElementById('eusr-mun').value;
   var ativo = document.getElementById('eusr-status').value === 'ativo';
 
   if (!nome) { alert('Informe o nome.'); return; }
 
   try {
+    var municipioId = null;
+    if (munNome) {
+      var munData = await supaGet('municipios', 'nome=eq.' + encodeURIComponent(munNome) + '&select=id');
+      municipioId = munData && munData.length > 0 ? munData[0].id : null;
+    }
+
     var res = await supaFetch('/rest/v1/usuarios?id=eq.' + usrEditandoId, {
       method: 'PATCH',
       body: JSON.stringify({
