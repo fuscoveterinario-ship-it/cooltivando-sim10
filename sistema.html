@@ -2045,8 +2045,8 @@ async function carregarMunicipioUsuario() {
       usr.municipio_nome = nome;
       usr.municipio_tipo_acesso = mun[0].tipo_acesso || 'completo';
 
-      // Se for Fiscal de municipio "Selo Arte avulso": restringir menu e levar direto pro Selo Arte
-      if (usr.p === 'Fiscal' && usr.municipio_tipo_acesso === 'selo_arte') {
+      // Se for Fiscal, Produtor ou RT de municipio "Selo Arte avulso": restringir menu e levar direto pro Selo Arte
+      if ((usr.p === 'Fiscal' || usr.p === 'Produtor' || usr.p === 'Resp. Tecnico') && usr.municipio_tipo_acesso === 'selo_arte') {
         aplicarPermissoes();
         var btnSeloArte = document.querySelector('[onclick*="\'selo-arte\'"]');
         navPg('selo-arte', btnSeloArte);
@@ -2927,9 +2927,9 @@ var PERFIS = {
 };
 
 function getPerfil() {
-  // Fiscal de municipio "Selo Arte avulso": menu restrito, so o modulo Selo Arte
-  if (usr && usr.p === 'Fiscal' && usr.municipio_tipo_acesso === 'selo_arte') {
-    return { menu: ['selo-arte'], podeEditar: true, podeCriar: false, podeAprovar: true, podeCancelarSIM: false, podeConfigurar: false, labelBadge: 'Fiscal Selo Arte', cor: '#f59e0b' };
+  // Usuario (Fiscal, Produtor ou RT) de municipio "Selo Arte avulso": menu restrito, so o modulo Selo Arte
+  if (usr && usr.municipio_tipo_acesso === 'selo_arte' && (usr.p === 'Fiscal' || usr.p === 'Produtor' || usr.p === 'Resp. Tecnico')) {
+    return { menu: ['selo-arte'], podeEditar: usr.p === 'Fiscal', podeCriar: false, podeAprovar: usr.p === 'Fiscal', podeCancelarSIM: false, podeConfigurar: false, labelBadge: usr.p + ' Selo Arte', cor: '#f59e0b' };
   }
   return PERFIS[usr.p] || PERFIS['Prefeito'];
 }
