@@ -469,8 +469,8 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       <div class="pg" id="pg-municipios">
         <div class="ph2"><h2>Municipios</h2><div class="act"><button id="btn-novo-mun" class="btn bg" onclick="sm('m-mun')">+ Novo municipio</button></div></div>
         <div class="cd"><table class="tbl"><thead><tr><th>Municipio</th><th>Estado</th><th>Tipo</th><th>Consorcio</th><th>Produtores</th><th>Fiscais</th><th>Status</th><th></th></tr></thead><tbody>
-          <tr><td><b>Pien</b></td><td>PR</td><td><span class="bdg bbl">Completo (SIM)</span></td><td>-</td><td>12</td><td>2</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
-          <tr><td><b>Campo do Tenente</b></td><td>PR</td><td><span class="bdg bbl">Completo (SIM)</span></td><td>-</td><td>8</td><td>1</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
+          <tr><td><b>Pien</b></td><td>PR</td><td><span class="bdg bbl">SIM Completo</span></td><td>-</td><td>12</td><td>2</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
+          <tr><td><b>Campo do Tenente</b></td><td>PR</td><td><span class="bdg bbl">SIM Completo</span></td><td>-</td><td>8</td><td>1</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
         </tbody></table></div>
       </div>
 
@@ -1084,7 +1084,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 </div>
 
 <!-- MODAIS -->
-<div class="mo" id="m-mun" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Novo Municipio</h3><button class="mc" onclick="hm('m-mun')">x</button></div><div class="fm"><div><label class="fl">Nome</label><input class="fi" placeholder="Ex: Pien"></div><div><label class="fl">Estado</label><select class="fi"><option>PR</option><option>SC</option><option>RS</option></select></div><div class="fm1"><label class="fl">Tipo de acesso <span style="color:var(--rd)">*</span></label><select class="fi" id="mun-tipo"><option value="completo">Completo (SIM) — todos os modulos</option><option value="selo_arte">Selo Arte avulso — so ve o(s) produtor(es) Selo Arte</option></select></div><div><label class="fl">E-mail</label><input class="fi" type="email"></div><div><label class="fl">Telefone</label><input class="fi"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-mun')">Cancelar</button><button class="btn bg" onclick="salvarMunicipio()">Salvar</button></div></div></div>
+<div class="mo" id="m-mun" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Novo Municipio</h3><button class="mc" onclick="hm('m-mun')">x</button></div><div class="fm"><div><label class="fl">Nome</label><input class="fi" placeholder="Ex: Pien"></div><div><label class="fl">Estado</label><select class="fi"><option>PR</option><option>SC</option><option>RS</option></select></div><div class="fm1"><label class="fl">Tipo de acesso <span style="color:var(--rd)">*</span></label><select class="fi" id="tipo-acesso-cidade"><option value="completo">SIM Completo — todos os modulos</option><option value="selo_arte">SIM Selo Arte — so ve o(s) produtor(es) Selo Arte</option></select></div><div><label class="fl">E-mail</label><input class="fi" type="email"></div><div><label class="fl">Telefone</label><input class="fi"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-mun')">Cancelar</button><button class="btn bg" onclick="salvarMunicipio()">Salvar</button></div></div></div>
 
 <div class="mo" id="m-prod" onclick="cm(event,this)"><div class="mb" style="width:600px;max-width:95vw"><div class="mh"><h3>Novo Produtor</h3><button class="mc" onclick="hm('m-prod')">x</button></div><div class="fm">
   <div><label class="fl">Nome completo <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-nome" placeholder="Nome do produtor" required></div>
@@ -2674,7 +2674,7 @@ function editarMunicipio(id, nome, estado, tipoAcesso) {
   modal.querySelector('h3').textContent = 'Editar Municipio';
   modal.querySelector('input[placeholder="Ex: Pien"]').value = nome;
   modal.querySelector('select').value = estado;
-  document.getElementById('mun-tipo').value = tipoAcesso || 'completo';
+  document.getElementById("tipo-acesso-cidade").value = tipoAcesso || 'completo';
   // Change save button
   var btn = modal.querySelector('.btn.bg');
   btn.textContent = 'Salvar alteracoes';
@@ -2706,8 +2706,8 @@ async function carregarMunicipios() {
       muns.forEach(function(m) {
         var tr = document.createElement('tr');
         var tipoBdg = m.tipo_acesso === 'selo_arte'
-          ? '<span class="bdg" style="background:#fef3c7;color:#92400e">&#11088; Selo Arte avulso</span>'
-          : '<span class="bdg bbl">Completo (SIM)</span>';
+          ? '<span class="bdg" style="background:#fef3c7;color:#92400e">&#11088; SIM Selo Arte</span>'
+          : '<span class="bdg bbl">SIM Completo</span>';
         tr.innerHTML = '<td><b>'+m.nome+'</b></td><td>'+(m.estado||'PR')+'</td><td>'+tipoBdg+'</td><td>-</td><td>0</td><td>0</td><td><span class="bdg bgr">Ativo</span></td><td style="display:flex;gap:6px"><button class="btn bo bsm" onclick="editarMunicipio(\'' + m.id + '\',\'' + m.nome + '\',\'' + (m.estado||'PR') + '\',\'' + (m.tipo_acesso||'completo') + '\')">Editar</button><button class="btn br2 bsm" onclick="excluirMunicipio(\'' + m.id + '\',\'' + m.nome + '\')">Excluir</button></td>';
         tbody.appendChild(tr);
       });
@@ -2833,7 +2833,7 @@ function salvarChecklistItem() {
 async function salvarMunicipio() {
   var nome = document.querySelector('#m-mun input[placeholder="Ex: Pien"]').value.trim();
   var estado = document.querySelector('#m-mun select').value;
-  var tipoAcesso = document.getElementById('mun-tipo').value;
+  var tipoAcesso = document.getElementById("tipo-acesso-cidade").value;
 
   if (!nome) { alert('Informe o nome do municipio!'); return; }
 
@@ -2854,7 +2854,7 @@ async function salvarMunicipio() {
     if (result !== null) {
       hm('m-mun');
       document.querySelector('#m-mun input[placeholder="Ex: Pien"]').value = '';
-      document.getElementById('mun-tipo').value = 'completo';
+      document.getElementById("tipo-acesso-cidade").value = 'completo';
       var btn = document.querySelector('#m-mun .btn.bg');
       if (btn) { btn.textContent = 'Salvar'; btn.setAttribute('onclick', 'salvarMunicipio()'); }
       carregarMunicipios();
