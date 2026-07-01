@@ -468,9 +468,9 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       <!-- MUNICIPIOS -->
       <div class="pg" id="pg-municipios">
         <div class="ph2"><h2>Municipios</h2><div class="act"><button id="btn-novo-mun" class="btn bg" onclick="sm('m-mun')">+ Novo municipio</button></div></div>
-        <div class="cd"><table class="tbl"><thead><tr><th>Municipio</th><th>Estado</th><th>Consorcio</th><th>Produtores</th><th>Fiscais</th><th>Status</th><th></th></tr></thead><tbody>
-          <tr><td><b>Pien</b></td><td>PR</td><td>-</td><td>12</td><td>2</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
-          <tr><td><b>Campo do Tenente</b></td><td>PR</td><td>-</td><td>8</td><td>1</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
+        <div class="cd"><table class="tbl"><thead><tr><th>Municipio</th><th>Estado</th><th>Tipo</th><th>Consorcio</th><th>Produtores</th><th>Fiscais</th><th>Status</th><th></th></tr></thead><tbody>
+          <tr><td><b>Pien</b></td><td>PR</td><td><span class="bdg bbl">Completo (SIM)</span></td><td>-</td><td>12</td><td>2</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
+          <tr><td><b>Campo do Tenente</b></td><td>PR</td><td><span class="bdg bbl">Completo (SIM)</span></td><td>-</td><td>8</td><td>1</td><td><span class="bdg bgr">Ativo</span></td><td><button class="btn bo bsm">Editar</button></td></tr>
         </tbody></table></div>
       </div>
 
@@ -788,6 +788,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       <button class="tab-btn on" onclick="setTab(this,'sa-tab-prod')">Produtores</button>
       <button class="tab-btn" onclick="setTab(this,'sa-tab-docs')">Jornada Selo Arte</button>
       <button class="tab-btn" onclick="setTab(this,'sa-tab-insp')">Checklist Inspecao</button>
+      <button class="tab-btn" id="sa-tab-btn-docs-cfg" onclick="setTab(this,'sa-tab-docs-cfg')">Documentos</button>
     </div>
 
     <!-- Tab Produtores -->
@@ -850,6 +851,63 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       </div>
     </div>
 
+    <!-- Tab Documentos (catalogo, configuravel por tipo de produto) -->
+    <div class="tab-c" id="sa-tab-docs-cfg">
+      <div class="cd">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0">
+          <div>
+            <div style="font-family:Nunito,sans-serif;font-size:15px;font-weight:800">Catalogo de documentos — Selo Arte</div>
+            <p style="font-size:12px;color:var(--k5);margin-top:2px">Documento de processo (entrada, libera o Selo) ou de recorrencia (mensal, mantem o Selo ativo)</p>
+          </div>
+          <button class="btn bsm" style="background:#f59e0b;color:#fff;font-weight:700" onclick="abrirNovoDocSeloArte()">+ Novo documento</button>
+        </div>
+        <table class="tbl" style="margin-top:14px">
+          <thead><tr><th>Documento</th><th>Tipo de produto</th><th>Categoria</th><th>Criticidade</th><th>Obrigatorio</th><th></th></tr></thead>
+          <tbody id="tbody-docs-selo-arte"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DOCUMENTO SELO ARTE (catalogo) -->
+<div class="mo" id="m-doc-selo-arte" onclick="cm(event,this)">
+  <div class="mb">
+    <div class="mh"><h3>Documento — Selo Arte</h3><button class="mc" onclick="hm('m-doc-selo-arte')">x</button></div>
+    <div class="fm">
+      <div class="fm1"><label class="fl">Nome do documento <span style="color:var(--rd)">*</span></label><input class="fi" id="dsa-nome" placeholder="Ex: Laudo de agua potavel"></div>
+      <div class="fm1"><label class="fl">Descricao</label><textarea class="fi" id="dsa-desc" rows="2" placeholder="O que o produtor (ou a Biotec) precisa enviar..."></textarea></div>
+      <div><label class="fl">Tipo de produto <span style="color:var(--rd)">*</span></label>
+        <select class="fi" id="dsa-tipo-produto">
+          <option>Queijo Artesanal</option><option>Derivados de Leite</option>
+          <option>Mel</option><option>Derivados de Mel</option>
+          <option>Embutidos</option><option>Produtos de Charcutaria</option>
+          <option value="Todos">Todos os tipos</option>
+        </select>
+      </div>
+      <div><label class="fl">Categoria <span style="color:var(--rd)">*</span></label>
+        <select class="fi" id="dsa-categoria" onchange="tCriticidadeSA()">
+          <option value="entrada">Documento do processo (entrada, uma vez)</option>
+          <option value="recorrente">Documento de recorrencia (mensal)</option>
+        </select>
+      </div>
+      <div id="dsa-criticidade-area" style="display:none">
+        <label class="fl">Se atrasar...</label>
+        <select class="fi" id="dsa-criticidade">
+          <option value="critico">Critico — suspende o Selo ate regularizar</option>
+          <option value="leve">Leve — so gera alerta, Selo continua ativo</option>
+        </select>
+      </div>
+      <div><label class="fl">Obrigatorio?</label>
+        <select class="fi" id="dsa-obrig"><option value="s">Sim</option><option value="n">Nao (opcional)</option></select>
+      </div>
+    </div>
+    <input type="hidden" id="dsa-id" value="">
+    <div class="fact">
+      <button class="btn bo" onclick="hm('m-doc-selo-arte')">Cancelar</button>
+      <button class="btn bsm" style="background:#f59e0b;color:#fff;font-weight:700" onclick="salvarDocSeloArte()">Salvar documento</button>
+    </div>
   </div>
 </div>
 
@@ -866,8 +924,9 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       </div>
       <div><label class="fl">Produto principal <span style="color:var(--rd)">*</span></label>
         <select class="fi" id="sa-prod-produto">
-          <option>Queijo Artesanal</option><option>Mel</option><option>Embutidos</option>
-          <option>Ovos Caipira</option><option>Cachaça Artesanal</option><option>Doces e Geleias</option><option>Outro</option>
+          <option>Queijo Artesanal</option><option>Derivados de Leite</option>
+          <option>Mel</option><option>Derivados de Mel</option>
+          <option>Embutidos</option><option>Produtos de Charcutaria</option>
         </select>
       </div>
       <div><label class="fl">RT Responsavel <span style="color:var(--rd)">*</span></label>
@@ -1025,7 +1084,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 </div>
 
 <!-- MODAIS -->
-<div class="mo" id="m-mun" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Novo Municipio</h3><button class="mc" onclick="hm('m-mun')">x</button></div><div class="fm"><div><label class="fl">Nome</label><input class="fi" placeholder="Ex: Pien"></div><div><label class="fl">Estado</label><select class="fi"><option>PR</option><option>SC</option><option>RS</option></select></div><div><label class="fl">E-mail</label><input class="fi" type="email"></div><div><label class="fl">Telefone</label><input class="fi"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-mun')">Cancelar</button><button class="btn bg" onclick="salvarMunicipio()">Salvar</button></div></div></div>
+<div class="mo" id="m-mun" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Novo Municipio</h3><button class="mc" onclick="hm('m-mun')">x</button></div><div class="fm"><div><label class="fl">Nome</label><input class="fi" placeholder="Ex: Pien"></div><div><label class="fl">Estado</label><select class="fi"><option>PR</option><option>SC</option><option>RS</option></select></div><div class="fm1"><label class="fl">Tipo de acesso <span style="color:var(--rd)">*</span></label><select class="fi" id="mun-tipo"><option value="completo">Completo (SIM) — todos os modulos</option><option value="selo_arte">Selo Arte avulso — so ve o(s) produtor(es) Selo Arte</option></select></div><div><label class="fl">E-mail</label><input class="fi" type="email"></div><div><label class="fl">Telefone</label><input class="fi"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-mun')">Cancelar</button><button class="btn bg" onclick="salvarMunicipio()">Salvar</button></div></div></div>
 
 <div class="mo" id="m-prod" onclick="cm(event,this)"><div class="mb" style="width:600px;max-width:95vw"><div class="mh"><h3>Novo Produtor</h3><button class="mc" onclick="hm('m-prod')">x</button></div><div class="fm">
   <div><label class="fl">Nome completo <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-nome" placeholder="Nome do produtor" required></div>
@@ -1804,7 +1863,131 @@ async function salvarEdicaoUsuario() {
   }
 }
 
-// ===CARREGAR STATS SELO ARTE===
+// ===DOCUMENTOS SELO ARTE (catalogo, por tipo de produto)===
+var docsSeloArteBase = [];
+
+function tCriticidadeSA() {
+  var cat = document.getElementById('dsa-categoria').value;
+  document.getElementById('dsa-criticidade-area').style.display = (cat === 'recorrente') ? 'block' : 'none';
+}
+
+async function carregarDocsSeloArte() {
+  try {
+    var docs = await supaGet('selo_arte_docs_modelo', 'select=*&order=created_at');
+    docsSeloArteBase = docs || [];
+    renderDocsSeloArteTbl();
+  } catch(e) { console.log('Erro ao carregar docs selo arte:', e); }
+}
+
+function renderDocsSeloArteTbl() {
+  var tb = document.getElementById('tbody-docs-selo-arte');
+  if (!tb) return;
+  if (docsSeloArteBase.length === 0) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--k5);font-size:12px;padding:20px">Nenhum documento cadastrado ainda.</td></tr>';
+    return;
+  }
+  tb.innerHTML = docsSeloArteBase.map(function(d) {
+    var catLabel = d.categoria === 'recorrente'
+      ? '<span class="bdg byw">Recorrente (mensal)</span>'
+      : '<span class="bdg bbl">Processo (entrada)</span>';
+    var critLabel = '--';
+    if (d.categoria === 'recorrente') {
+      critLabel = d.criticidade === 'critico'
+        ? '<span class="bdg" style="background:#fee2e2;color:#991b1b">Critico — suspende</span>'
+        : '<span class="bdg bgy">Leve — so alerta</span>';
+    }
+    return '<tr>' +
+      '<td><b>' + d.nome + '</b>' + (d.descricao ? '<br><small style="color:var(--k5)">' + d.descricao + '</small>' : '') + '</td>' +
+      '<td>' + (d.tipo_produto || '-') + '</td>' +
+      '<td>' + catLabel + '</td>' +
+      '<td>' + critLabel + '</td>' +
+      '<td><span class="bdg ' + (d.obrigatorio ? 'bgr' : 'bgy') + '">' + (d.obrigatorio ? 'Sim' : 'Nao') + '</span></td>' +
+      '<td><button class="btn bo bsm" onclick="editarDocSeloArte(\'' + d.id + '\')">Editar</button> <button class="btn bo bsm" style="color:var(--rd);border-color:var(--rd)" onclick="removerDocSeloArte(\'' + d.id + '\')">Excluir</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function abrirNovoDocSeloArte() {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o Admin Sistema (Cooltivando/Biotec) pode configurar o catalogo de documentos do Selo Arte.'); return; }
+  document.getElementById('dsa-id').value = '';
+  document.getElementById('dsa-nome').value = '';
+  document.getElementById('dsa-desc').value = '';
+  document.getElementById('dsa-tipo-produto').value = 'Queijo Artesanal';
+  document.getElementById('dsa-categoria').value = 'entrada';
+  document.getElementById('dsa-criticidade').value = 'critico';
+  document.getElementById('dsa-obrig').value = 's';
+  tCriticidadeSA();
+  sm('m-doc-selo-arte');
+}
+
+function editarDocSeloArte(id) {
+  var d = docsSeloArteBase.find(function(x){ return x.id === id; });
+  if (!d) return;
+  document.getElementById('dsa-id').value = d.id;
+  document.getElementById('dsa-nome').value = d.nome || '';
+  document.getElementById('dsa-desc').value = d.descricao || '';
+  document.getElementById('dsa-tipo-produto').value = d.tipo_produto || 'Queijo Artesanal';
+  document.getElementById('dsa-categoria').value = d.categoria || 'entrada';
+  document.getElementById('dsa-criticidade').value = d.criticidade || 'critico';
+  document.getElementById('dsa-obrig').value = d.obrigatorio ? 's' : 'n';
+  tCriticidadeSA();
+  sm('m-doc-selo-arte');
+}
+
+async function removerDocSeloArte(id) {
+  var d = docsSeloArteBase.find(function(x){ return x.id === id; });
+  if (!d) return;
+  if (!confirm('Excluir o documento "' + d.nome + '" do catalogo Selo Arte? Esta acao nao pode ser desfeita.')) return;
+  try {
+    var res = await supaFetch('/rest/v1/selo_arte_docs_modelo?id=eq.' + id, { method: 'DELETE' });
+    if (!res && res !== null) { alert('Erro ao excluir. Tente novamente.'); return; }
+    carregarDocsSeloArte();
+  } catch(e) {
+    console.log('Erro ao remover doc selo arte:', e);
+    alert('Erro ao excluir. Tente novamente.');
+  }
+}
+
+async function salvarDocSeloArte() {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o Admin Sistema (Cooltivando/Biotec) pode configurar o catalogo de documentos do Selo Arte.'); return; }
+  var id = document.getElementById('dsa-id').value;
+  var nome = document.getElementById('dsa-nome').value.trim();
+  if (!nome) { alert('Informe o nome do documento.'); return; }
+  var descricao = document.getElementById('dsa-desc').value.trim();
+  var tipoProduto = document.getElementById('dsa-tipo-produto').value;
+  var categoria = document.getElementById('dsa-categoria').value;
+  var criticidade = categoria === 'recorrente' ? document.getElementById('dsa-criticidade').value : null;
+  var obrigatorio = document.getElementById('dsa-obrig').value === 's';
+
+  var registro = {
+    nome: nome,
+    descricao: descricao || null,
+    tipo_produto: tipoProduto,
+    categoria: categoria,
+    criticidade: criticidade,
+    obrigatorio: obrigatorio
+  };
+
+  try {
+    if (id) {
+      var res = await supaFetch('/rest/v1/selo_arte_docs_modelo?id=eq.' + id, {
+        method: 'PATCH', body: JSON.stringify(registro)
+      });
+      if (!res) { alert('Erro ao salvar. Tente novamente.'); return; }
+    } else {
+      registro.autor_id = (usr && usr.id) ? usr.id : null;
+      var res2 = await supaFetch('/rest/v1/selo_arte_docs_modelo', {
+        method: 'POST', body: JSON.stringify(registro)
+      });
+      if (!res2) { alert('Erro ao salvar. Tente novamente.'); return; }
+    }
+    hm('m-doc-selo-arte');
+    carregarDocsSeloArte();
+  } catch(e) {
+    console.log('Erro ao salvar doc selo arte:', e);
+    alert('Erro ao salvar. Tente novamente.');
+  }
+}
 async function carregarStatsSeloArte() {
   try {
     var query = 'select=*';
@@ -1849,7 +2032,7 @@ async function carregarStatsSeloArte() {
 async function carregarMunicipioUsuario() {
   if (!usr || !usr.municipio_id) return;
   try {
-    var mun = await supaGet('municipios', 'id=eq.' + usr.municipio_id + '&select=nome');
+    var mun = await supaGet('municipios', 'id=eq.' + usr.municipio_id + '&select=nome,tipo_acesso');
     if (mun && mun.length > 0) {
       var nome = mun[0].nome;
       // Atualizar banner de docs do municipio
@@ -1860,6 +2043,19 @@ async function carregarMunicipioUsuario() {
       if (seloEl) seloEl.textContent = nome;
       // Guardar no usr
       usr.municipio_nome = nome;
+      usr.municipio_tipo_acesso = mun[0].tipo_acesso || 'completo';
+
+      // Se for Fiscal de municipio "Selo Arte avulso": restringir menu e levar direto pro Selo Arte
+      if (usr.p === 'Fiscal' && usr.municipio_tipo_acesso === 'selo_arte') {
+        aplicarPermissoes();
+        var btnSeloArte = document.querySelector('[onclick*="\'selo-arte\'"]');
+        navPg('selo-arte', btnSeloArte);
+        // Fiscal avulso so aprova e baixa - nao cria produtor nem mexe no catalogo
+        var btnNovoSelo = document.getElementById('btn-novo-selo-arte');
+        if (btnNovoSelo) btnNovoSelo.style.display = 'none';
+        var banner = document.getElementById('selo-mun-banner');
+        if (banner) banner.innerHTML = '<span style="font-size:18px">&#11088;</span><span>Acesso restrito ao Selo Arte &nbsp;|&nbsp; Municipio: <b id="selo-mun-nome">' + nome + '</b> &nbsp;|&nbsp; Voce ve apenas os produtores Selo Arte deste municipio</span>';
+      }
     }
   } catch(e) { console.log('Erro municipio usuario:', e); }
 }
@@ -2405,6 +2601,10 @@ function aplicarFiltroProdutor() {
   aplicarPermissoes();
   aplicarFiltroMunicipio();
 
+  // Catalogo de documentos Selo Arte: exclusivo Admin Sistema (Cooltivando/Biotec)
+  var tabDocsCfg = document.getElementById('sa-tab-btn-docs-cfg');
+  if (tabDocsCfg) tabDocsCfg.style.display = (perfil === 'Admin Sistema') ? '' : 'none';
+
   // Produtor - ver apenas seus dados
   if (perfil === 'Produtor') {
     // Esconder stats gerais
@@ -2468,12 +2668,13 @@ function aplicarFiltroProdutor() {
 // ===EDITAR MUNICIPIO===
 var munEditando = null;
 
-function editarMunicipio(id, nome, estado) {
+function editarMunicipio(id, nome, estado, tipoAcesso) {
   munEditando = id;
   var modal = document.getElementById('m-mun');
   modal.querySelector('h3').textContent = 'Editar Municipio';
   modal.querySelector('input[placeholder="Ex: Pien"]').value = nome;
   modal.querySelector('select').value = estado;
+  document.getElementById('mun-tipo').value = tipoAcesso || 'completo';
   // Change save button
   var btn = modal.querySelector('.btn.bg');
   btn.textContent = 'Salvar alteracoes';
@@ -2504,7 +2705,10 @@ async function carregarMunicipios() {
       tbody.innerHTML = '';
       muns.forEach(function(m) {
         var tr = document.createElement('tr');
-        tr.innerHTML = '<td><b>'+m.nome+'</b></td><td>'+(m.estado||'PR')+'</td><td>-</td><td>0</td><td>0</td><td><span class="bdg bgr">Ativo</span></td><td style="display:flex;gap:6px"><button class="btn bo bsm" onclick="editarMunicipio(\'' + m.id + '\',\'' + m.nome + '\',\'' + (m.estado||'PR') + '\')">Editar</button><button class="btn br2 bsm" onclick="excluirMunicipio(\'' + m.id + '\',\'' + m.nome + '\')">Excluir</button></td>';
+        var tipoBdg = m.tipo_acesso === 'selo_arte'
+          ? '<span class="bdg" style="background:#fef3c7;color:#92400e">&#11088; Selo Arte avulso</span>'
+          : '<span class="bdg bbl">Completo (SIM)</span>';
+        tr.innerHTML = '<td><b>'+m.nome+'</b></td><td>'+(m.estado||'PR')+'</td><td>'+tipoBdg+'</td><td>-</td><td>0</td><td>0</td><td><span class="bdg bgr">Ativo</span></td><td style="display:flex;gap:6px"><button class="btn bo bsm" onclick="editarMunicipio(\'' + m.id + '\',\'' + m.nome + '\',\'' + (m.estado||'PR') + '\',\'' + (m.tipo_acesso||'completo') + '\')">Editar</button><button class="btn br2 bsm" onclick="excluirMunicipio(\'' + m.id + '\',\'' + m.nome + '\')">Excluir</button></td>';
         tbody.appendChild(tr);
       });
     }
@@ -2629,6 +2833,7 @@ function salvarChecklistItem() {
 async function salvarMunicipio() {
   var nome = document.querySelector('#m-mun input[placeholder="Ex: Pien"]').value.trim();
   var estado = document.querySelector('#m-mun select').value;
+  var tipoAcesso = document.getElementById('mun-tipo').value;
 
   if (!nome) { alert('Informe o nome do municipio!'); return; }
 
@@ -2637,18 +2842,19 @@ async function salvarMunicipio() {
     if (munEditando) {
       result = await supaFetch('/rest/v1/municipios?id=eq.' + munEditando, {
         method: 'PATCH',
-        body: JSON.stringify({ nome: nome, estado: estado })
+        body: JSON.stringify({ nome: nome, estado: estado, tipo_acesso: tipoAcesso })
       });
       munEditando = null;
       alert('Municipio atualizado com sucesso!');
     } else {
-      result = await supaInsert('municipios', { nome: nome, estado: estado });
+      result = await supaInsert('municipios', { nome: nome, estado: estado, tipo_acesso: tipoAcesso });
       alert('Municipio "' + nome + '" cadastrado com sucesso!');
     }
 
     if (result !== null) {
       hm('m-mun');
       document.querySelector('#m-mun input[placeholder="Ex: Pien"]').value = '';
+      document.getElementById('mun-tipo').value = 'completo';
       var btn = document.querySelector('#m-mun .btn.bg');
       if (btn) { btn.textContent = 'Salvar'; btn.setAttribute('onclick', 'salvarMunicipio()'); }
       carregarMunicipios();
@@ -2721,6 +2927,10 @@ var PERFIS = {
 };
 
 function getPerfil() {
+  // Fiscal de municipio "Selo Arte avulso": menu restrito, so o modulo Selo Arte
+  if (usr && usr.p === 'Fiscal' && usr.municipio_tipo_acesso === 'selo_arte') {
+    return { menu: ['selo-arte'], podeEditar: true, podeCriar: false, podeAprovar: true, podeCancelarSIM: false, podeConfigurar: false, labelBadge: 'Fiscal Selo Arte', cor: '#f59e0b' };
+  }
   return PERFIS[usr.p] || PERFIS['Prefeito'];
 }
 
@@ -3068,6 +3278,7 @@ function carregarApp() {
   carregarProdutores();
   carregarMunicipioUsuario();
   carregarStatsSeloArte();
+  carregarDocsSeloArte();
   carregarUsuarios();
   carregarDocsBase();
   carregarDashboard();
