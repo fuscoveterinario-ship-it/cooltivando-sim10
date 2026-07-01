@@ -785,9 +785,9 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 
     <!-- Tabs -->
     <div style="background:var(--white);border-bottom:2px solid var(--k3);padding:0 20px;margin-bottom:18px;display:flex;gap:4px;box-shadow:var(--sh);border-radius:var(--r) var(--r) 0 0">
-      <button class="tab-btn on" onclick="setTab(this,'sa-tab-prod')">Produtores</button>
-      <button class="tab-btn" onclick="setTab(this,'sa-tab-docs')">Jornada Selo Arte</button>
-      <button class="tab-btn" onclick="setTab(this,'sa-tab-insp')">Checklist Inspecao</button>
+      <button class="tab-btn on" id="sa-tab-btn-prod" onclick="setTab(this,'sa-tab-prod')">Produtores</button>
+      <button class="tab-btn" id="sa-tab-btn-docs" onclick="setTab(this,'sa-tab-docs'); carregarProdutoresSeloArteDropdown();">Jornada Selo Arte</button>
+      <button class="tab-btn" id="sa-tab-btn-insp" onclick="setTab(this,'sa-tab-insp')">Checklist Inspecao</button>
       <button class="tab-btn" id="sa-tab-btn-docs-cfg" onclick="setTab(this,'sa-tab-docs-cfg')">Documentos</button>
     </div>
 
@@ -831,10 +831,53 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
     <div class="tab-c" id="sa-tab-docs">
       <div class="cd" style="padding:20px">
         <div style="font-family:Nunito,sans-serif;font-size:15px;font-weight:800;margin-bottom:4px">Jornada de Documentos — Selo Arte</div>
-        <p style="font-size:12px;color:var(--k5);margin-bottom:18px">Documentos obrigatorios conforme Lei 13.680/2018 e normativas do MAPA</p>
+        <p style="font-size:12px;color:var(--k5);margin-bottom:14px">Documentos obrigatorios conforme Lei 13.680/2018 e normativas do MAPA</p>
+
+        <div id="sa-jornada-seletor" style="margin-bottom:16px">
+          <label class="fl">Produtor</label>
+          <select class="fi" id="sa-jornada-produtor-select" onchange="carregarJornadaSeloArte(this.value)" style="max-width:420px">
+            <option value="">Selecione um produtor...</option>
+          </select>
+        </div>
 
         <div id="sa-jornada-lista">
           <!-- Renderizado por JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL UPLOAD DOC JORNADA SELO ARTE -->
+    <div class="mo" id="m-upload-jornada-sa" onclick="cm(event,this)">
+      <div class="mb">
+        <div class="mh"><h3 id="ujsa-titulo">Anexar documento</h3><button class="mc" onclick="hm('m-upload-jornada-sa')">x</button></div>
+        <div class="fm">
+          <div class="fm1">
+            <label class="fl">Arquivo (PDF ou Word) <span style="color:var(--rd)">*</span></label>
+            <input class="fi" type="file" id="ujsa-arquivo" accept=".pdf,.doc,.docx">
+          </div>
+        </div>
+        <input type="hidden" id="ujsa-jornada-doc-id">
+        <div class="fact">
+          <button class="btn bo" onclick="hm('m-upload-jornada-sa')">Cancelar</button>
+          <button class="btn bsm" style="background:#f59e0b;color:#fff;font-weight:700" onclick="enviarDocJornadaSeloArte()">Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL REPROVAR DOC JORNADA SELO ARTE -->
+    <div class="mo" id="m-reprovar-jornada-sa" onclick="cm(event,this)">
+      <div class="mb">
+        <div class="mh"><h3>Reprovar documento</h3><button class="mc" onclick="hm('m-reprovar-jornada-sa')">x</button></div>
+        <div class="fm">
+          <div class="fm1">
+            <label class="fl">Motivo da reprovacao</label>
+            <textarea class="fi" id="rjsa-motivo" rows="3" placeholder="Explique o que precisa ser corrigido..."></textarea>
+          </div>
+        </div>
+        <input type="hidden" id="rjsa-jornada-id">
+        <div class="fact">
+          <button class="btn bo" onclick="hm('m-reprovar-jornada-sa')">Cancelar</button>
+          <button class="btn bsm" style="background:#ef4444;color:#fff;font-weight:700" onclick="confirmarReprovarJornadaSeloArte()">Reprovar</button>
         </div>
       </div>
     </div>
@@ -1522,81 +1565,208 @@ document.addEventListener('DOMContentLoaded', function() {
 // ===JORNADA SELO ARTE===
 var produtorSeloArteAtual = null;
 
-// Documentos obrigatorios conforme Lei 13.680/2018
-var DOCS_SELO_ARTE = [
-  {id:'rg_cpf', nome:'RG e CPF do Produtor', desc:'Documento de identificacao', obrig:true, val:false},
-  {id:'cad_produtor', nome:'Declaracao de Agricultor Familiar (DAP/CAF)', desc:'Comprovante de agricultura familiar', obrig:true, val:true, prazo:'1 ano'},
-  {id:'licenca_sanitaria', nome:'Licenca Sanitaria', desc:'Emitida pela vigilancia sanitaria municipal', obrig:true, val:true, prazo:'1 ano'},
-  {id:'laudo_agua', nome:'Laudo de Potabilidade da Agua', desc:'Analise laboratorial da agua utilizada', obrig:true, val:true, prazo:'6 meses'},
-  {id:'rt', nome:'Responsavel Tecnico (ART/RRT)', desc:'Contrato com medico veterinario ou engenheiro de alimentos', obrig:true, val:true, prazo:'1 ano'},
-  {id:'rotulo', nome:'Rotulo aprovado pelo MAPA', desc:'Arte do rotulo com informacoes obrigatorias', obrig:true, val:false},
-  {id:'laudo_produto', nome:'Laudo de Analise do Produto', desc:'Analise fisico-quimica e microbiologica', obrig:true, val:true, prazo:'1 ano'},
-  {id:'memoria_calculo', nome:'Memoria de Calculo do produto', desc:'Ficha tecnica e processo de fabricacao', obrig:false, val:false},
-  {id:'boas_praticas', nome:'Manual de Boas Praticas', desc:'Procedimentos de higiene e manipulacao', obrig:true, val:false},
-  {id:'inspecao_final', nome:'Laudo de Inspecao Final', desc:'Vistoria do fiscal antes da concessao do Selo', obrig:true, val:false}
-];
-
-function abrirJornadaSeloArte(nomeProdutor) {
-  produtorSeloArteAtual = nomeProdutor;
-  // Mudar para aba da jornada
-  setTab(document.querySelector('[onclick*="sa-tab-docs"]'), 'sa-tab-docs');
-  renderizarJornadaSeloArte(nomeProdutor);
+// Compatibilidade: botoes "Ver jornada" da lista mock de produtores (ainda nao migrada para dados reais)
+function abrirJornadaSeloArte() {
+  setTab(document.getElementById('sa-tab-btn-docs'), 'sa-tab-docs');
+  carregarProdutoresSeloArteDropdown();
 }
 
-function renderizarJornadaSeloArte(nomeProdutor) {
+// Documentos obrigatorios conforme Lei 13.680/2018
+// ===JORNADA SELO ARTE (real, com upload e aprovacao) ===
+async function carregarProdutoresSeloArteDropdown() {
+  var sel = document.getElementById('sa-jornada-produtor-select');
+  if (!sel || !usr) return;
+  try {
+    var q = 'select=id,nome,municipio_id,municipios(nome,tipo_acesso)&perfil=eq.Produtor&order=nome';
+    var users = await supaGet('usuarios', q) || [];
+    var seloProdutores = users.filter(function(u){ return u.municipios && u.municipios.tipo_acesso === 'selo_arte'; });
+    if (usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      seloProdutores = seloProdutores.filter(function(u){ return u.municipio_id === usr.municipio_id; });
+    }
+    sel.innerHTML = '<option value="">Selecione um produtor...</option>' +
+      seloProdutores.map(function(u){ return '<option value="'+u.id+'">'+u.nome+' — '+(u.municipios?u.municipios.nome:'-')+'</option>'; }).join('');
+    // Se so tem 1 produtor (caso comum do fiscal avulso), ja seleciona
+    if (seloProdutores.length === 1) {
+      sel.value = seloProdutores[0].id;
+      carregarJornadaSeloArte(seloProdutores[0].id);
+    }
+  } catch(e) { console.log('Erro dropdown produtores selo arte:', e); }
+}
+
+async function carregarJornadaSeloArte(produtorUsuarioId) {
   var lista = document.getElementById('sa-jornada-lista');
   if (!lista) return;
+  if (!produtorUsuarioId) { lista.innerHTML = ''; return; }
+  lista.innerHTML = '<p style="font-size:12px;color:var(--k5)">Carregando...</p>';
+  try {
+    var prodRes = await supaGet('usuarios', 'id=eq.'+produtorUsuarioId+'&select=id,nome,municipio_id,municipios(nome)');
+    if (!prodRes || prodRes.length===0) { lista.innerHTML = '<p style="font-size:12px;color:var(--k5)">Produtor nao encontrado.</p>'; return; }
+    var produtor = prodRes[0];
+    var munNome = produtor.municipios ? produtor.municipios.nome : '-';
 
-  lista.innerHTML = '';
+    var docs = await supaGet('selo_arte_docs_modelo', 'select=*&ativo=eq.true&order=categoria,nome') || [];
+    var mesAtual = new Date().toISOString().slice(0,7);
 
-  // Header do produtor
-  var header = document.createElement('div');
-  header.style.cssText = 'background:linear-gradient(135deg,#fff8e1,#fff);border:1.5px solid #f59e0b;border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px';
-  header.innerHTML = '<span style="font-size:22px">\u2B50</span>' +
-    '<div><div style="font-family:Nunito,sans-serif;font-size:14px;font-weight:800">' + nomeProdutor + '</div>' +
-    '<div style="font-size:11px;color:#92400e">Jornada de documentos para obtencao do Selo Arte</div></div>';
-  lista.appendChild(header);
+    var docIds = docs.map(function(d){return d.id;});
+    var jornadaExistente = [];
+    if (docIds.length > 0) {
+      jornadaExistente = await supaGet('selo_arte_jornada', 'produtor_usuario_id=eq.'+produtorUsuarioId+'&doc_modelo_id=in.('+docIds.join(',')+')&select=*') || [];
+    }
 
-  // Lista de documentos
-  var aptos = 0;
-  DOCS_SELO_ARTE.forEach(function(doc, idx) {
-    var div = document.createElement('div');
-    div.style.cssText = 'background:#fff;border:1.5px solid var(--k3);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px';
+    function acharJornada(docId, categoria) {
+      return jornadaExistente.find(function(j){
+        if (j.doc_modelo_id !== docId) return false;
+        if (categoria === 'recorrente') return j.periodo_referencia === mesAtual;
+        return true;
+      });
+    }
 
-    // Status aleatorio para demo - em producao viria do banco
-    var statuses = ['pendente','enviado','aprovado','pendente','pendente','pendente','pendente','pendente','pendente','pendente'];
-    var st = statuses[idx] || 'pendente';
-    if (st === 'aprovado') aptos++;
+    var header = '<div style="background:linear-gradient(135deg,#fff8e1,#fff);border:1.5px solid #f59e0b;border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">' +
+      '<span style="font-size:22px">&#11088;</span>' +
+      '<div><div style="font-family:Nunito,sans-serif;font-size:14px;font-weight:800">'+produtor.nome+'</div>' +
+      '<div style="font-size:11px;color:#92400e">Municipio: '+munNome+'</div></div></div>';
 
-    var cor = st === 'aprovado' ? '#16a34a' : st === 'enviado' ? '#d97706' : '#6b7280';
-    var icone = st === 'aprovado' ? '\u2705' : st === 'enviado' ? '\u23F3' : '\u25CB';
-    var badge = st === 'aprovado' ? 'Aprovado' : st === 'enviado' ? 'Em analise' : 'Pendente';
-    var badgeCor = st === 'aprovado' ? 'bgr' : st === 'enviado' ? 'bgy' : '';
+    var aptos = 0;
+    var itensHtml = docs.map(function(d) {
+      var j = acharJornada(d.id, d.categoria);
+      var status = j ? j.status : 'pendente';
+      if (status === 'aprovado') aptos++;
+      var icone = status==='aprovado' ? '&#9989;' : status==='enviado' ? '&#9203;' : status==='reprovado' ? '&#10060;' : '&#9675;';
+      var badgeTxt = status==='aprovado'?'Aprovado':status==='enviado'?'Em analise':status==='reprovado'?'Reprovado':'Pendente';
+      var badgeCls = status==='aprovado'?'bgr':status==='enviado'?'bgy':status==='reprovado'?'':'';
+      var catLabel = d.categoria === 'recorrente' ? 'Recorrente (mensal)' : 'Processo (entrada)';
 
-    div.innerHTML =
-      '<div style="font-size:20px">' + icone + '</div>' +
-      '<div style="flex:1">' +
-        '<div style="font-size:13px;font-weight:700;color:#374151">' + (idx+1) + '. ' + doc.nome + (doc.obrig ? ' <span style="color:#ef4444;font-size:10px">*</span>' : '') + '</div>' +
-        '<div style="font-size:11px;color:#6b7280;margin-top:2px">' + doc.desc + (doc.val ? ' — Validade: ' + (doc.prazo||'') : '') + '</div>' +
-      '</div>' +
-      '<span class="bdg ' + badgeCor + '" style="font-size:10px">' + badge + '</span>' +
-      (usr.p === 'Admin Sistema' || usr.p === 'Fiscal' || usr.p === 'Gerente Selo Arte' ?
-        '<button class="btn bo bsm" onclick="gerenciarDocSeloArte(\'' + doc.id + '\',\'' + nomeProdutor + '\')">Gerenciar</button>' : '');
-    lista.appendChild(div);
-  });
+      var podeUpload = false;
+      if (usr.p === 'Admin Sistema') podeUpload = true;
+      if (usr.p === 'Produtor' && d.categoria === 'recorrente') podeUpload = true;
 
-  // Progresso
-  var prog = document.createElement('div');
-  prog.style.cssText = 'background:#f0fdf4;border:1.5px solid #16a34a;border-radius:10px;padding:12px 16px;margin-top:4px;display:flex;align-items:center;justify-content:space-between';
-  var pct = Math.round((aptos/DOCS_SELO_ARTE.length)*100);
-  prog.innerHTML =
-    '<div style="font-size:13px;font-weight:700;color:#15803d">Progresso: ' + aptos + '/' + DOCS_SELO_ARTE.length + ' documentos aprovados</div>' +
-    '<div style="font-size:12px;color:#16a34a;font-weight:800">' + pct + '%</div>';
-  lista.appendChild(prog);
+      var acoes = '';
+      if (status === 'pendente' && podeUpload) {
+        acoes += '<button class="btn bo bsm" onclick="abrirUploadJornadaSA(\''+d.id+'\',\''+produtorUsuarioId+'\',\''+d.categoria+'\',\''+d.nome.replace(/'/g,"\\'")+'\')">Anexar</button>';
+      }
+      if (j && j.url_arquivo) {
+        acoes += ' <a href="'+j.url_arquivo+'" target="_blank" rel="noopener" class="btn bo bsm">Baixar</a>';
+      }
+      if (status === 'enviado' && usr.p === 'Fiscal') {
+        acoes += ' <button class="btn bsm" style="background:#16a34a;color:#fff" onclick="aprovarJornadaSA(\''+(j?j.id:'')+'\')">Aprovar</button>';
+        acoes += ' <button class="btn bsm" style="background:#ef4444;color:#fff" onclick="abrirReprovarJornadaSA(\''+(j?j.id:'')+'\')">Reprovar</button>';
+      }
+
+      return '<div style="background:#fff;border:1.5px solid var(--k3);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
+        '<div style="font-size:20px">'+icone+'</div>' +
+        '<div style="flex:1;min-width:200px">' +
+          '<div style="font-size:13px;font-weight:700;color:#374151">'+d.nome+' <span class="bdg bgy" style="font-size:9px">'+catLabel+'</span>'+(d.obrigatorio?' <span style="color:#ef4444;font-size:10px">*</span>':'')+'</div>' +
+          (d.descricao?'<div style="font-size:11px;color:#6b7280;margin-top:2px">'+d.descricao+'</div>':'') +
+          (status==='reprovado' && j && j.observacao ? '<div style="font-size:11px;color:#ef4444;margin-top:2px">Motivo: '+j.observacao+'</div>' : '') +
+        '</div>' +
+        '<span class="bdg '+badgeCls+'" style="font-size:10px">'+badgeTxt+'</span>' +
+        '<div style="display:flex;gap:6px">'+acoes+'</div>' +
+      '</div>';
+    }).join('');
+
+    var pct = docs.length ? Math.round((aptos/docs.length)*100) : 0;
+    var prog = '<div style="background:#f0fdf4;border:1.5px solid #16a34a;border-radius:10px;padding:12px 16px;margin-top:4px;display:flex;align-items:center;justify-content:space-between">' +
+      '<div style="font-size:13px;font-weight:700;color:#15803d">Progresso: '+aptos+'/'+docs.length+' documentos aprovados</div>' +
+      '<div style="font-size:12px;color:#16a34a;font-weight:800">'+pct+'%</div></div>';
+
+    lista.innerHTML = header + (docs.length ? itensHtml : '<p style="font-size:12px;color:var(--k5)">Nenhum documento cadastrado no catalogo ainda.</p>') + (docs.length?prog:'');
+  } catch(e) {
+    console.log('Erro jornada selo arte:', e);
+    lista.innerHTML = '<p style="font-size:12px;color:var(--k5)">Erro ao carregar jornada.</p>';
+  }
 }
 
-function gerenciarDocSeloArte(docId, produtor) {
-  alert('Gerenciar documento Selo Arte: ' + docId + '\nProdutor: ' + produtor + '\n(Upload integrado em desenvolvimento)');
+var uploadCtxSA = null;
+function abrirUploadJornadaSA(docModeloId, produtorUsuarioId, categoria, nomeDoc) {
+  uploadCtxSA = { docModeloId: docModeloId, produtorUsuarioId: produtorUsuarioId, categoria: categoria };
+  document.getElementById('ujsa-titulo').textContent = 'Anexar: ' + nomeDoc;
+  document.getElementById('ujsa-arquivo').value = '';
+  sm('m-upload-jornada-sa');
+}
+
+async function enviarDocJornadaSeloArte() {
+  if (!uploadCtxSA) return;
+  var inputEl = document.getElementById('ujsa-arquivo');
+  if (!inputEl.files || inputEl.files.length === 0) { alert('Selecione um arquivo.'); return; }
+  var file = inputEl.files[0];
+  var nomeMinusculo = file.name.toLowerCase();
+  var extOk = ['.pdf','.doc','.docx'].some(function(ext){ return nomeMinusculo.endsWith(ext); });
+  if (!extOk) { alert('Envie um arquivo PDF ou Word (.pdf, .doc, .docx).'); return; }
+
+  try {
+    var munSlug = (usr.municipio_nome || 'selo-arte').replace(/\s+/g,'_').toLowerCase();
+    var ts = Date.now();
+    var nomeArquivo = 'jornada_' + ts + '_' + file.name.replace(/\s+/g,'_');
+    var caminho = 'selo-arte/' + munSlug + '/' + nomeArquivo;
+
+    var uploadRes = await fetch(SUPA_URL + '/storage/v1/object/sim-docs/' + caminho, {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + SUPA_KEY, 'Content-Type': file.type || 'application/octet-stream', 'x-upsert': 'true' },
+      body: file
+    });
+    if (!uploadRes.ok) { var errTxt = await uploadRes.text(); throw new Error('Storage: ' + errTxt); }
+    var urlArquivo = SUPA_URL + '/storage/v1/object/public/sim-docs/' + caminho;
+
+    var periodo = uploadCtxSA.categoria === 'recorrente' ? new Date().toISOString().slice(0,7) : null;
+
+    var qExist = 'produtor_usuario_id=eq.'+uploadCtxSA.produtorUsuarioId+'&doc_modelo_id=eq.'+uploadCtxSA.docModeloId;
+    qExist += periodo ? ('&periodo_referencia=eq.'+periodo) : '&periodo_referencia=is.null';
+    var existente = await supaGet('selo_arte_jornada', qExist + '&select=id');
+
+    var registro = {
+      produtor_usuario_id: uploadCtxSA.produtorUsuarioId,
+      doc_modelo_id: uploadCtxSA.docModeloId,
+      periodo_referencia: periodo,
+      status: 'enviado',
+      nome_arquivo: file.name,
+      url_arquivo: urlArquivo,
+      enviado_por: usr.id,
+      enviado_em: new Date().toISOString(),
+      observacao: null
+    };
+
+    if (existente && existente.length > 0) {
+      await supaFetch('/rest/v1/selo_arte_jornada?id=eq.'+existente[0].id, { method:'PATCH', body: JSON.stringify(registro) });
+    } else {
+      await supaFetch('/rest/v1/selo_arte_jornada', { method:'POST', body: JSON.stringify(registro) });
+    }
+
+    hm('m-upload-jornada-sa');
+    carregarJornadaSeloArte(uploadCtxSA.produtorUsuarioId);
+  } catch(e) {
+    console.log('Erro upload jornada selo arte:', e);
+    alert('Erro ao enviar arquivo: ' + e.message);
+  }
+}
+
+async function aprovarJornadaSA(jornadaId) {
+  if (!jornadaId) return;
+  if (!usr || usr.p !== 'Fiscal') { alert('Apenas o Fiscal pode aprovar.'); return; }
+  try {
+    await supaFetch('/rest/v1/selo_arte_jornada?id=eq.'+jornadaId, { method:'PATCH', body: JSON.stringify({ status:'aprovado', aprovado_por: usr.id, aprovado_em: new Date().toISOString() }) });
+    var sel = document.getElementById('sa-jornada-produtor-select');
+    carregarJornadaSeloArte(sel ? sel.value : usr.id);
+  } catch(e) { console.log('Erro aprovar:', e); alert('Erro ao aprovar.'); }
+}
+
+function abrirReprovarJornadaSA(jornadaId) {
+  if (!jornadaId) return;
+  document.getElementById('rjsa-jornada-id').value = jornadaId;
+  document.getElementById('rjsa-motivo').value = '';
+  sm('m-reprovar-jornada-sa');
+}
+
+async function confirmarReprovarJornadaSeloArte() {
+  var jornadaId = document.getElementById('rjsa-jornada-id').value;
+  var motivo = document.getElementById('rjsa-motivo').value.trim();
+  if (!jornadaId) return;
+  if (!usr || usr.p !== 'Fiscal') { alert('Apenas o Fiscal pode reprovar.'); return; }
+  try {
+    await supaFetch('/rest/v1/selo_arte_jornada?id=eq.'+jornadaId, { method:'PATCH', body: JSON.stringify({ status:'reprovado', observacao: motivo || null, aprovado_por: usr.id, aprovado_em: new Date().toISOString() }) });
+    hm('m-reprovar-jornada-sa');
+    var sel = document.getElementById('sa-jornada-produtor-select');
+    carregarJornadaSeloArte(sel ? sel.value : usr.id);
+  } catch(e) { console.log('Erro reprovar:', e); alert('Erro ao reprovar.'); }
 }
 
 // ===UPLOAD DE PDF — VALIDACAO E ENVIO===
@@ -2055,6 +2225,19 @@ async function carregarMunicipioUsuario() {
         if (btnNovoSelo) btnNovoSelo.style.display = 'none';
         var banner = document.getElementById('selo-mun-banner');
         if (banner) banner.innerHTML = '<span style="font-size:18px">&#11088;</span><span>Acesso restrito ao Selo Arte &nbsp;|&nbsp; Municipio: <b id="selo-mun-nome">' + nome + '</b> &nbsp;|&nbsp; Voce ve apenas os produtores Selo Arte deste municipio</span>';
+        // So a aba Jornada Selo Arte importa aqui - Produtores (mock) e Checklist ficam escondidas
+        var tabProd = document.getElementById('sa-tab-btn-prod');
+        var tabInsp = document.getElementById('sa-tab-btn-insp');
+        if (tabProd) tabProd.style.display = 'none';
+        if (tabInsp) tabInsp.style.display = 'none';
+        setTab(document.getElementById('sa-tab-btn-docs'), 'sa-tab-docs');
+        if (usr.p === 'Produtor' || usr.p === 'Resp. Tecnico') {
+          var seletorDiv = document.getElementById('sa-jornada-seletor');
+          if (seletorDiv) seletorDiv.style.display = 'none';
+          carregarJornadaSeloArte(usr.id);
+        } else {
+          carregarProdutoresSeloArteDropdown();
+        }
       }
     }
   } catch(e) { console.log('Erro municipio usuario:', e); }
