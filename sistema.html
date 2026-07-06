@@ -729,7 +729,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 </div>
 
 <div class="pg" id="pg-calendario">
-        <div class="ph2"><h2>Calendario</h2><button class="btn bg" id="btn-nova-visita" onclick="sm('m-vis')">+ Agendar visita</button></div>
+        <div class="ph2"><h2>Calendario</h2><button class="btn bg" id="btn-nova-visita" onclick="abrirModalVisita()">+ Agendar visita</button></div>
         <div class="g3">
           <div class="cd">
             <div class="cdh"><span class="cdt" id="cal-mes-titulo">Calendario</span><div style="display:flex;gap:5px"><button class="btn bo bsm" onclick="mudarMesCal(-1)">&#8249;</button><button class="btn bo bsm" onclick="mudarMesCal(1)">&#8250;</button></div></div>
@@ -763,7 +763,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
           <span style="font-size:11px;font-weight:800;color:#2d7a50;letter-spacing:.5px">COOLTIVANDO</span>
         </div>
       </div>
-      <button id="btn-novo-selo-arte" class="btn bsm" style="background:#f59e0b;color:#fff;font-weight:700" onclick="sm('m-novo-selo-arte')">+ Novo produtor Selo Arte</button>
+      <button id="btn-novo-selo-arte" class="btn bsm" style="background:#f59e0b;color:#fff;font-weight:700" onclick="abrirModalNovoProdutorSeloArte()">+ Novo produtor Selo Arte</button>
     </div>
   </div>
 
@@ -1293,7 +1293,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
   </div>
 </div>
 
-<div class="mo" id="m-vis" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Agendar Visita</h3><button class="mc" onclick="hm('m-vis')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Agroindustria</label><select class="fi"><option>Granja Albunio - Jorge Buba</option><option>Mery Embutidos</option></select></div><div><label class="fl">Data da visita</label><input class="fi" type="date"></div><div><label class="fl">Fiscal</label><select class="fi"><option>Joao Silva</option></select></div></div><div class="fact"><button class="btn bo" onclick="hm('m-vis')">Cancelar</button><button class="btn bg">Agendar</button></div></div></div>
+<div class="mo" id="m-vis" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Agendar Visita</h3><button class="mc" onclick="hm('m-vis')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Agroindustria</label><select class="fi" id="vis-agro"><option value="">Selecione...</option></select></div><div><label class="fl">Data da visita</label><input class="fi" type="date" id="vis-data"></div><div><label class="fl">Fiscal</label><select class="fi" id="vis-fiscal"><option value="">Selecione...</option></select></div></div><div class="fact"><button class="btn bo" onclick="hm('m-vis')">Cancelar</button><button class="btn bg" onclick="agendarVisita()">Agendar</button></div></div></div>
 
 <div class="mo" id="m-assinar" onclick="cm(event,this)">
   <div class="mb">
@@ -1573,6 +1573,31 @@ async function carregarProdutoresSeloArteDropdown() {
       carregarJornadaSeloArte(seloProdutores[0].id);
     }
   } catch(e) { console.log('Erro dropdown produtores selo arte:', e); }
+}
+
+async function abrirModalNovoProdutorSeloArte() {
+  if (!usr || (usr.p !== 'Admin Sistema' && usr.p !== 'Fiscal')) {
+    alert('Apenas Fiscal ou Admin Sistema podem cadastrar produtor Selo Arte.');
+    return;
+  }
+  try {
+    var filtroMun = '';
+    if (usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      filtroMun = '&municipio_id=eq.' + usr.municipio_id;
+    }
+    var produtores = await supaGet('produtores', 'select=id,nome,municipio_id' + filtroMun + '&order=nome') || [];
+    var sel = document.getElementById('sa-prod-nome');
+    if (produtores.length === 0) {
+      sel.innerHTML = '<option value="">Nenhum produtor cadastrado neste municipio</option>';
+    } else {
+      sel.innerHTML = '<option value="">Selecione...</option>' +
+        produtores.map(function(p){ return '<option value="' + p.nome.replace(/"/g,'&quot;') + '">' + p.nome + '</option>'; }).join('');
+    }
+    sm('m-novo-selo-arte');
+  } catch(e) {
+    console.log('Erro ao abrir novo produtor selo arte:', e);
+    alert('Erro ao carregar produtores.');
+  }
 }
 
 async function carregarJornadaSeloArte(produtorUsuarioId) {
@@ -3579,7 +3604,7 @@ async function carregarDadosBanco() {
       var prods = await supaGet('produtores', query);
       if (prods && prods.length > 0) {
         console.log('Produtores carregados:', prods.length);
-        atualizarTabelaProdutores(prods);
+        await atualizarTabelaProdutores(prods);
       }
     }
   } catch(e) {
@@ -3587,7 +3612,33 @@ async function carregarDadosBanco() {
   }
 }
 
-function atualizarTabelaProdutores(prods) {
+async function verProdutor(produtorId) {
+  try {
+    var agros = await supaGet('agroindustrias', 'produtor_id=eq.' + produtorId + '&select=id,nome,municipio_id,num_sim,municipios(nome)');
+    var prod = await supaGet('produtores', 'id=eq.' + produtorId + '&select=nome');
+    var prodNome = (prod && prod.length) ? prod[0].nome : '';
+
+    if (!agros || agros.length === 0) {
+      alert('Este produtor ainda nao tem nenhuma empresa/agroindustria cadastrada.');
+      return;
+    }
+
+    if (agros.length === 1) {
+      var a = agros[0];
+      var munNome = a.municipios ? a.municipios.nome : '-';
+      abrirEmpresaComDados(a.nome, prodNome, munNome, a.num_sim || 'Sem numero SIM', a.id);
+    } else {
+      var btnAgro = document.querySelector('[onclick*="\'agroindustrias\'"]');
+      navPg('agroindustrias', btnAgro);
+      alert(prodNome + ' tem ' + agros.length + ' empresas cadastradas:\n' + agros.map(function(a){ return '- ' + a.nome; }).join('\n') + '\n\nAbrindo a lista de Agroindustrias.');
+    }
+  } catch(e) {
+    console.log('Erro ao abrir empresa do produtor:', e);
+    alert('Erro ao abrir a empresa deste produtor.');
+  }
+}
+
+async function atualizarTabelaProdutores(prods) {
   var tbody = document.querySelector('#pg-produtores .tbl tbody');
   if (!tbody) return;
   console.log('Produtores do banco disponíveis:', prods.length);
@@ -3595,18 +3646,32 @@ function atualizarTabelaProdutores(prods) {
   // Filtrar apenas produtores com nome válido para evitar dados de teste
   var validos = prods.filter(function(p) { return p && p.nome && p.id; });
   if (validos.length === 0) return;
+
+  // Buscar contagem real de agroindustrias por produtor
+  var contagemMap = {};
+  try {
+    var ids = validos.map(function(p){ return p.id; });
+    var agrosTodos = await supaGet('agroindustrias', 'produtor_id=in.(' + ids.join(',') + ')&select=produtor_id');
+    if (agrosTodos) {
+      agrosTodos.forEach(function(a) {
+        contagemMap[a.produtor_id] = (contagemMap[a.produtor_id] || 0) + 1;
+      });
+    }
+  } catch(e) { console.log('Erro ao contar agroindustrias por produtor:', e); }
+
   tbody.innerHTML = '';
   validos.forEach(function(p) {
     try {
       var mun = (p.municipios && p.municipios.nome) ? p.municipios.nome : '';
       var status = p.status || 'Ativo';
       var statusCor = status === 'Ativo' ? 'bgv' : 'bgr';
+      var qtdAgro = contagemMap[p.id] || 0;
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td><strong>' + (p.nome || '') + '</strong></td>' +
         '<td>' + (p.cpf || '') + '</td>' +
         '<td>' + mun + '</td>' +
-        '<td>0</td>' +
+        '<td>' + qtdAgro + '</td>' +
         '<td><span class="bdg ' + statusCor + '">' + status + '</span></td>' +
         '<td><button class="btn bo bsm" onclick="verProdutor(\'' + p.id + '\')">Ver empresa</button></td>';
       tbody.appendChild(tr);
@@ -3808,6 +3873,141 @@ async function salvarProdutorSeloArte() {
 // ===NAVEGACAO===
 // ===ABRIR EMPRESA (pagina de detalhe da agroindustria)===
 var empresaAtual = null;
+
+// ===NUMERO SIM (concessao / cancelamento / reativacao)===
+async function editarSIMEmpresa() {
+  if (!empresaAtual || !empresaAtual.id) { alert('Empresa nao identificada.'); return; }
+  if (!usr || (usr.p !== 'Admin Sistema' && usr.p !== 'Fiscal')) {
+    alert('Apenas Fiscal ou Admin Sistema podem conceder/cancelar numero SIM.');
+    return;
+  }
+  try {
+    var res = await supaGet('agroindustrias', 'id=eq.' + empresaAtual.id + '&select=*');
+    if (!res || res.length === 0) { alert('Empresa nao encontrada.'); return; }
+    var a = res[0];
+    simEmpresaAtualDados = a;
+
+    document.getElementById('sim-empresa-nome').textContent = a.nome || empresaAtual.nome || '-';
+    document.getElementById('sim-modo-conceder').style.display = 'none';
+    document.getElementById('sim-modo-ver').style.display = 'none';
+    document.getElementById('sim-modo-cancelado').style.display = 'none';
+
+    if (a.num_sim && a.status_sim === 'cancelado') {
+      document.getElementById('sim-modal-titulo').textContent = 'Numero SIM - Cancelado';
+      document.getElementById('sim-numero-cancelado').textContent = a.num_sim + (a.tipo_sim ? ' - ' + a.tipo_sim : '');
+      document.getElementById('sim-cancelado-info').textContent = 'Cancelado em: ' + (a.sim_cancelado_em ? new Date(a.sim_cancelado_em).toLocaleString('pt-BR') : '-') + (a.sim_motivo_cancelamento ? ' — Motivo: ' + a.sim_motivo_cancelamento : '');
+      document.getElementById('sim-modo-cancelado').style.display = 'block';
+    } else if (a.num_sim) {
+      document.getElementById('sim-modal-titulo').textContent = 'Numero SIM';
+      document.getElementById('sim-numero-display').textContent = a.num_sim + (a.tipo_sim ? ' - ' + a.tipo_sim : '');
+      var concedidoTxt = 'Concedido em: ' + (a.sim_concedido_em ? new Date(a.sim_concedido_em).toLocaleString('pt-BR') : '-');
+      document.getElementById('sim-concedido-por').textContent = concedidoTxt;
+      document.getElementById('sim-motivo-cancel').value = '';
+      document.getElementById('sim-modo-ver').style.display = 'block';
+    } else {
+      document.getElementById('sim-modal-titulo').textContent = 'Conceder Numero SIM';
+      document.getElementById('sim-numero').value = '';
+      document.getElementById('sim-tipo').value = 'SIM';
+      document.getElementById('sim-obs').value = '';
+      document.getElementById('sim-modo-conceder').style.display = 'block';
+    }
+    sm('m-sim');
+  } catch(e) {
+    console.log('Erro ao abrir edicao de SIM:', e);
+    alert('Erro ao carregar dados do numero SIM.');
+  }
+}
+
+var simEmpresaAtualDados = null;
+
+async function concederSIM() {
+  if (!empresaAtual || !empresaAtual.id) { alert('Empresa nao identificada.'); return; }
+  if (!usr || (usr.p !== 'Admin Sistema' && usr.p !== 'Fiscal')) { alert('Apenas Fiscal ou Admin Sistema podem conceder numero SIM.'); return; }
+  var numero = document.getElementById('sim-numero').value.trim();
+  var tipo = document.getElementById('sim-tipo').value;
+  var obs = document.getElementById('sim-obs').value.trim();
+  if (!numero) { alert('Informe o numero SIM.'); return; }
+
+  try {
+    var res = await supaFetch('/rest/v1/agroindustrias?id=eq.' + empresaAtual.id, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        num_sim: numero,
+        tipo_sim: tipo,
+        status_sim: 'ativo',
+        sim_concedido_por: usr.id,
+        sim_concedido_em: new Date().toISOString(),
+        sim_observacao: obs || null,
+        sim_cancelado_por: null,
+        sim_cancelado_em: null,
+        sim_motivo_cancelamento: null
+      })
+    });
+    if (!res) { alert('Erro ao conceder numero SIM. Tente novamente.'); return; }
+
+    var numSimTexto = numero + ' - ' + tipo;
+    empresaAtual.numSim = numSimTexto;
+    var elBadge = document.getElementById('empresa-sim-badge');
+    if (elBadge) { elBadge.textContent = numSimTexto; elBadge.className = 'bdg bgr'; elBadge.style.fontSize = '11px'; }
+
+    hm('m-sim');
+    alert('Numero SIM ' + numSimTexto + ' concedido com sucesso!');
+
+    // Rastreabilidade
+    var mrt = document.getElementById('mrt'); if (mrt) mrt.textContent = 'Numero SIM concedido!';
+    var mrf = document.getElementById('mrf'); if (mrf) mrf.textContent = (usr.n + ' (' + usr.p + ')') + ' — ' + numSimTexto;
+    var mrd = document.getElementById('mrd'); if (mrd) mrd.textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}) + ' - ' + new Date().toLocaleTimeString('pt-BR');
+    if (typeof carregarAgroindustrias === 'function') carregarAgroindustrias();
+  } catch(e) {
+    console.log('Erro ao conceder SIM:', e);
+    alert('Erro ao conceder numero SIM.');
+  }
+}
+
+async function cancelarSIM() {
+  if (!empresaAtual || !empresaAtual.id) { alert('Empresa nao identificada.'); return; }
+  if (!usr || (usr.p !== 'Admin Sistema' && usr.p !== 'Fiscal')) { alert('Apenas Fiscal ou Admin Sistema podem cancelar numero SIM.'); return; }
+  var motivo = document.getElementById('sim-motivo-cancel').value.trim();
+  if (!motivo) { alert('Informe o motivo do cancelamento.'); return; }
+  if (!confirm('Tem certeza que deseja cancelar o numero SIM desta empresa? Esta acao e registrada e o numero nao podera ser reutilizado.')) return;
+
+  try {
+    var res = await supaFetch('/rest/v1/agroindustrias?id=eq.' + empresaAtual.id, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status_sim: 'cancelado',
+        sim_cancelado_por: usr.id,
+        sim_cancelado_em: new Date().toISOString(),
+        sim_motivo_cancelamento: motivo
+      })
+    });
+    if (!res) { alert('Erro ao cancelar numero SIM. Tente novamente.'); return; }
+
+    var elBadge = document.getElementById('empresa-sim-badge');
+    if (elBadge) { elBadge.className = 'bdg brd'; elBadge.style.fontSize = '11px'; }
+
+    hm('m-sim');
+    alert('Numero SIM cancelado.');
+
+    var mrt = document.getElementById('mrt'); if (mrt) mrt.textContent = 'Numero SIM cancelado!';
+    var mrf = document.getElementById('mrf'); if (mrf) mrf.textContent = (usr.n + ' (' + usr.p + ')') + ' — Motivo: ' + motivo;
+    var mrd = document.getElementById('mrd'); if (mrd) mrd.textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}) + ' - ' + new Date().toLocaleTimeString('pt-BR');
+    if (typeof carregarAgroindustrias === 'function') carregarAgroindustrias();
+  } catch(e) {
+    console.log('Erro ao cancelar SIM:', e);
+    alert('Erro ao cancelar numero SIM.');
+  }
+}
+
+function reativarSIM() {
+  // Concede um novo numero SIM (o anterior fica cancelado no historico)
+  document.getElementById('sim-modo-cancelado').style.display = 'none';
+  document.getElementById('sim-modal-titulo').textContent = 'Conceder Novo Numero SIM';
+  document.getElementById('sim-numero').value = '';
+  document.getElementById('sim-tipo').value = 'SIM';
+  document.getElementById('sim-obs').value = '';
+  document.getElementById('sim-modo-conceder').style.display = 'block';
+}
 
 // ===DOCUMENTOS DA EMPRESA (Fase B)===
 // ===JORNADA DE LEGALIZACAO (aplicar jornada do admin a empresa)===
@@ -4444,6 +4644,70 @@ function setTab(btn, id) {
 // ===CALENDARIO===
 var calMesRef = null; // mes/ano atualmente exibido
 var calEventosCache = []; // eventos carregados do banco
+
+async function abrirModalVisita() {
+  try {
+    var filtroMun = '';
+    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      filtroMun = '&municipio_id=eq.' + usr.municipio_id;
+    }
+    var agros = await supaGet('agroindustrias', 'select=id,nome' + filtroMun + '&order=nome') || [];
+    var selAgro = document.getElementById('vis-agro');
+    selAgro.innerHTML = '<option value="">Selecione...</option>' +
+      agros.map(function(a){ return '<option value="' + a.id + '">' + a.nome + '</option>'; }).join('');
+
+    var filtroMunFiscal = '';
+    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+      filtroMunFiscal = '&municipio_id=eq.' + usr.municipio_id;
+    }
+    var fiscais = await supaGet('usuarios', 'select=id,nome&perfil=eq.Fiscal' + filtroMunFiscal + '&order=nome') || [];
+    var selFiscal = document.getElementById('vis-fiscal');
+    selFiscal.innerHTML = '<option value="">Selecione...</option>' +
+      fiscais.map(function(f){ return '<option value="' + f.nome.replace(/"/g,'&quot;') + '">' + f.nome + '</option>'; }).join('');
+
+    document.getElementById('vis-data').value = '';
+    sm('m-vis');
+  } catch(e) {
+    console.log('Erro ao abrir modal de visita:', e);
+    alert('Erro ao carregar agroindustrias/fiscais.');
+  }
+}
+
+async function agendarVisita() {
+  var agroId = document.getElementById('vis-agro').value;
+  var agroNome = document.getElementById('vis-agro').selectedOptions[0] ? document.getElementById('vis-agro').selectedOptions[0].textContent : '';
+  var data = document.getElementById('vis-data').value;
+  var fiscalNome = document.getElementById('vis-fiscal').value;
+
+  if (!agroId) { alert('Selecione a agroindustria.'); return; }
+  if (!data) { alert('Selecione a data da visita.'); return; }
+  if (!fiscalNome) { alert('Selecione o fiscal.'); return; }
+
+  try {
+    var registro = {
+      agroindustria_id: agroId,
+      agroindustria_nome: agroNome,
+      data_visita: data,
+      fiscal_nome: fiscalNome
+    };
+    var res = await supaFetch('/rest/v1/visitas', { method: 'POST', body: JSON.stringify(registro) });
+    if (!res) { alert('Erro ao agendar a visita. Tente novamente.'); return; }
+
+    hm('m-vis');
+    alert('Visita agendada para ' + agroNome + ' em ' + new Date(data + 'T00:00:00').toLocaleDateString('pt-BR') + '.');
+
+    // Rastreabilidade
+    var mrt = document.getElementById('mrt'); if (mrt) mrt.textContent = 'Visita agendada!';
+    var mrf = document.getElementById('mrf'); if (mrf) mrf.textContent = (usr.n + ' (' + usr.p + ')') + ' — ' + agroNome + ' - ' + fiscalNome;
+    var mrd = document.getElementById('mrd'); if (mrd) mrd.textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}) + ' - ' + new Date().toLocaleTimeString('pt-BR');
+
+    calEventosCache = [];
+    if (typeof buildCal === 'function') buildCal();
+  } catch(e) {
+    console.log('Erro ao agendar visita:', e);
+    alert('Erro ao agendar visita.');
+  }
+}
 
 async function carregarEventosCalendario() {
   calEventosCache = [];
