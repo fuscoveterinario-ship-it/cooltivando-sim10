@@ -1116,7 +1116,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
   <div><label class="fl">CPF <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mCPF(this)" required></div>
   <div><label class="fl">E-mail <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-email" type="email" placeholder="email@exemplo.com" required></div>
   <div><label class="fl">Telefone <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-tel" placeholder="(00) 00000-0000" maxlength="15" oninput="mTel(this)" required></div>
-  <div><label class="fl">CADPRO <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-cadpro" placeholder="Numero do cadastro rural" required></div>
+  <div><label class="fl">CADPRO</label><input class="fi" id="prod-cadpro" placeholder="Numero do cadastro rural (se aplicavel)"></div>
   <div><label class="fl">Municipio <span style="color:var(--rd)">*</span></label><select class="fi" id="prod-mun" required><option value="">Selecione...</option></select></div>
   <div><label class="fl">Senha <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-senha" type="password" placeholder="Minimo 8 caracteres" required></div>
   <div><label class="fl">Confirmar senha <span style="color:var(--rd)">*</span></label><input class="fi" id="prod-senha2" type="password" placeholder="Repita a senha" required></div>
@@ -1145,7 +1145,7 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       <select class="fi" id="agro-simtipo"><option>SIM</option><option>SIM/POA</option><option>SIM/POA/ARTE</option><option>SIE</option></select>
     </div>
   </div>
-  <div><label class="fl">CNPJ / CADPRO <span style="color:var(--rd)">*</span></label><input class="fi" id="agro-cadpro" placeholder="CNPJ ou numero CADPRO"></div>
+  <div><label class="fl">CNPJ / CADPRO</label><input class="fi" id="agro-cadpro" placeholder="CNPJ ou numero CADPRO (se aplicavel)"></div>
   <div><label class="fl">Tipo de produto <span style="color:var(--rd)">*</span></label><input class="fi" id="agro-tipo" placeholder="Ex: Avicultura, Laticinios..."></div>
   <div><label class="fl">Municipio <span style="color:var(--rd)">*</span></label><select class="fi" id="agro-sel-municipio"><option value="">Selecione...</option></select></div>
   <div><label class="fl">Telefone</label><input class="fi" id="agro-tel" placeholder="(00) 00000-0000"></div>
@@ -2621,6 +2621,28 @@ async function obterProdutorIdDoUsuario() {
 }
 
 // Carrega a tela de Legalizacoes (lista de empresas/jornadas do usuario, respeitando escopo)
+async function excluirProcessoLegalizacao(agroId, jornadaNome, empresaNome) {
+  if (!usr || (usr.p !== 'Fiscal' && usr.p !== 'Admin Sistema')) {
+    alert('Apenas Fiscal ou Admin Sistema podem excluir um processo de legalizacao.');
+    return;
+  }
+  if (!confirm('Excluir o processo "' + jornadaNome + '" de ' + empresaNome + '?\n\nIsso vai apagar TODOS os documentos desse processo. Esta acao nao pode ser desfeita.')) return;
+
+  try {
+    var docs = await supaGet('documentos_empresa', 'select=id&agroindustria_id=eq.' + agroId + '&jornada_nome=eq.' + encodeURIComponent(jornadaNome));
+    if (docs && docs.length > 0) {
+      for (var i = 0; i < docs.length; i++) {
+        await supaFetch('/rest/v1/documentos_empresa?id=eq.' + docs[i].id, { method: 'DELETE' });
+      }
+    }
+    alert('Processo excluido: ' + jornadaNome + ' (' + (docs ? docs.length : 0) + ' documento(s) removido(s)).');
+    carregarLegalizacoes();
+  } catch(e) {
+    console.log('Erro ao excluir processo de legalizacao:', e);
+    alert('Erro ao excluir o processo. Tente novamente.');
+  }
+}
+
 async function carregarLegalizacoes() {
   var tbody = document.getElementById('legalizacoes-tbody');
   if (!tbody) return;
@@ -2676,13 +2698,17 @@ async function carregarLegalizacoes() {
           else if (j.aprovados > 0) { statusTxt = 'Em andamento'; statusCor = 'bgy'; }
           else { statusTxt = 'Pendencia'; statusCor = 'bgy'; }
           var ultima = j.ultima ? new Date(j.ultima).toLocaleDateString('pt-BR') + ', ' + new Date(j.ultima).toLocaleTimeString('pt-BR') : '-';
+          var podeExcluirProcesso = usr && (usr.p === 'Fiscal' || usr.p === 'Admin Sistema');
           linhas += '<tr>' +
             '<td><b>' + a.nome + '</b></td>' +
             '<td>' + munNome + '</td>' +
             '<td>' + jn + ' <span style="color:var(--k5);font-size:11px">(' + j.aprovados + '/' + j.total + ')</span></td>' +
             '<td><span class="bdg ' + statusCor + '">' + statusTxt + '</span></td>' +
             '<td>' + ultima + '</td>' +
-            '<td><button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify((a.produtores&&a.produtores.nome)||'-').replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim||'Sem numero SIM').replace(/"/g,'&quot;') + ',' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ')">Abrir</button></td>' +
+            '<td style="display:flex;gap:6px">' +
+            '<button class="btn bo bsm" onclick="abrirEmpresaComDados(' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ',' + JSON.stringify((a.produtores&&a.produtores.nome)||'-').replace(/"/g,'&quot;') + ',' + JSON.stringify(munNome).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.num_sim||'Sem numero SIM').replace(/"/g,'&quot;') + ',' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ')">Abrir</button>' +
+            (podeExcluirProcesso ? '<button class="btn br2 bsm" onclick="excluirProcessoLegalizacao(' + JSON.stringify(a.id).replace(/"/g,'&quot;') + ',' + JSON.stringify(jn).replace(/"/g,'&quot;') + ',' + JSON.stringify(a.nome).replace(/"/g,'&quot;') + ')">Excluir</button>' : '') +
+            '</td>' +
             '</tr>';
         });
       }
@@ -3686,7 +3712,6 @@ async function salvarProdutor() {
     {id:'prod-cpf', label:'CPF'},
     {id:'prod-email', label:'E-mail'},
     {id:'prod-tel', label:'Telefone'},
-    {id:'prod-cadpro', label:'CADPRO'},
     {id:'prod-mun', label:'Municipio'},
     {id:'prod-senha', label:'Senha'},
     {id:'prod-senha2', label:'Confirmar senha'},
