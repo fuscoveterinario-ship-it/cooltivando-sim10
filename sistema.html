@@ -2663,14 +2663,21 @@ async function carregarLegalizacoes() {
   var tbody = document.getElementById('legalizacoes-tbody');
   if (!tbody) return;
   try {
-    // Mesmo escopo de carregarAgroindustrias: municipio (fiscal/produtor) + produtor (produtor)
+    // Mesmo escopo de carregarAgroindustrias: municipio (fiscal/produtor) + produtor (produtor) + empresas vinculadas (RT)
     var filtro = 'select=*,municipios(nome),produtores(nome)&order=nome';
-    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+    if (usr && usr.p !== 'Admin Sistema' && usr.p !== 'Resp. Tecnico' && usr.municipio_id) {
       filtro += '&municipio_id=eq.' + usr.municipio_id;
     }
     if (usr && usr.p === 'Produtor') {
       var meuProdId = await obterProdutorIdDoUsuario();
       filtro += '&produtor_id=eq.' + (meuProdId || '00000000-0000-0000-0000-000000000000');
+    }
+    if (usr && usr.p === 'Resp. Tecnico') {
+      if (usr.empresasRT && usr.empresasRT.length > 0) {
+        filtro += '&id=in.(' + usr.empresasRT.join(',') + ')';
+      } else {
+        filtro += '&id=eq.00000000-0000-0000-0000-000000000000';
+      }
     }
     var agros = await supaGet('agroindustrias', filtro);
     if (!agros || agros.length === 0) {
@@ -2739,7 +2746,7 @@ async function carregarAgroindustrias() {
   try {
     var filtro = 'select=*,municipios(nome),produtores(nome)&order=nome';
     // Fiscal e produtor: so veem empresas do proprio municipio. Admin ve tudo.
-    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+    if (usr && usr.p !== 'Admin Sistema' && usr.p !== 'Resp. Tecnico' && usr.municipio_id) {
       filtro += '&municipio_id=eq.' + usr.municipio_id;
     }
     // Produtor: alem do municipio, so ve as agroindustrias DELE.
@@ -2750,6 +2757,14 @@ async function carregarAgroindustrias() {
       } else {
         // Sem produtor vinculado: nao mostra nada (evita ver de outros)
         filtro += '&produtor_id=eq.00000000-0000-0000-0000-000000000000';
+      }
+    }
+    // RT (Responsavel Tecnico): so ve as empresas que atende, vinculadas em usuarios.empresas_rt
+    if (usr && usr.p === 'Resp. Tecnico') {
+      if (usr.empresasRT && usr.empresasRT.length > 0) {
+        filtro += '&id=in.(' + usr.empresasRT.join(',') + ')';
+      } else {
+        filtro += '&id=eq.00000000-0000-0000-0000-000000000000';
       }
     }
     var agros = await supaGet('agroindustrias', filtro);
@@ -4206,7 +4221,8 @@ function ehPerfil() {
   return {
     admin: p === 'Admin Sistema',
     fiscal: p === 'Fiscal' || p === 'Gerente Selo Arte',
-    produtor: p === 'Produtor'
+    produtor: p === 'Produtor',
+    rt: p === 'Resp. Tecnico'
   };
 }
 
@@ -4386,7 +4402,7 @@ function renderAreaDoc() {
   }
   // upload (admin/fiscal/produtor)
   var uploadHtml = '';
-  if (perm.admin || perm.fiscal || perm.produtor) {
+  if (perm.admin || perm.fiscal || perm.produtor || perm.rt) {
     uploadHtml = '<div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
       '<input type="file" id="doc-upload-file" accept="application/pdf" class="fi" style="max-width:340px">' +
       '<button class="btn bg" onclick="enviarPdfDocSelecionado(\'' + d.id + '\')">Enviar</button>' +
@@ -5056,16 +5072,28 @@ async function carregarDashboard() {
   try {
     // Filtro por municipio: fiscal/prefeito/secretario so veem o proprio municipio. Admin ve tudo.
     var filtroMun = '';
-    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+    if (usr && usr.p !== 'Admin Sistema' && usr.p !== 'Resp. Tecnico' && usr.municipio_id) {
       filtroMun = '&municipio_id=eq.' + usr.municipio_id;
     }
     // Contagens reais
     var produtores = await supaGet('produtores', 'select=id' + filtroMun) || [];
-    var agros = await supaGet('agroindustrias', 'select=id,nome,num_sim,municipio_id,produtores(nome),municipios(nome)&order=created_at.desc' + filtroMun) || [];
-    // Documentos: filtrar pelas agroindustrias do municipio (documentos_empresa nao tem municipio_id direto e confiavel)
+    var filtroAgro = filtroMun;
+    if (usr && usr.p === 'Produtor') {
+      var meuProdIdDash = await obterProdutorIdDoUsuario();
+      filtroAgro += '&produtor_id=eq.' + (meuProdIdDash || '00000000-0000-0000-0000-000000000000');
+    }
+    if (usr && usr.p === 'Resp. Tecnico') {
+      if (usr.empresasRT && usr.empresasRT.length > 0) {
+        filtroAgro += '&id=in.(' + usr.empresasRT.join(',') + ')';
+      } else {
+        filtroAgro += '&id=eq.00000000-0000-0000-0000-000000000000';
+      }
+    }
+    var agros = await supaGet('agroindustrias', 'select=id,nome,num_sim,municipio_id,produtores(nome),municipios(nome)&order=created_at.desc' + filtroAgro) || [];
+    // Documentos: filtrar pelas agroindustrias visiveis para este usuario
     var idsAgro = agros.map(function(a){ return a.id; });
     var docsEmpresa = await supaGet('documentos_empresa', 'select=*&order=criado_em.desc') || [];
-    if (usr && usr.p !== 'Admin Sistema' && usr.municipio_id) {
+    if (usr && usr.p !== 'Admin Sistema') {
       docsEmpresa = docsEmpresa.filter(function(d){ return idsAgro.indexOf(d.agroindustria_id) >= 0; });
     }
 
