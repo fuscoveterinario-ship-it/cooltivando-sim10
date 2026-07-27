@@ -1154,7 +1154,23 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
   <div><label class="fl">Bairro</label><input class="fi" id="agro-bairro" placeholder="Bairro"></div>
 </div><div class="fact"><button class="btn bo" onclick="hm('m-agro')">Cancelar</button><button class="btn bg" onclick="salvarAgroindustria()">Salvar</button></div></div></div>
 
-<div class="mo" id="m-addproc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Adicionar Jornada de Legalizacao</h3><button class="mc" onclick="hm('m-addproc')">x</button></div><div style="padding:16px 20px 4px"><p style="font-size:12px;color:var(--k5);margin-bottom:14px">Selecione a Jornada de Legalizacao que sera aplicada a esta empresa:</p><div id="cert-lista"><div style="text-align:center;color:var(--k5);padding:20px;font-size:13px">Carregando jornadas...</div></div></div><div class="fact"><button class="btn bo" onclick="hm('m-addproc')">Cancelar</button><button class="btn bg" onclick="aplicarJornadaEmpresa()">Aplicar jornada</button></div></div></div>
+<div class="mo" id="m-addproc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3 id="addproc-titulo">Adicionar Jornada de Legalizacao</h3><button class="mc" onclick="hm('m-addproc')">x</button></div>
+<div id="addproc-passo1" style="padding:16px 20px 4px"><p style="font-size:12px;color:var(--k5);margin-bottom:14px">Selecione a Jornada de Legalizacao que sera aplicada a esta empresa:</p><div id="cert-lista"><div style="text-align:center;color:var(--k5);padding:20px;font-size:13px">Carregando jornadas...</div></div></div>
+<div id="addproc-passo2" style="padding:16px 20px 4px;display:none">
+  <p style="font-size:12px;color:var(--k5);margin-bottom:14px">Marque quais documentos se aplicam a esta empresa. Os marcados como "Nao se aplica" ja entram identificados, sem precisar de upload.</p>
+  <div style="display:flex;gap:8px;margin-bottom:10px">
+    <button class="btn bo bsm" onclick="marcarTodosPreselecao('aplica')">Marcar todos: Aplica</button>
+    <button class="btn bo bsm" onclick="marcarTodosPreselecao('nap')">Marcar todos: Nao se aplica</button>
+  </div>
+  <div id="preselecao-lista" style="max-height:360px;overflow-y:auto"></div>
+</div>
+<div class="fact">
+  <button class="btn bo" id="addproc-btn-cancelar" onclick="hm('m-addproc')">Cancelar</button>
+  <button class="btn bo" id="addproc-btn-voltar" style="display:none" onclick="voltarPassoJornada()">Voltar</button>
+  <button class="btn bg" id="addproc-btn-avancar" onclick="avancarPreselecaoJornada()">Avancar</button>
+  <button class="btn bg" id="addproc-btn-confirmar" style="display:none" onclick="aplicarJornadaEmpresa()">Confirmar jornada</button>
+</div>
+</div></div>
 <div class="mo" id="m-anexar" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Anexar Documento</h3><button class="mc" onclick="hm('m-anexar')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Jornada de Legalizacao <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-jornada" onchange="carregarDocsDaJornada()"><option value="">Selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Documento <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-tipo" onchange="toggleValidadeAnexar()"><option value="">Primeiro selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Arquivo PDF <span style="color:var(--rd)">*</span></label><input class="fi" type="file" id="anexar-file" accept="application/pdf"></div><div class="fm1" id="anexar-validade-box" style="display:none"><label class="fl">Data de validade <span style="color:var(--rd)">*</span></label><input class="fi" type="date" id="anexar-validade"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-anexar')">Cancelar</button><button class="btn bg" id="btn-anexar-salvar" onclick="anexarDocumentoEmpresa()">Anexar documento</button></div></div></div>
 <div class="mo" id="m-editprod" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Editar Produtor</h3><button class="mc" onclick="hm('m-editprod')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Nome</label><input class="fi" id="editprod-nome" type="text"></div><div class="fm1"><label class="fl">CPF</label><input class="fi" id="editprod-cpf" type="text"></div><div class="fm1"><label class="fl">Municipio</label><select class="fi" id="editprod-municipio"></select></div></div><div class="fact"><button class="btn bo" onclick="hm('m-editprod')">Cancelar</button><button class="btn bg" id="btn-editprod-salvar" onclick="salvarEditarProdutor()">Salvar alteracoes</button></div></div></div>
 <div class="mo" id="m-editemp" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Editar Empresa</h3><button class="mc" onclick="hm('m-editemp')">x</button></div><div class="fm"><div class="fm1"><label class="fl">CADPRO</label><input class="fi" id="edit-cadpro" type="text"></div><div class="fm1"><label class="fl">Telefone</label><input class="fi" id="edit-tel" type="text" placeholder="(00) 00000-0000"></div><div class="fm1"><label class="fl">CEP</label><input class="fi" id="edit-cep" type="text" placeholder="00000-000"></div><div class="fm1"><label class="fl">Endereco</label><input class="fi" id="edit-end" type="text"></div><div class="fm1"><label class="fl">Bairro</label><input class="fi" id="edit-bairro" type="text"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-editemp')">Cancelar</button><button class="btn bg" id="btn-editemp-salvar" onclick="salvarEditarEmpresa()">Salvar alteracoes</button></div></div></div>
@@ -2674,7 +2690,7 @@ async function carregarLegalizacoes() {
           var jn = d.jornada_nome || 'Jornada de Legalizacao';
           if (!jornadas[jn]) jornadas[jn] = { total:0, aprovados:0, ultima:'' };
           jornadas[jn].total++;
-          if (d.status === 'aprovado') jornadas[jn].aprovados++;
+          if (d.status === 'aprovado' || d.status === 'nao_se_aplica') jornadas[jn].aprovados++;
           var dt = d.avaliado_em || d.criado_em || '';
           if (dt > jornadas[jn].ultima) jornadas[jn].ultima = dt;
         });
@@ -4037,20 +4053,32 @@ function reativarSIM() {
 // ===DOCUMENTOS DA EMPRESA (Fase B)===
 // ===JORNADA DE LEGALIZACAO (aplicar jornada do admin a empresa)===
 var jornadaSelId = null;
+var jornadasCache = [];
+var preselecaoAtual = [];
+
 async function abrirModalJornada() {
   var perm = ehPerfil();
-  if (!perm.fiscal) { alert('Apenas o fiscal pode adicionar Jornada de Legalizacao.'); return; }
-  // Fiscal so atua no proprio municipio
-  if (usr.p !== 'Admin Sistema' && usr.municipio_nome && empresaAtual && empresaAtual.municipio && usr.municipio_nome !== empresaAtual.municipio) {
+  if (!perm.fiscal && !perm.admin) { alert('Apenas Fiscal ou Admin Sistema podem adicionar Jornada de Legalizacao.'); return; }
+  // Fiscal so atua no proprio municipio (Admin ve todos)
+  if (usr.p === 'Fiscal' && usr.municipio_nome && empresaAtual && empresaAtual.municipio && usr.municipio_nome !== empresaAtual.municipio) {
     alert('Voce so pode atuar em empresas do seu municipio (' + usr.municipio_nome + ').');
     return;
   }
   jornadaSelId = null;
+  preselecaoAtual = [];
+  document.getElementById('addproc-titulo').textContent = 'Adicionar Jornada de Legalizacao';
+  document.getElementById('addproc-passo1').style.display = 'block';
+  document.getElementById('addproc-passo2').style.display = 'none';
+  document.getElementById('addproc-btn-cancelar').style.display = '';
+  document.getElementById('addproc-btn-voltar').style.display = 'none';
+  document.getElementById('addproc-btn-avancar').style.display = '';
+  document.getElementById('addproc-btn-confirmar').style.display = 'none';
   var lista = document.getElementById('cert-lista');
   if (lista) lista.innerHTML = '<div style="text-align:center;color:var(--k5);padding:20px;font-size:13px">Carregando jornadas...</div>';
   sm('m-addproc');
   try {
     var jornadas = await supaGet('jornadas_produtor', 'select=*&order=criado_em.desc');
+    jornadasCache = jornadas || [];
     if (!jornadas || jornadas.length === 0) {
       lista.innerHTML = '<div style="text-align:center;color:var(--k5);padding:20px;font-size:13px">Nenhuma Jornada de Legalizacao criada ainda. O administrador cria em "Jornada do Produtor".</div>';
       return;
@@ -4075,18 +4103,78 @@ async function abrirModalJornada() {
   }
 }
 
+function avancarPreselecaoJornada() {
+  if (!jornadaSelId) { alert('Selecione uma Jornada de Legalizacao!'); return; }
+  var jornada = jornadasCache.find(function(j){ return j.id === jornadaSelId; });
+  if (!jornada) { alert('Jornada nao encontrada.'); return; }
+  var docs = jornada.documentos || [];
+  if (docs.length === 0) { alert('Esta jornada nao tem documentos.'); return; }
+
+  preselecaoAtual = docs.map(function(d) {
+    return { nome: d.nome, desc: d.desc || '', val: !!d.val, aplica: true };
+  });
+
+  renderPreselecaoLista();
+
+  document.getElementById('addproc-titulo').textContent = 'Documentos exigidos do Produtor — ' + jornada.nome;
+  document.getElementById('addproc-passo1').style.display = 'none';
+  document.getElementById('addproc-passo2').style.display = 'block';
+  document.getElementById('addproc-btn-cancelar').style.display = 'none';
+  document.getElementById('addproc-btn-voltar').style.display = '';
+  document.getElementById('addproc-btn-avancar').style.display = 'none';
+  document.getElementById('addproc-btn-confirmar').style.display = '';
+}
+
+function voltarPassoJornada() {
+  document.getElementById('addproc-titulo').textContent = 'Adicionar Jornada de Legalizacao';
+  document.getElementById('addproc-passo1').style.display = 'block';
+  document.getElementById('addproc-passo2').style.display = 'none';
+  document.getElementById('addproc-btn-cancelar').style.display = '';
+  document.getElementById('addproc-btn-voltar').style.display = 'none';
+  document.getElementById('addproc-btn-avancar').style.display = '';
+  document.getElementById('addproc-btn-confirmar').style.display = 'none';
+}
+
+function renderPreselecaoLista() {
+  var box = document.getElementById('preselecao-lista');
+  if (!box) return;
+  box.innerHTML = preselecaoAtual.map(function(d, i) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #f4f4f4">' +
+      '<div style="flex:1"><div style="font-size:13px;font-weight:700">' + d.nome + '</div>' +
+      (d.desc ? '<div style="font-size:11px;color:var(--k5)">' + d.desc + '</div>' : '') + '</div>' +
+      '<div style="display:flex;gap:6px">' +
+        '<button class="btn bsm" style="min-width:90px;' + (d.aplica ? 'background:#276344;color:#fff' : 'border:1px solid var(--k3)') + '" onclick="setPreselecao(' + i + ',true)">Aplica</button>' +
+        '<button class="btn bsm" style="min-width:120px;' + (!d.aplica ? 'background:var(--k5);color:#fff' : 'border:1px solid var(--k3)') + '" onclick="setPreselecao(' + i + ',false)">Nao se aplica</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function setPreselecao(idx, aplica) {
+  if (!preselecaoAtual[idx]) return;
+  preselecaoAtual[idx].aplica = aplica;
+  renderPreselecaoLista();
+}
+
+function marcarTodosPreselecao(valor) {
+  var aplica = valor === 'aplica';
+  preselecaoAtual.forEach(function(d){ d.aplica = aplica; });
+  renderPreselecaoLista();
+}
+
 async function aplicarJornadaEmpresa() {
   if (!jornadaSelId) { alert('Selecione uma Jornada de Legalizacao!'); return; }
   if (!empresaAtual || !empresaAtual.id) { alert('Empresa nao identificada.'); return; }
+  if (!preselecaoAtual || preselecaoAtual.length === 0) { alert('Nenhum documento pre-selecionado.'); return; }
   try {
-    var jornadas = await supaGet('jornadas_produtor', 'select=*&id=eq.' + jornadaSelId);
-    if (!jornadas || !jornadas.length) { alert('Jornada nao encontrada.'); return; }
-    var jornada = jornadas[0];
-    var docs = jornada.documentos || [];
-    if (docs.length === 0) { alert('Esta jornada nao tem documentos.'); return; }
-    // Criar um registro de documento (pendente, sem PDF ainda) para cada documento da jornada
+    var jornada = jornadasCache.find(function(j){ return j.id === jornadaSelId; });
+    if (!jornada) { alert('Jornada nao encontrada.'); return; }
+    var docs = preselecaoAtual;
+    var qtdNap = 0, qtdAplica = 0;
+    // Criar um registro de documento para cada documento pre-selecionado
     for (var i = 0; i < docs.length; i++) {
       var d = docs[i];
+      if (d.aplica) { qtdAplica++; } else { qtdNap++; }
       await supaInsert('documentos_empresa', {
         agroindustria_id: empresaAtual.id,
         agroindustria_nome: empresaAtual.nome,
@@ -4096,7 +4184,7 @@ async function aplicarJornadaEmpresa() {
         doc_descricao: d.desc || '',
         tem_validade: !!d.val,
         data_validade: null,
-        status: 'enviado',
+        status: d.aplica ? 'enviado' : 'nao_se_aplica',
         ativo: true,
         municipio_nome: empresaAtual.municipio || '',
         criado_por: (usr.n || '') + ' (' + (usr.p || '')+ ')',
@@ -4106,7 +4194,7 @@ async function aplicarJornadaEmpresa() {
     hm('m-addproc');
     carregarDocumentosEmpresa();
     carregarDashboard();
-    alert('Jornada "' + jornada.nome + '" aplicada! ' + docs.length + ' documento(s) adicionado(s). Agora anexe os PDFs.');
+    alert('Jornada "' + jornada.nome + '" aplicada! ' + qtdAplica + ' documento(s) para envio, ' + qtdNap + ' marcado(s) como Nao se aplica.');
   } catch(e) {
     console.log('Erro ao aplicar jornada:', e);
     alert('Erro ao aplicar a jornada.');
@@ -4247,9 +4335,10 @@ function renderCarrossel() {
     var corBorda, corFundo;
     if (d.status === 'aprovado') { corBorda = '#16a34a'; corFundo = sel ? '#f0fdf4' : 'var(--white)'; }
     else if (d.status === 'reprovado') { corBorda = '#dc2626'; corFundo = sel ? '#fef2f2' : 'var(--white)'; }
+    else if (d.status === 'nao_se_aplica') { corBorda = '#9ca3af'; corFundo = sel ? '#f9fafb' : 'var(--white)'; }
     else { corBorda = '#eab308'; corFundo = sel ? '#fefce8' : 'var(--white)'; }
     var larguraBorda = sel ? '3px' : '2px';
-    var stIcon = d.status === 'aprovado' ? '&#9989; ' : (d.status === 'reprovado' ? '&#10060; ' : '');
+    var stIcon = d.status === 'aprovado' ? '&#9989; ' : (d.status === 'reprovado' ? '&#10060; ' : (d.status === 'nao_se_aplica' ? '&#8212; ' : ''));
     h += '<div onclick="selecionarDoc(' + i + ')" style="min-width:200px;max-width:200px;cursor:pointer;border:' + larguraBorda + ' solid ' + corBorda + ';border-radius:10px;padding:14px;background:' + corFundo + '">' +
       '<div style="font-weight:700;font-size:13px;color:var(--g7)">' + stIcon + d.doc_tipo + '</div>' +
       (d.arquivo_nome ? '<div style="font-size:11px;color:var(--k5);margin-top:6px">&#128206; ' + d.arquivo_nome + '</div>' : '<div style="font-size:11px;color:var(--k5);margin-top:6px">Sem arquivo</div>') +
@@ -4273,7 +4362,8 @@ function renderAreaDoc() {
   var perm = ehPerfil();
   var stBadge = d.status === 'aprovado' ? '<span class="bdg bgr">Documento Aprovado</span>'
     : (d.status === 'reprovado' ? '<span class="bdg" style="background:#fee;color:var(--rd)">Documento Reprovado</span>'
-    : '<span class="bdg byw">Aguardando avaliacao</span>');
+    : (d.status === 'nao_se_aplica' ? '<span class="bdg" style="background:#f3f4f6;color:#6b7280">Nao se Aplica</span>'
+    : '<span class="bdg byw">Aguardando avaliacao</span>'));
   // botoes avaliacao - so fiscal
   var btnsAval = '';
   if (perm.fiscal) {
@@ -4281,6 +4371,7 @@ function renderAreaDoc() {
       '<span style="font-size:11px;color:var(--k5);text-transform:uppercase">Status Etapa</span>' +
       '<button class="btn bg" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'aprovado\')">Aprovar</button>' +
       '<button class="btn bo" style="color:var(--rd);border-color:var(--rd)" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'reprovado\')">Reprovar</button>' +
+      '<button class="btn bo" style="color:#6b7280;border-color:#d1d5db" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'nao_se_aplica\')">Nao se Aplica</button>' +
       '</div>';
   }
   // validade
@@ -4302,7 +4393,7 @@ function renderAreaDoc() {
       '<span style="font-size:11px;color:var(--k5)">Limite: 1 arquivo PDF</span></div>';
   }
   // rastreabilidade
-  var rastro = d.avaliado_por ? ('<div style="font-size:11px;color:var(--k5);margin-top:6px">' + (d.status === 'aprovado' ? 'Aprovado' : 'Reprovado') + ' por: ' + d.avaliado_por + (d.avaliado_em ? ' em ' + new Date(d.avaliado_em).toLocaleString('pt-BR') : '') + '</div>') : '';
+  var rastro = d.avaliado_por ? ('<div style="font-size:11px;color:var(--k5);margin-top:6px">' + (d.status === 'aprovado' ? 'Aprovado' : (d.status === 'reprovado' ? 'Reprovado' : 'Marcado como Nao se Aplica')) + ' por: ' + d.avaliado_por + (d.avaliado_em ? ' em ' + new Date(d.avaliado_em).toLocaleString('pt-BR') : '') + '</div>') : '';
   // visualizador PDF
   var viewer = '';
   if (d.arquivo_url) {
@@ -4473,7 +4564,7 @@ async function avaliarDocEmpresa(id, novoStatus) {
     alert('Voce so pode avaliar documentos de empresas do seu municipio (' + usr.municipio_nome + ').');
     return;
   }
-  var label = novoStatus === 'aprovado' ? 'APROVAR' : 'REPROVAR';
+  var label = novoStatus === 'aprovado' ? 'APROVAR' : (novoStatus === 'reprovado' ? 'REPROVAR' : 'MARCAR COMO NAO SE APLICA');
   if (!confirm('Confirma ' + label + ' este documento?')) return;
   try {
     // Buscar dados do documento (para saber se tem PDF a carimbar)
@@ -4983,7 +5074,7 @@ async function carregarDashboard() {
     var vencendo = [];
     var aprovados = 0;
     docsEmpresa.forEach(function(d) {
-      if (d.status === 'aprovado') aprovados++;
+      if (d.status === 'aprovado' || d.status === 'nao_se_aplica') aprovados++;
       if (d.tem_validade && d.data_validade) {
         var dt = new Date(d.data_validade + 'T00:00:00');
         var dias = Math.ceil((dt - hoje) / 86400000);
