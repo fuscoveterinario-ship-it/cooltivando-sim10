@@ -4284,8 +4284,11 @@ function renderListaJornadas() {
     '<div>Jornada</div><div>Status</div><div>Ultima alteracao</div><div style="text-align:right">Entrar</div></div>';
   nomes.forEach(function(jn) {
     var ds = grupos[jn];
+    if (perm.produtor || perm.rt) {
+      ds = ds.filter(function(x){ return x.status !== 'nao_se_aplica'; });
+    }
     var total = ds.length;
-    var aprov = ds.filter(function(x){return x.status==='aprovado';}).length;
+    var aprov = ds.filter(function(x){ return x.status === 'aprovado' || x.status === 'nao_se_aplica'; }).length;
     var reprov = ds.filter(function(x){return x.status==='reprovado';}).length;
     // status agregado
     var stBadge;
@@ -4321,9 +4324,16 @@ function voltarListaJornadas() {
 }
 
 function docsDaJornadaAberta() {
-  return docsEmpresaCache.filter(function(d) {
+  var docs = docsEmpresaCache.filter(function(d) {
     return (d.jornada_nome || 'Documentos avulsos') === jornadaAbertaNome;
   });
+  // Produtor e RT nao veem os documentos marcados como "Nao se aplica" pelo fiscal/admin
+  // (evita confusao na hora de preencher). Fiscal e Admin continuam vendo todos.
+  var perm = ehPerfil();
+  if (perm.produtor || perm.rt) {
+    docs = docs.filter(function(d){ return d.status !== 'nao_se_aplica'; });
+  }
+  return docs;
 }
 
 function renderJornadaAberta() {
