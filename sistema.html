@@ -4451,13 +4451,13 @@ function renderAreaDoc() {
     var txt = dias < 0 ? ('Vencido ha ' + Math.abs(dias) + ' dias') : ('Vence em ' + dias + ' dias');
     vencHtml = '<div style="font-size:12px;color:' + cor + ';margin-top:4px">Validade: ' + dt.toLocaleDateString('pt-BR') + ' (' + txt + ')</div>';
   }
-  // upload (admin/fiscal/produtor)
+  // upload (admin/fiscal/produtor) - oculto quando o documento foi marcado como "Nao se Aplica"
   var uploadHtml = '';
-  if (perm.admin || perm.fiscal || perm.produtor || perm.rt) {
+  if (d.status !== 'nao_se_aplica' && (perm.admin || perm.fiscal || perm.produtor || perm.rt)) {
     uploadHtml = '<div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
       '<input type="file" id="doc-upload-file" accept="application/pdf" class="fi" style="max-width:340px">' +
       '<button class="btn bg" onclick="enviarPdfDocSelecionado(\'' + d.id + '\')">Enviar</button>' +
-      '<span style="font-size:11px;color:var(--k5)">Limite: 1 arquivo PDF</span></div>';
+      '<span style="font-size:11px;color:var(--k5)">Voce pode enviar mais de um arquivo PDF</span></div>';
   }
   // rastreabilidade
   var rastro = d.avaliado_por ? ('<div style="font-size:11px;color:var(--k5);margin-top:6px">' + (d.status === 'aprovado' ? 'Aprovado' : (d.status === 'reprovado' ? 'Reprovado' : 'Marcado como Nao se Aplica')) + ' por: ' + d.avaliado_por + (d.avaliado_em ? ' em ' + new Date(d.avaliado_em).toLocaleString('pt-BR') : '') + '</div>') : '';
@@ -4484,13 +4484,25 @@ function renderAreaDoc() {
   } else {
     viewer = '<div style="margin-top:18px;text-align:center;color:var(--k5);padding:30px;background:var(--g0);border-radius:8px;font-size:13px">Nenhum arquivo PDF enviado para este documento ainda.</div>';
   }
+  // arquivos adicionais (mais de 1 PDF por documento)
+  var extrasHtml = '';
+  var extras = d.arquivos_extra || [];
+  if (extras.length > 0) {
+    extrasHtml = '<div style="margin-top:14px"><div style="font-size:11px;color:var(--k5);text-transform:uppercase;margin-bottom:6px">Arquivos adicionais (' + extras.length + ')</div>' +
+      extras.map(function(a, i) {
+        return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border:1px solid var(--g2);border-radius:8px;margin-bottom:6px">' +
+          '<span style="font-size:12px;word-break:break-word">&#128206; ' + (a.nome || 'documento.pdf') + '</span>' +
+          '<a class="btn bo bsm" href="' + a.url + '" target="_blank" rel="noopener">Abrir</a>' +
+          '</div>';
+      }).join('') + '</div>';
+  }
   el.innerHTML = '<div class="cd" style="padding:20px 22px;max-width:100%;width:100%;box-sizing:border-box;overflow:hidden">' +
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;width:100%;box-sizing:border-box">' +
     '<div style="flex:1;min-width:240px;max-width:100%"><h3 style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800;word-break:break-word">' + d.doc_tipo + '</h3>' +
     '<div style="font-size:13px;color:var(--k5);word-break:break-word">' + (d.doc_descricao || '') + '</div>' +
     '<div style="margin-top:8px">' + stBadge + '</div>' + vencHtml + rastro + btnExcluirDoc + '</div>' +
     btnsAval + '</div>' +
-    uploadHtml + viewer + '</div>';
+    uploadHtml + viewer + extrasHtml + '</div>';
 }
 
 async function enviarPdfDocSelecionado(docId) {
@@ -4510,9 +4522,18 @@ async function enviarPdfDocSelecionado(docId) {
     });
     if (!up.ok) { var t = await up.text(); throw new Error('Storage: ' + t); }
     var urlArquivo = SUPA_URL + '/storage/v1/object/public/sim-docs/' + caminho;
-    await supaUpdate('documentos_empresa', docId, {
-      arquivo_nome: file.name, arquivo_caminho: caminho, arquivo_url: urlArquivo, status: 'enviado'
-    });
+    var docAtual = docsEmpresaCache.find(function(x){ return x.id === docId; });
+    if (docAtual && docAtual.arquivo_url) {
+      // ja existe um arquivo principal: acumula este como arquivo adicional, sem sobrescrever
+      var extras = (docAtual.arquivos_extra || []).slice();
+      extras.push({ nome: file.name, caminho: caminho, url: urlArquivo, enviado_em: new Date().toISOString() });
+      await supaUpdate('documentos_empresa', docId, { arquivos_extra: extras, status: 'enviado' });
+    } else {
+      await supaUpdate('documentos_empresa', docId, {
+        arquivo_nome: file.name, arquivo_caminho: caminho, arquivo_url: urlArquivo, status: 'enviado'
+      });
+    }
+    if (fileInput) fileInput.value = '';
     recarregarManterJornada();
   } catch(e) { console.log('Erro ao enviar PDF:', e); alert('Erro ao enviar o arquivo.'); }
 }
