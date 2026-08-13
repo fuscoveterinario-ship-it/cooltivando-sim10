@@ -4370,7 +4370,7 @@ async function adicionarDocAvulso() {
       municipio_nome: empresaAtual.municipio || null,
       jornada_nome: jornadaAbertaNome,
       doc_tipo: nome,
-      status: 'pendente',
+      status: 'enviado',
       criado_em: new Date().toISOString(),
       criado_por: (usr && (usr.n || usr.u)) || null
     };
