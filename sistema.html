@@ -2238,6 +2238,7 @@ function editarDocSeloArte(id) {
 }
 
 async function removerDocSeloArte(id) {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o Admin Sistema (Cooltivando/Biotec) pode excluir documentos.'); return; }
   var d = docsSeloArteBase.find(function(x){ return x.id === id; });
   if (!d) return;
   if (!confirm('Excluir o documento "' + d.nome + '" do catalogo Selo Arte? Esta acao nao pode ser desfeita.')) return;
@@ -4340,13 +4341,48 @@ function renderJornadaAberta() {
   var cont = document.getElementById('proc-lista');
   if (!cont) return;
   var perm = ehPerfil();
-  cont.innerHTML = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">' +
+  var btnAddDoc = '';
+  if (perm.admin || perm.fiscal || perm.produtor || perm.rt) {
+    btnAddDoc = '<button class="btn bo bsm" onclick="adicionarDocAvulso()">&#10133; Adicionar documento</button>';
+  }
+  cont.innerHTML = '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">' +
     '<button class="btn bo bsm" onclick="voltarListaJornadas()">&#8592; Voltar</button>' +
     '<h3 style="font-family:Nunito,sans-serif;font-size:16px;font-weight:800;margin:0">' + jornadaAbertaNome + '</h3>' +
+    '<div style="margin-left:auto">' + btnAddDoc + '</div>' +
     '</div>' +
     '<div id="jl-carrossel" style="width:0;min-width:100%;max-width:100%;overflow:hidden"></div><div id="jl-area" style="width:0;min-width:100%;max-width:100%;overflow:hidden"></div>';
   renderCarrossel();
   renderAreaDoc();
+}
+
+async function adicionarDocAvulso() {
+  var perm = ehPerfil();
+  if (!(perm.admin || perm.fiscal || perm.produtor || perm.rt)) { alert('Voce nao tem permissao para adicionar documentos.'); return; }
+  if (!empresaAtual || !jornadaAbertaNome) return;
+  var nome = prompt('Nome do novo documento:');
+  if (!nome) return;
+  nome = nome.trim();
+  if (!nome) return;
+  try {
+    var novo = {
+      agroindustria_id: empresaAtual.id,
+      agroindustria_nome: empresaAtual.nome,
+      municipio_nome: empresaAtual.municipio || null,
+      jornada_nome: jornadaAbertaNome,
+      doc_tipo: nome,
+      status: 'pendente',
+      criado_em: new Date().toISOString(),
+      criado_por: (usr && (usr.n || usr.u)) || null
+    };
+    await supaInsert('documentos_empresa', novo);
+    await recarregarManterJornada();
+    docSelecionadoIdx = docsDaJornadaAberta().length - 1;
+    renderCarrossel();
+    renderAreaDoc();
+  } catch(e) {
+    console.log('Erro ao adicionar documento avulso:', e);
+    alert('Erro ao adicionar documento. Verifique a conexao.');
+  }
 }
 
 function renderCarrossel() {
@@ -4400,6 +4436,11 @@ function renderAreaDoc() {
       '<button class="btn bo" style="color:#6b7280;border-color:#d1d5db" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'nao_se_aplica\')">Nao se Aplica</button>' +
       '</div>';
   }
+  // exclusao do documento - exclusiva Admin Sistema
+  var btnExcluirDoc = '';
+  if (usr && usr.p === 'Admin Sistema') {
+    btnExcluirDoc = '<button class="btn bo bsm" style="color:var(--rd);border-color:var(--rd);margin-top:8px" onclick="excluirDocEmpresa(\'' + d.id + '\')">&#128465; Excluir documento</button>';
+  }
   // validade
   var vencHtml = '';
   if (d.tem_validade && d.data_validade) {
@@ -4447,7 +4488,7 @@ function renderAreaDoc() {
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;width:100%;box-sizing:border-box">' +
     '<div style="flex:1;min-width:240px;max-width:100%"><h3 style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800;word-break:break-word">' + d.doc_tipo + '</h3>' +
     '<div style="font-size:13px;color:var(--k5);word-break:break-word">' + (d.doc_descricao || '') + '</div>' +
-    '<div style="margin-top:8px">' + stBadge + '</div>' + vencHtml + rastro + '</div>' +
+    '<div style="margin-top:8px">' + stBadge + '</div>' + vencHtml + rastro + btnExcluirDoc + '</div>' +
     btnsAval + '</div>' +
     uploadHtml + viewer + '</div>';
 }
@@ -4630,8 +4671,7 @@ async function avaliarDocEmpresa(id, novoStatus) {
 }
 
 async function excluirDocEmpresa(id) {
-  var perm = ehPerfil();
-  if (!perm.fiscal) { alert('Apenas o fiscal pode excluir documentos.'); return; }
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o Admin Sistema (Cooltivando/Biotec) pode excluir documentos.'); return; }
   if (!confirm('Excluir este documento? Esta acao nao pode ser desfeita.')) return;
   try {
     await supaDelete('documentos_empresa', id);
@@ -4987,7 +5027,7 @@ function renderDocsTbl() {
       '<td><span class="bdg '+(doc.val?'byw':'bgy')+'">'+(doc.val?'Sim':'Nao')+'</span></td>'+
       '<td>'+(doc.val?doc.prazo:'--')+'</td>'+
       '<td>'+(doc.val?doc.alerta:'--')+'</td>'+
-      '<td><button class="btn bo bsm" onclick="editDoc('+i+')">Editar</button> <button class="btn bo bsm" style="color:var(--rd);border-color:var(--rd)" onclick="removerDoc('+i+')">Excluir</button></td>';
+      '<td><button class="btn bo bsm" onclick="editDoc('+i+')">Editar</button>' + ((usr && usr.p === 'Admin Sistema') ? ' <button class="btn bo bsm" style="color:var(--rd);border-color:var(--rd)" onclick="removerDoc('+i+')">Excluir</button>' : '') + '</td>';
     tb.appendChild(tr);
   });
 }
@@ -4999,6 +5039,7 @@ function tvld() {
 }
 
 async function removerDoc(i) {
+  if (!usr || usr.p !== 'Admin Sistema') { alert('Apenas o Admin Sistema (Cooltivando/Biotec) pode excluir documentos.'); return; }
   var d = docsBase[i];
   if (!d) return;
   if (!confirm('Excluir o documento "' + d.nome + '" do catalogo? Esta acao nao pode ser desfeita.')) return;
