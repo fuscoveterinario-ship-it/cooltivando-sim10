@@ -1173,6 +1173,9 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 </div></div>
 <div class="mo" id="m-anexar" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Anexar Documento</h3><button class="mc" onclick="hm('m-anexar')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Jornada de Legalizacao <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-jornada" onchange="carregarDocsDaJornada()"><option value="">Selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Documento <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-tipo" onchange="toggleValidadeAnexar()"><option value="">Primeiro selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Arquivo PDF <span style="color:var(--rd)">*</span></label><input class="fi" type="file" id="anexar-file" accept="application/pdf"></div><div class="fm1" id="anexar-validade-box" style="display:none"><label class="fl">Data de validade <span style="color:var(--rd)">*</span></label><input class="fi" type="date" id="anexar-validade"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-anexar')">Cancelar</button><button class="btn bg" id="btn-anexar-salvar" onclick="anexarDocumentoEmpresa()">Anexar documento</button></div></div></div>
 
+<!-- MODAL APROVAR DOCUMENTO DE LEGALIZACAO (pergunta prazo de validade) - nivel global -->
+<div class="mo" id="m-aprovar-doc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Aprovar documento</h3><button class="mc" onclick="hm('m-aprovar-doc')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Este documento tem prazo de validade?</label><div style="display:flex;gap:20px;margin-top:8px"><label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer"><input type="radio" name="adoc-temval" value="sim" onclick="toggleAprovarValidade()"> Sim</label><label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer"><input type="radio" name="adoc-temval" value="nao" checked onclick="toggleAprovarValidade()"> Nao</label></div></div><div class="fm1" id="adoc-validade-box" style="display:none"><label class="fl">Data de vencimento <span style="color:var(--rd)">*</span></label><input class="fi" type="date" id="adoc-validade"><div style="font-size:11px;color:var(--k5);margin-top:6px">30 dias antes do vencimento, um e-mail sera enviado automaticamente ao estabelecimento e ao fiscal.</div></div></div><input type="hidden" id="adoc-doc-id"><div class="fact"><button class="btn bo" onclick="hm('m-aprovar-doc')">Cancelar</button><button class="btn bg" id="btn-aprovar-doc" onclick="confirmarAprovarDocEmpresa()">Aprovar</button></div></div></div>
+
 <!-- MODAL REPROVAR DOCUMENTO DE LEGALIZACAO (agroindustria) - nivel global -->
 <div class="mo" id="m-reprovar-doc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Reprovar documento</h3><button class="mc" onclick="hm('m-reprovar-doc')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Motivo da reprovacao <span style="color:var(--rd)">*</span></label><textarea class="fi" id="rdoc-motivo" rows="4" placeholder="Descreva o que esta incorreto ou faltando e o que o estabelecimento precisa corrigir..."></textarea><div style="font-size:11px;color:var(--k5);margin-top:6px">Este motivo sera registrado no documento e enviado por e-mail ao estabelecimento e ao fiscal.</div></div></div><input type="hidden" id="rdoc-doc-id"><div class="fact"><button class="btn bo" onclick="hm('m-reprovar-doc')">Cancelar</button><button class="btn bsm" id="btn-reprovar-doc" style="background:#ef4444;color:#fff;font-weight:700" onclick="confirmarReprovarDocEmpresa()">Reprovar e notificar</button></div></div></div>
 <div class="mo" id="m-editprod" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Editar Produtor</h3><button class="mc" onclick="hm('m-editprod')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Nome</label><input class="fi" id="editprod-nome" type="text"></div><div class="fm1"><label class="fl">CPF</label><input class="fi" id="editprod-cpf" type="text"></div><div class="fm1"><label class="fl">Municipio</label><select class="fi" id="editprod-municipio"></select></div></div><div class="fact"><button class="btn bo" onclick="hm('m-editprod')">Cancelar</button><button class="btn bg" id="btn-editprod-salvar" onclick="salvarEditarProdutor()">Salvar alteracoes</button></div></div></div>
@@ -4440,7 +4443,7 @@ function renderAreaDoc() {
   if (perm.fiscal) {
     btnsAval = '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">' +
       '<span style="font-size:11px;color:var(--k5);text-transform:uppercase">Status Etapa</span>' +
-      '<button class="btn bg" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'aprovado\')">Aprovar</button>' +
+      '<button class="btn bg" onclick="abrirAprovarDocEmpresa(\'' + d.id + '\')">Aprovar</button>' +
       '<button class="btn bo" style="color:var(--rd);border-color:var(--rd)" onclick="abrirReprovarDocEmpresa(\'' + d.id + '\')">Reprovar</button>' +
       '<button class="btn bo" style="color:#6b7280;border-color:#d1d5db" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'nao_se_aplica\')">Nao se Aplica</button>' +
       '</div>';
@@ -4688,20 +4691,60 @@ async function confirmarReprovarDocEmpresa() {
   }
 }
 
-async function avaliarDocEmpresa(id, novoStatus, motivo) {
+// Abre o modal de aprovacao (pergunta sobre prazo de validade)
+function abrirAprovarDocEmpresa(id) {
+  var perm = ehPerfil();
+  if (!perm.fiscal) { alert('Apenas o fiscal pode aprovar.'); return; }
+  var hid = document.getElementById('adoc-doc-id'); if (hid) hid.value = id;
+  var doc = (docsEmpresaCache || []).find(function(x){ return x.id === id; }) || {};
+  var temVal = !!doc.tem_validade;
+  var radios = document.getElementsByName('adoc-temval');
+  for (var i = 0; i < radios.length; i++) { radios[i].checked = (radios[i].value === (temVal ? 'sim' : 'nao')); }
+  var dv = document.getElementById('adoc-validade'); if (dv) dv.value = doc.data_validade || '';
+  toggleAprovarValidade();
+  sm('m-aprovar-doc');
+}
+
+// Mostra/oculta o campo de data conforme "tem validade?"
+function toggleAprovarValidade() {
+  var sim = document.querySelector('input[name="adoc-temval"]:checked');
+  var box = document.getElementById('adoc-validade-box');
+  if (box) box.style.display = (sim && sim.value === 'sim') ? 'block' : 'none';
+}
+
+// Confirma a aprovacao (com ou sem prazo de validade)
+async function confirmarAprovarDocEmpresa() {
+  var id = (document.getElementById('adoc-doc-id') || {}).value;
+  if (!id) { alert('Documento nao identificado.'); return; }
+  var sim = document.querySelector('input[name="adoc-temval"]:checked');
+  var temVal = !!(sim && sim.value === 'sim');
+  var data = temVal ? ((document.getElementById('adoc-validade') || {}).value || '') : '';
+  if (temVal && !data) { alert('Informe a data de vencimento.'); var d = document.getElementById('adoc-validade'); if (d) d.focus(); return; }
+  var btn = document.getElementById('btn-aprovar-doc');
+  if (btn) { btn.disabled = true; btn.textContent = 'Aprovando...'; }
+  try {
+    await avaliarDocEmpresa(id, 'aprovado', null, { tem: temVal, data: data || null });
+    hm('m-aprovar-doc');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Aprovar'; }
+  }
+}
+
+async function avaliarDocEmpresa(id, novoStatus, motivo, validade) {
   var perm = ehPerfil();
   if (!perm.fiscal) { alert('Apenas o fiscal pode aprovar ou reprovar.'); return; }
   if (usr.p !== 'Admin Sistema' && usr.municipio_nome && empresaAtual && empresaAtual.municipio && usr.municipio_nome !== empresaAtual.municipio) {
     alert('Voce so pode avaliar documentos de empresas do seu municipio (' + usr.municipio_nome + ').');
     return;
   }
-  // Reprovacao passa pelo modal de motivo (abrirReprovarDocEmpresa) e nao usa o confirm generico
+  // Reprovacao e Aprovacao passam por modal proprio; Nao se Aplica usa o confirm generico
   if (novoStatus === 'reprovado') {
     motivo = (motivo || '').trim();
     if (!motivo) { alert('Descreva o motivo da reprovacao.'); return; }
+  } else if (novoStatus === 'aprovado') {
+    // modal de aprovacao (abrirAprovarDocEmpresa) ja confirmou e coletou a validade
   } else {
-    var label = novoStatus === 'aprovado' ? 'APROVAR' : 'MARCAR COMO NAO SE APLICA';
-    if (!confirm('Confirma ' + label + ' este documento?')) return;
+    if (!confirm('Confirma MARCAR COMO NAO SE APLICA este documento?')) return;
   }
   try {
     // Buscar dados do documento (para saber se tem PDF a carimbar)
@@ -4709,12 +4752,18 @@ async function avaliarDocEmpresa(id, novoStatus, motivo) {
     var temPdf = docInfo && docInfo.length > 0 && docInfo[0].arquivo_caminho;
 
     var assinaturaFiscal = (usr.n || '') + (usr.crmv ? ' - ' + usr.crmv : '');
-    await supaUpdate('documentos_empresa', id, {
+    var patchAval = {
       status: novoStatus,
       avaliado_por: assinaturaFiscal,
       avaliado_em: new Date().toISOString(),
       parecer_fiscal: novoStatus === 'reprovado' ? motivo : null
-    });
+    };
+    // Aprovacao com prazo de validade: grava a data de vencimento no documento
+    if (novoStatus === 'aprovado' && validade) {
+      patchAval.tem_validade = !!validade.tem;
+      patchAval.data_validade = validade.tem ? (validade.data || null) : null;
+    }
+    await supaUpdate('documentos_empresa', id, patchAval);
 
     // Reprovacao: notificar estabelecimento (produtor) e fiscal por e-mail
     if (novoStatus === 'reprovado') {
@@ -4733,6 +4782,24 @@ async function avaliarDocEmpresa(id, novoStatus, motivo) {
         if (!rnj || !rnj.ok) { console.log('Notificacao de reprovacao nao enviada:', rnj && (rnj.erro || rnj.erros)); }
       } catch (errNot) {
         console.log('Erro ao notificar reprovacao (a avaliacao foi salva mesmo assim):', errNot);
+      }
+    }
+
+    // Aprovacao: notificar o estabelecimento (produtor) por e-mail
+    if (novoStatus === 'aprovado') {
+      try {
+        var respA = await fetch(SUPA_URL + '/functions/v1/notificar-aprovacao', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+          body: JSON.stringify({
+            documento_id: id,
+            fiscal_nome: assinaturaFiscal
+          })
+        });
+        var raj = await respA.json().catch(function(){ return null; });
+        if (!raj || !raj.ok) { console.log('Notificacao de aprovacao nao enviada:', raj && raj.erro); }
+      } catch (errApr) {
+        console.log('Erro ao notificar aprovacao (a avaliacao foi salva mesmo assim):', errApr);
       }
     }
 
