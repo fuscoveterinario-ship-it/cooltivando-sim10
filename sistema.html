@@ -864,6 +864,25 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       </div>
     </div>
 
+    <!-- MODAL REPROVAR DOCUMENTO DE LEGALIZACAO (agroindustria) -->
+    <div class="mo" id="m-reprovar-doc" onclick="cm(event,this)">
+      <div class="mb">
+        <div class="mh"><h3>Reprovar documento</h3><button class="mc" onclick="hm('m-reprovar-doc')">x</button></div>
+        <div class="fm">
+          <div class="fm1">
+            <label class="fl">Motivo da reprovacao <span style="color:var(--rd)">*</span></label>
+            <textarea class="fi" id="rdoc-motivo" rows="4" placeholder="Descreva o que esta incorreto ou faltando e o que o estabelecimento precisa corrigir..."></textarea>
+            <div style="font-size:11px;color:var(--k5);margin-top:6px">Este motivo sera registrado no documento e enviado por e-mail ao estabelecimento e ao fiscal.</div>
+          </div>
+        </div>
+        <input type="hidden" id="rdoc-doc-id">
+        <div class="fact">
+          <button class="btn bo" onclick="hm('m-reprovar-doc')">Cancelar</button>
+          <button class="btn bsm" id="btn-reprovar-doc" style="background:#ef4444;color:#fff;font-weight:700" onclick="confirmarReprovarDocEmpresa()">Reprovar e notificar</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Tab Checklist -->
     <div class="tab-c" id="sa-tab-insp">
       <div class="cd" style="padding:20px">
@@ -4217,6 +4236,12 @@ async function aplicarJornadaEmpresa() {
   }
 }
 
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function ehPerfil() {
   var p = (usr && usr.p) ? usr.p : '';
   return {
@@ -4432,7 +4457,7 @@ function renderAreaDoc() {
     btnsAval = '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">' +
       '<span style="font-size:11px;color:var(--k5);text-transform:uppercase">Status Etapa</span>' +
       '<button class="btn bg" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'aprovado\')">Aprovar</button>' +
-      '<button class="btn bo" style="color:var(--rd);border-color:var(--rd)" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'reprovado\')">Reprovar</button>' +
+      '<button class="btn bo" style="color:var(--rd);border-color:var(--rd)" onclick="abrirReprovarDocEmpresa(\'' + d.id + '\')">Reprovar</button>' +
       '<button class="btn bo" style="color:#6b7280;border-color:#d1d5db" onclick="avaliarDocEmpresa(\'' + d.id + '\',\'nao_se_aplica\')">Nao se Aplica</button>' +
       '</div>';
   }
@@ -4461,6 +4486,13 @@ function renderAreaDoc() {
   }
   // rastreabilidade
   var rastro = d.avaliado_por ? ('<div style="font-size:11px;color:var(--k5);margin-top:6px">' + (d.status === 'aprovado' ? 'Aprovado' : (d.status === 'reprovado' ? 'Reprovado' : 'Marcado como Nao se Aplica')) + ' por: ' + d.avaliado_por + (d.avaliado_em ? ' em ' + new Date(d.avaliado_em).toLocaleString('pt-BR') : '') + '</div>') : '';
+  // motivo da reprovacao (parecer do fiscal)
+  var motivoHtml = '';
+  if (d.status === 'reprovado' && d.parecer_fiscal) {
+    motivoHtml = '<div style="margin-top:10px;background:#fef2f2;border:1px solid #fecaca;border-left:4px solid #dc2626;border-radius:8px;padding:10px 14px">' +
+      '<div style="font-size:11px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.3px">&#10060; Motivo da reprovacao</div>' +
+      '<div style="font-size:13px;color:#7f1d1d;margin-top:4px;white-space:pre-wrap;word-break:break-word">' + escHtml(d.parecer_fiscal) + '</div></div>';
+  }
   // visualizador PDF
   var viewer = '';
   if (d.arquivo_url) {
@@ -4500,7 +4532,7 @@ function renderAreaDoc() {
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;width:100%;box-sizing:border-box">' +
     '<div style="flex:1;min-width:240px;max-width:100%"><h3 style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800;word-break:break-word">' + d.doc_tipo + '</h3>' +
     '<div style="font-size:13px;color:var(--k5);word-break:break-word">' + (d.doc_descricao || '') + '</div>' +
-    '<div style="margin-top:8px">' + stBadge + '</div>' + vencHtml + rastro + btnExcluirDoc + '</div>' +
+    '<div style="margin-top:8px">' + stBadge + '</div>' + vencHtml + rastro + motivoHtml + btnExcluirDoc + '</div>' +
     btnsAval + '</div>' +
     uploadHtml + viewer + extrasHtml + '</div>';
 }
@@ -4645,15 +4677,48 @@ async function anexarDocumentoEmpresa() {
   }
 }
 
-async function avaliarDocEmpresa(id, novoStatus) {
+// Abre o modal de motivo antes de reprovar um documento de legalizacao
+function abrirReprovarDocEmpresa(id) {
+  var perm = ehPerfil();
+  if (!perm.fiscal) { alert('Apenas o fiscal pode reprovar.'); return; }
+  var hid = document.getElementById('rdoc-doc-id'); if (hid) hid.value = id;
+  var ta = document.getElementById('rdoc-motivo'); if (ta) ta.value = '';
+  sm('m-reprovar-doc');
+  setTimeout(function(){ var t = document.getElementById('rdoc-motivo'); if (t) t.focus(); }, 100);
+}
+
+// Confirma a reprovacao com o motivo digitado no modal
+async function confirmarReprovarDocEmpresa() {
+  var id = (document.getElementById('rdoc-doc-id') || {}).value;
+  var motivo = (document.getElementById('rdoc-motivo') || {}).value;
+  motivo = (motivo || '').trim();
+  if (!id) { alert('Documento nao identificado.'); return; }
+  if (!motivo) { alert('Descreva o motivo da reprovacao.'); var t = document.getElementById('rdoc-motivo'); if (t) t.focus(); return; }
+  var btn = document.getElementById('btn-reprovar-doc');
+  if (btn) { btn.disabled = true; btn.textContent = 'Reprovando...'; }
+  try {
+    await avaliarDocEmpresa(id, 'reprovado', motivo);
+    hm('m-reprovar-doc');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Reprovar e notificar'; }
+  }
+}
+
+async function avaliarDocEmpresa(id, novoStatus, motivo) {
   var perm = ehPerfil();
   if (!perm.fiscal) { alert('Apenas o fiscal pode aprovar ou reprovar.'); return; }
   if (usr.p !== 'Admin Sistema' && usr.municipio_nome && empresaAtual && empresaAtual.municipio && usr.municipio_nome !== empresaAtual.municipio) {
     alert('Voce so pode avaliar documentos de empresas do seu municipio (' + usr.municipio_nome + ').');
     return;
   }
-  var label = novoStatus === 'aprovado' ? 'APROVAR' : (novoStatus === 'reprovado' ? 'REPROVAR' : 'MARCAR COMO NAO SE APLICA');
-  if (!confirm('Confirma ' + label + ' este documento?')) return;
+  // Reprovacao passa pelo modal de motivo (abrirReprovarDocEmpresa) e nao usa o confirm generico
+  if (novoStatus === 'reprovado') {
+    motivo = (motivo || '').trim();
+    if (!motivo) { alert('Descreva o motivo da reprovacao.'); return; }
+  } else {
+    var label = novoStatus === 'aprovado' ? 'APROVAR' : 'MARCAR COMO NAO SE APLICA';
+    if (!confirm('Confirma ' + label + ' este documento?')) return;
+  }
   try {
     // Buscar dados do documento (para saber se tem PDF a carimbar)
     var docInfo = await supaGet('documentos_empresa', 'select=arquivo_caminho,arquivo_nome&id=eq.' + id);
@@ -4663,8 +4728,29 @@ async function avaliarDocEmpresa(id, novoStatus) {
     await supaUpdate('documentos_empresa', id, {
       status: novoStatus,
       avaliado_por: assinaturaFiscal,
-      avaliado_em: new Date().toISOString()
+      avaliado_em: new Date().toISOString(),
+      parecer_fiscal: novoStatus === 'reprovado' ? motivo : null
     });
+
+    // Reprovacao: notificar estabelecimento (produtor) e fiscal por e-mail
+    if (novoStatus === 'reprovado') {
+      try {
+        var respN = await fetch(SUPA_URL + '/functions/v1/notificar-reprovacao', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
+          body: JSON.stringify({
+            documento_id: id,
+            motivo: motivo,
+            fiscal_nome: assinaturaFiscal,
+            fiscal_email: (usr && usr.email) || ''
+          })
+        });
+        var rnj = await respN.json().catch(function(){ return null; });
+        if (!rnj || !rnj.ok) { console.log('Notificacao de reprovacao nao enviada:', rnj && (rnj.erro || rnj.erros)); }
+      } catch (errNot) {
+        console.log('Erro ao notificar reprovacao (a avaliacao foi salva mesmo assim):', errNot);
+      }
+    }
 
     // Caminho B: carimbar marca d'agua embutida no PDF (sai na impressao)
     if (temPdf) {
