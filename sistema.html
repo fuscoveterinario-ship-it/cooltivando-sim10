@@ -864,25 +864,6 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
       </div>
     </div>
 
-    <!-- MODAL REPROVAR DOCUMENTO DE LEGALIZACAO (agroindustria) -->
-    <div class="mo" id="m-reprovar-doc" onclick="cm(event,this)">
-      <div class="mb">
-        <div class="mh"><h3>Reprovar documento</h3><button class="mc" onclick="hm('m-reprovar-doc')">x</button></div>
-        <div class="fm">
-          <div class="fm1">
-            <label class="fl">Motivo da reprovacao <span style="color:var(--rd)">*</span></label>
-            <textarea class="fi" id="rdoc-motivo" rows="4" placeholder="Descreva o que esta incorreto ou faltando e o que o estabelecimento precisa corrigir..."></textarea>
-            <div style="font-size:11px;color:var(--k5);margin-top:6px">Este motivo sera registrado no documento e enviado por e-mail ao estabelecimento e ao fiscal.</div>
-          </div>
-        </div>
-        <input type="hidden" id="rdoc-doc-id">
-        <div class="fact">
-          <button class="btn bo" onclick="hm('m-reprovar-doc')">Cancelar</button>
-          <button class="btn bsm" id="btn-reprovar-doc" style="background:#ef4444;color:#fff;font-weight:700" onclick="confirmarReprovarDocEmpresa()">Reprovar e notificar</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Tab Checklist -->
     <div class="tab-c" id="sa-tab-insp">
       <div class="cd" style="padding:20px">
@@ -1191,6 +1172,9 @@ select.fi{background:var(--white)}.fact{display:flex;gap:10px;padding:0 20px 20p
 </div>
 </div></div>
 <div class="mo" id="m-anexar" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Anexar Documento</h3><button class="mc" onclick="hm('m-anexar')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Jornada de Legalizacao <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-jornada" onchange="carregarDocsDaJornada()"><option value="">Selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Documento <span style="color:var(--rd)">*</span></label><select class="fi" id="anexar-tipo" onchange="toggleValidadeAnexar()"><option value="">Primeiro selecione a jornada...</option></select></div><div class="fm1"><label class="fl">Arquivo PDF <span style="color:var(--rd)">*</span></label><input class="fi" type="file" id="anexar-file" accept="application/pdf"></div><div class="fm1" id="anexar-validade-box" style="display:none"><label class="fl">Data de validade <span style="color:var(--rd)">*</span></label><input class="fi" type="date" id="anexar-validade"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-anexar')">Cancelar</button><button class="btn bg" id="btn-anexar-salvar" onclick="anexarDocumentoEmpresa()">Anexar documento</button></div></div></div>
+
+<!-- MODAL REPROVAR DOCUMENTO DE LEGALIZACAO (agroindustria) - nivel global -->
+<div class="mo" id="m-reprovar-doc" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Reprovar documento</h3><button class="mc" onclick="hm('m-reprovar-doc')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Motivo da reprovacao <span style="color:var(--rd)">*</span></label><textarea class="fi" id="rdoc-motivo" rows="4" placeholder="Descreva o que esta incorreto ou faltando e o que o estabelecimento precisa corrigir..."></textarea><div style="font-size:11px;color:var(--k5);margin-top:6px">Este motivo sera registrado no documento e enviado por e-mail ao estabelecimento e ao fiscal.</div></div></div><input type="hidden" id="rdoc-doc-id"><div class="fact"><button class="btn bo" onclick="hm('m-reprovar-doc')">Cancelar</button><button class="btn bsm" id="btn-reprovar-doc" style="background:#ef4444;color:#fff;font-weight:700" onclick="confirmarReprovarDocEmpresa()">Reprovar e notificar</button></div></div></div>
 <div class="mo" id="m-editprod" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Editar Produtor</h3><button class="mc" onclick="hm('m-editprod')">x</button></div><div class="fm"><div class="fm1"><label class="fl">Nome</label><input class="fi" id="editprod-nome" type="text"></div><div class="fm1"><label class="fl">CPF</label><input class="fi" id="editprod-cpf" type="text"></div><div class="fm1"><label class="fl">Municipio</label><select class="fi" id="editprod-municipio"></select></div></div><div class="fact"><button class="btn bo" onclick="hm('m-editprod')">Cancelar</button><button class="btn bg" id="btn-editprod-salvar" onclick="salvarEditarProdutor()">Salvar alteracoes</button></div></div></div>
 <div class="mo" id="m-editemp" onclick="cm(event,this)"><div class="mb"><div class="mh"><h3>Editar Empresa</h3><button class="mc" onclick="hm('m-editemp')">x</button></div><div class="fm"><div class="fm1"><label class="fl">CADPRO</label><input class="fi" id="edit-cadpro" type="text"></div><div class="fm1"><label class="fl">Telefone</label><input class="fi" id="edit-tel" type="text" placeholder="(00) 00000-0000"></div><div class="fm1"><label class="fl">CEP</label><input class="fi" id="edit-cep" type="text" placeholder="00000-000"></div><div class="fm1"><label class="fl">Endereco</label><input class="fi" id="edit-end" type="text"></div><div class="fm1"><label class="fl">Bairro</label><input class="fi" id="edit-bairro" type="text"></div></div><div class="fact"><button class="btn bo" onclick="hm('m-editemp')">Cancelar</button><button class="btn bg" id="btn-editemp-salvar" onclick="salvarEditarEmpresa()">Salvar alteracoes</button></div></div></div>
 
