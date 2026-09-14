@@ -4413,9 +4413,21 @@ function renderCarrossel() {
     else { corBorda = '#eab308'; corFundo = sel ? '#fefce8' : 'var(--white)'; }
     var larguraBorda = sel ? '3px' : '2px';
     var stIcon = d.status === 'aprovado' ? '&#9989; ' : (d.status === 'reprovado' ? '&#10060; ' : (d.status === 'nao_se_aplica' ? '&#8212; ' : ''));
-    h += '<div onclick="selecionarDoc(' + i + ')" style="min-width:200px;max-width:200px;cursor:pointer;border:' + larguraBorda + ' solid ' + corBorda + ';border-radius:10px;padding:14px;background:' + corFundo + '">' +
-      '<div style="font-weight:700;font-size:13px;color:var(--g7)">' + stIcon + d.doc_tipo + '</div>' +
-      (d.arquivo_nome ? '<div style="font-size:11px;color:var(--k5);margin-top:6px">&#128206; ' + d.arquivo_nome + '</div>' : '<div style="font-size:11px;color:var(--k5);margin-top:6px">Sem arquivo</div>') +
+    var stLabel = d.status === 'aprovado' ? 'Documento Aprovado'
+      : (d.status === 'reprovado' ? 'Documento Reprovado'
+      : (d.status === 'nao_se_aplica' ? 'Nao se aplica' : 'Aguardando avaliacao'));
+    // Fiscal + data da avaliacao no proprio card (quando ja avaliado)
+    var rastroCard = '';
+    if (d.avaliado_por) {
+      rastroCard = '<div style="font-size:10px;color:var(--k5);margin-top:8px;border-top:1px dashed ' + corBorda + ';padding-top:6px">' +
+        'Fiscal: ' + escHtml(d.avaliado_por) +
+        (d.avaliado_em ? '<br>' + new Date(d.avaliado_em).toLocaleString('pt-BR') : '') + '</div>';
+    }
+    h += '<div onclick="selecionarDoc(' + i + ')" title="Clique para abrir e avaliar" style="min-width:210px;max-width:210px;cursor:pointer;border:' + larguraBorda + ' solid ' + corBorda + ';border-radius:10px;padding:14px;background:' + corFundo + '">' +
+      '<div style="display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:' + corBorda + '">' + stIcon + stLabel + '</div>' +
+      '<div style="font-weight:700;font-size:13px;color:var(--g7);margin-top:6px">' + escHtml(d.doc_tipo) + '</div>' +
+      (d.arquivo_nome ? '<div style="font-size:11px;color:var(--k5);margin-top:6px">&#128206; ' + escHtml(d.arquivo_nome) + '</div>' : '<div style="font-size:11px;color:var(--k5);margin-top:6px">Sem arquivo</div>') +
+      rastroCard +
       '</div>';
   });
   h += '</div>';
