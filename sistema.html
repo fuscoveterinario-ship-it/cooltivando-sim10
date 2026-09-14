@@ -4402,31 +4402,33 @@ function renderCarrossel() {
   if (!el) return;
   var docsJ = docsDaJornadaAberta();
   if (docSelecionadoIdx >= docsJ.length) docSelecionadoIdx = 0;
-  var h = '<div style="display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;padding:4px 2px 10px">';
+  var h = '<div style="display:flex;gap:12px;overflow-x:auto;padding:4px 0 14px;max-width:100%">';
   docsJ.forEach(function(d, i) {
     var sel = (i === docSelecionadoIdx);
-    // Cor solida do botao conforme status: aprovado=verde, reprovado=vermelho, nao se aplica=cinza, aguardando=amarelo
-    var corSolida, tint;
-    if (d.status === 'aprovado') { corSolida = '#16a34a'; tint = '#f0fdf4'; }
-    else if (d.status === 'reprovado') { corSolida = '#dc2626'; tint = '#fef2f2'; }
-    else if (d.status === 'nao_se_aplica') { corSolida = '#6b7280'; tint = '#f9fafb'; }
-    else { corSolida = '#ca8a04'; tint = '#fefce8'; }
-    var stIcon = d.status === 'aprovado' ? '&#9989;' : (d.status === 'reprovado' ? '&#10060;' : (d.status === 'nao_se_aplica' ? '&#8212;' : '&#128196;'));
+    // Cor da borda conforme status: aprovado=verde, reprovado=vermelho, ainda nao avaliado=laranja, nao se aplica=cinza
+    var corBorda, corFundo;
+    if (d.status === 'aprovado') { corBorda = '#16a34a'; corFundo = sel ? '#f0fdf4' : 'var(--white)'; }
+    else if (d.status === 'reprovado') { corBorda = '#dc2626'; corFundo = sel ? '#fef2f2' : 'var(--white)'; }
+    else if (d.status === 'nao_se_aplica') { corBorda = '#9ca3af'; corFundo = sel ? '#f9fafb' : 'var(--white)'; }
+    else { corBorda = '#f97316'; corFundo = sel ? '#fff7ed' : 'var(--white)'; }
+    var larguraBorda = sel ? '3px' : '2px';
+    var stIcon = d.status === 'aprovado' ? '&#9989; ' : (d.status === 'reprovado' ? '&#10060; ' : (d.status === 'nao_se_aplica' ? '&#8212; ' : '&#128992; '));
     var stLabel = d.status === 'aprovado' ? 'Documento Aprovado'
       : (d.status === 'reprovado' ? 'Documento Reprovado'
       : (d.status === 'nao_se_aplica' ? 'Nao se aplica' : 'Aguardando avaliacao'));
-    var num = (String(d.doc_tipo || '').match(/^\s*(\d+)/) || [])[1] || (i + 1);
-    var rastro = d.avaliado_por
-      ? ('Fiscal: ' + escHtml(d.avaliado_por) + (d.avaliado_em ? ' &middot; ' + new Date(d.avaliado_em).toLocaleString('pt-BR') : ''))
-      : (d.arquivo_nome ? 'Aguardando avaliacao' : 'Sem arquivo enviado');
-    h += '<div onclick="selecionarDoc(' + i + ')" title="Clique para abrir e avaliar" style="display:flex;align-items:center;gap:14px;cursor:pointer;border:1px solid ' + (sel ? corSolida : 'var(--g2)') + ';border-left:5px solid ' + corSolida + ';border-radius:12px;padding:10px 14px;background:' + (sel ? tint : 'var(--white)') + '">' +
-      '<button type="button" onclick="selecionarDoc(' + i + ');event.stopPropagation()" style="flex:none;min-width:135px;background:' + corSolida + ';color:#fff;border:none;border-radius:24px;padding:10px 18px;font-weight:800;font-size:13px;cursor:pointer;box-shadow:' + (sel ? '0 0 0 3px rgba(0,0,0,.10)' : 'none') + '">' + stIcon + ' Documento ' + num + '</button>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:' + corSolida + '">' + stLabel + '</div>' +
-        '<div style="font-weight:700;font-size:13px;color:var(--g7);margin-top:2px;word-break:break-word">' + escHtml(d.doc_tipo) + '</div>' +
-        '<div style="font-size:11px;color:var(--k5);margin-top:3px">' + rastro + '</div>' +
-      '</div>' +
-    '</div>';
+    // Fiscal + data da avaliacao no proprio card (quando ja avaliado)
+    var rastroCard = '';
+    if (d.avaliado_por) {
+      rastroCard = '<div style="font-size:10px;color:var(--k5);margin-top:8px;border-top:1px dashed ' + corBorda + ';padding-top:6px">' +
+        'Fiscal: ' + escHtml(d.avaliado_por) +
+        (d.avaliado_em ? '<br>' + new Date(d.avaliado_em).toLocaleString('pt-BR') : '') + '</div>';
+    }
+    h += '<div onclick="selecionarDoc(' + i + ')" title="Clique para abrir e avaliar" style="min-width:210px;max-width:210px;cursor:pointer;border:' + larguraBorda + ' solid ' + corBorda + ';border-radius:10px;padding:14px;background:' + corFundo + '">' +
+      '<div style="display:inline-block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:' + corBorda + '">' + stIcon + stLabel + '</div>' +
+      '<div style="font-weight:700;font-size:13px;color:var(--g7);margin-top:6px">' + escHtml(d.doc_tipo) + '</div>' +
+      (d.arquivo_nome ? '<div style="font-size:11px;color:var(--k5);margin-top:6px">&#128206; ' + escHtml(d.arquivo_nome) + '</div>' : '<div style="font-size:11px;color:var(--k5);margin-top:6px">Sem arquivo</div>') +
+      rastroCard +
+      '</div>';
   });
   h += '</div>';
   el.innerHTML = h;
